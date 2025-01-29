@@ -11,6 +11,13 @@ const Footer = () => {
           transition={{ duration: 0.5 }}
         >
           <h3 className="text-xl font-bold text-blue mb-4">Contanct Us</h3>
+          <div className="space-y-3">
+            <a href="mailto:campusbeacon0@gmail.com">
+                <HiMail className="mr-2" size={20} />
+                <span>campusbeacon0@gmail.com</span>
+            </a>
+
+          </div>
         </motion.div>
       </div>
     </div>
