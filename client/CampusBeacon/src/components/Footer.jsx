@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-
+import {HiMail} from "react-icons/hi";
 const Footer = () => {
   return (
     <div className="bg-gradient-to-b from blue-900 to-black text-white py-7">
