@@ -3,27 +3,36 @@ import { motion } from "framer-motion";
 function LoginSignup() {
   const [isSignUp, setIsSignUP] = useState(false);
 
+
+  const handleSignUP = async (e) => {
+    e.preventDefault();
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+  }
+
   return (
+    // Outter Box of the login signup page
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center">
       <motion.div
         inital={{ opacity: 0, scale: 0.7 }}
         animate={{ opacity: 1, scale: 0.8 }}
-        className="relative w-[900px] h-[700px] rounded-2xl overflow-hidden flex"
+        className="relative w-[1000px] h-[700px] rounded-2xl overflow-hidden flex"
         style={{
           background: "rgba(0,0,0,5)",
           backdropFilter: "blur(50px)",
         }}
       >
+      {/* Sliding Overlay over the page */}
         <motion.div
           animate={{ x: isSignUp ? "100%" : "0%" }}
           transition={{ type: "silde", stiffness: 300, damping: 30 }}
           className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
           style={{
-            boxShadow:"0 0 50px rgba(153,113,248,0.5)",
+            boxShadow:"0 0 50px rgba(139,92,246,0.5)",
             background:"rgba(153,113,248,0.5)"
           }}
         >
-          <div className="w-full h-full bg-purple-900 backdrop-blur-sm flex flex-col items-center justify-center mb-11">
+          <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-11">
             <h2 className="text-3xl font-bold text-white mb-2">
               {isSignUp ? "Welcome Back" : "New Here?"}
             </h2>
@@ -40,6 +49,16 @@ function LoginSignup() {
             </button>
           </div>
         </motion.div>
+
+        {/* Left side - Sign Up page */}
+
+        <div>
+          <h2 className="text-white text-3xl font-bold mb-7">
+            Create New Account
+          </h2>
+          <form onSubmit={handleSignUP} className="space-y-6">
+          </form>
+        </div>
       </motion.div>
     </div>
   );
