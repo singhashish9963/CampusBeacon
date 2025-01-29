@@ -12,6 +12,7 @@
   "type": "module",
   "description": "",
   "dependencies": {
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "nodemon": "^3.1.9",
     "server": "^0.0.3"
