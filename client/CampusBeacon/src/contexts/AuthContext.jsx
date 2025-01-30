@@ -1,16 +1,18 @@
 import React, { createContext, useState, useContext } from "react";
 import { handleApiCall } from "../services/apiService"; 
 
-const AuthContext = createContext();
+const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [isForgetPassword, setIsForgetPassword] = useState(false);
+  const [isSignIn, setIsSignIn] = useState(false);
   const [user, setUser] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleAuth = async (endpoint, data) => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await handleApiCall(endpoint, data);
       if (response.token) {
@@ -57,6 +59,8 @@ export const AuthProvider = ({ children }) => {
         case "resetPassword":
           await handleResetPassword(email, password);
           break;
+        default:
+          throw new Error("Invalid action type");
       }
     } catch (err) {
       console.error("Form submission error:", err);
@@ -73,11 +77,15 @@ export const AuthProvider = ({ children }) => {
       value={{
         isSignUp,
         setIsSignUp,
+        isSignIn,
+        setIsSignIn,
         isForgetPassword,
         setIsForgetPassword,
         handleSubmit,
         user,
         logout,
+        loading,
+        error,
       }}
     >
       {children}
