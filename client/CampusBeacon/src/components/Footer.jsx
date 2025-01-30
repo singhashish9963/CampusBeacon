@@ -90,12 +90,11 @@ const Footer = () => {
                   <FaGithub className={IconHoverStyle} size={24} />
                 </a>
               </div>
-
-              <FaLinkedin
-                className={IconHoverStyle}
-                size={24}
-                href="https://www.linkedin.com/in/ayush-jadaun-677199311/"
-              />
+              <div>
+                <a href="https://www.linkedin.com/in/ayush-agarwal-108127311/">
+                  <FaLinkedin className={IconHoverStyle} size={24} />
+                </a>
+              </div>
               <div>
                 <a href="mailto:ayushjadaun6@gmail.com">
                   <FaEnvelope className={IconHoverStyle} size={24} />
