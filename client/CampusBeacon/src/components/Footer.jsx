@@ -19,7 +19,7 @@ const Footer = () => {
             </a>
             <a
             href="tel:+919548999129"
-           className="flex items-center hover:text-blue-400 transition-colors">
+            className="flex items-center hover:text-blue-400 transition-colors">
             <HiPhone className="mr-2" size={20}/>
             <span>+91 9548999129</span>
             </a>

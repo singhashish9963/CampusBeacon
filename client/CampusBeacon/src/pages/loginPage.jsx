@@ -74,6 +74,31 @@ function LoginSignup() {
             </motion.div>
           </form>
         </div>
+        {/* Right side - Log In Page */}
+
+        <div className="w-1/2 p-15">
+          <h2 className="text-white text-3xl font-bold mb-7">
+            Welcome Back
+          </h2>
+          <form onSubmit={handleSignUP} className="space-y-6">
+            <motion.dv whileTap={{ scale: 0.8 }}>
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your college email id"
+                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
+              />
+            </motion.dv>
+            <motion.div whileTap={{ scale: 0.8 }}>
+              <input
+                type="password"
+                name="password"
+                placeholder="Create a password"
+                className="w-full p-4 bg-white/5 rounded-lg text-white"
+              />
+            </motion.div>
+          </form>
+        </div>
       </motion.div>
     </div>
   );
