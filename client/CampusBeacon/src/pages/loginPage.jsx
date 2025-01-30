@@ -7,7 +7,7 @@ function LoginSignup() {
     e.preventDefault();
     const email = e.target.email.value;
     const password = e.target.password.value;
-  }
+  };
 
   return (
     // Outter Box of the login signup page
@@ -21,14 +21,14 @@ function LoginSignup() {
           backdropFilter: "blur(50px)",
         }}
       >
-      {/* Sliding Overlay over the page */}
+        {/* Sliding Overlay over the page */}
         <motion.div
           animate={{ x: isSignUp ? "100%" : "0%" }}
           transition={{ type: "silde", stiffness: 300, damping: 30 }}
           className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
           style={{
-            boxShadow:"0 0 50px rgba(139,92,246,0.5)",
-            background:"rgba(153,113,248,0.5)"
+            boxShadow: "0 0 50px rgba(139,92,246,0.5)",
+            background: "rgba(153,113,248,0.5)",
           }}
         >
           <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-11">
@@ -51,29 +51,25 @@ function LoginSignup() {
 
         {/* Left side - Sign Up page */}
 
-        <div>
+        <div className="w-1/2 p-15">
           <h2 className="text-white text-3xl font-bold mb-7">
             Create New Account
           </h2>
           <form onSubmit={handleSignUP} className="space-y-6">
-            <motion.dv 
-            whileTap={{scale:0.8}}
-            >
+            <motion.dv whileTap={{ scale: 0.8 }}>
               <input
-              type="email"
-              name="email"
-              placeholder="Enter your college email id"
-              className="w-full p-4 bg-white/5 rounded-lg text-white"
+                type="email"
+                name="email"
+                placeholder="Enter your college email id"
+                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
               />
             </motion.dv>
-            <motion.div 
-            whileTap={{scale:0.8}}
-            >
-              <input 
-              type="password"
-              name="password"
-              placeholder="Create a password"
-              className="w-full p-4 bg-white/5 rounded-lg text-white"
+            <motion.div whileTap={{ scale: 0.8 }}>
+              <input
+                type="password"
+                name="password"
+                placeholder="Create a password"
+                className="w-full p-4 bg-white/5 rounded-lg text-white"
               />
             </motion.div>
           </form>
