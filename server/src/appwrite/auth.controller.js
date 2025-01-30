@@ -1,4 +1,4 @@
-import { Client, ID, Account } from "appwrite";
+import { Client, ID, Account, OAuthProvider } from "appwrite";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
@@ -8,24 +8,7 @@ const client = new Client()
 
 const account = new Account(client);
 
-const validatePassword = (password) => {
-  const minLength = 8;
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
 
-  if (
-    password.length < minLength ||
-    !hasUpperCase ||
-    !hasLowerCase ||
-    !hasNumbers
-  ) {
-    throw new ApiError(
-      400,
-      "Password must be at least 8 characters and contain uppercase, lowercase, and numbers"
-    );
-  }
-};
 
 const signUpUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -38,7 +21,7 @@ const signUpUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Only official college emails are allowed");
   }
 
-  validatePassword(password);
+ 
 
   try {
     const signedUp = await account.create(ID.unique(), email, password);
@@ -143,6 +126,26 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     throw new ApiError(500, error.message || "Failed to get current user");
   }
 });
+
+const loginGoogle=asyncHandler(async()=>{
+  try{
+    await account.createOAuth2Session("google","http://localhost:5000")
+
+  }catch(err){
+    console.error("Login failed", err)
+  }
+
+})
+
+
+ 
+
+
+
+
+
+
+
 
 export {
   signUpUser,
