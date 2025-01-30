@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import ButtonColourfull from "../components/ButtonColourfull.jsx";
+
 function LoginSignup() {
   const [isSignUp, setIsSignUP] = useState(false);
 
@@ -72,6 +74,7 @@ function LoginSignup() {
                 className="w-full mt-7 p-4 text-xl bg-purple-500/15 rounded-lg text-white"
               />
             </motion.div>
+            <ButtonColourfull text="Submit" type="submit" />
           </form>
         </div>
         {/* Right side - Log In Page */}
