@@ -1,5 +1,7 @@
 import users from "../models/user.model";
 import ApiResponse from "../utils/apiResponse";
+import ApiError from '../utils/apiError.js';
+import asyncHandler from '../utils/asyncHandler.js';
 
 export const createUser= async(req,res)=>{
     const {
@@ -61,3 +63,31 @@ export const createUser= async(req,res)=>{
     }
 };
 
+export const getUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    
+   
+    if (!id || !id.trim()) {
+        throw new ApiError(400, "User ID is required");
+    }
+
+
+    if ( req.user.id !== id) {
+        throw new ApiError(403, "Unauthorized access");
+    }
+
+    const user = await users.findByPk(id, {
+        attributes: ['id', 'name', 'email','createdAt'], 
+        where: { isActive: true }
+    });
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json({
+        success: true,
+        data: user,
+        message: "User fetched successfully"
+    });
+});
