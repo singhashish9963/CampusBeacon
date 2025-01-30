@@ -129,13 +129,15 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 
 const loginGoogle=asyncHandler(async()=>{
   try{
-    await account.createOAuth2Session("google","http://localhost:5000")
+    await account.createOAuth2Session("google","http://localhost:5173/","/failure_url")
 
   }catch(err){
     console.error("Login failed", err)
   }
 
 })
+
+
 
 
  
