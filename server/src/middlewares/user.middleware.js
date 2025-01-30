@@ -19,8 +19,8 @@ export const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: "No token provided" });
     }
 
-    // Validate the JWT by checking the current session
-    const user = await account.updateSession("current", jwt); // Update session based on JWT
+
+    const user = await account.get();
 
     req.user = {
       id: user.$id,
