@@ -32,17 +32,17 @@ function LoginSignup() {
           }}
         >
           <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-11">
-            <h2 className="text-3xl font-bold text-white mb-2">
-              {isSignUp ? "Welcome Back" : "New Here?"}
+            <h2 className="text-4xl font-bold text-white mb-2">
+              {isSignUp ? "Welcome Back!" : "New Here?"}
             </h2>
-            <p className="text-white text-center mb-7">
+            <p className="text-white text-center mb-7 text-l">
               {isSignUp
                 ? "Already have an account? Sign in to continue"
                 : "Sign up to start a new journey"}
             </p>
             <button
               onClick={() => setIsSignUP(!isSignUp)}
-              className="px-7 py-3 border-5 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all mb-2"
+              className="px-7 py-3 text-m border-5 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all mb-2"
             >
               {isSignUp ? "Sign In" : "Sign Up"}
             </button>
@@ -52,24 +52,24 @@ function LoginSignup() {
         {/* Left side - Sign Up page */}
 
         <div className="w-1/2 p-15">
-          <h2 className="text-white text-3xl font-bold mb-7">
+          <h2 className="text-white text-4xl font-bold mb-7">
             Create New Account
           </h2>
           <form onSubmit={handleSignUP} className="space-y-6">
-            <motion.dv whileTap={{ scale: 0.8 }}>
+            <motion.dv whileTap={{ scale: 0.98 }}>
               <input
                 type="email"
                 name="email"
                 placeholder="Enter your college email id"
-                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
+                className="mt-4 w-full p-4 text-xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
               />
             </motion.dv>
-            <motion.div whileTap={{ scale: 0.8 }}>
+            <motion.div whileTap={{ scale: 0.98 }}>
               <input
                 type="password"
                 name="password"
                 placeholder="Create a password"
-                className="w-full p-4 bg-white/5 rounded-lg text-white"
+                className="w-full mt-7 p-4 text-xl bg-purple-500/15 rounded-lg text-white"
               />
             </motion.div>
           </form>
@@ -77,24 +77,22 @@ function LoginSignup() {
         {/* Right side - Log In Page */}
 
         <div className="w-1/2 p-15">
-          <h2 className="text-white text-3xl font-bold mb-7">
-            Welcome Back
-          </h2>
+          <h2 className="text-white text-4xl font-bold mb-7">Welcome Back</h2>
           <form onSubmit={handleSignUP} className="space-y-6">
-            <motion.dv whileTap={{ scale: 0.8 }}>
+            <motion.dv whileTap={{ scale: 0.98 }}>
               <input
                 type="email"
                 name="email"
                 placeholder="Enter your college email id"
-                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
+                className="w-full mt-4 p-4 text-xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
               />
             </motion.dv>
-            <motion.div whileTap={{ scale: 0.8 }}>
+            <motion.div whileTap={{ scale: 0.98 }}>
               <input
                 type="password"
                 name="password"
-                placeholder="Create a password"
-                className="w-full p-4 bg-white/5 rounded-lg text-white"
+                placeholder="Enter your password"
+                className="w-full mt-7 p-4 text-xl bg-purple-500/15 rounded-lg text-white"
               />
             </motion.div>
           </form>
