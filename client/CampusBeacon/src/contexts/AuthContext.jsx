@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       setError(response.message);
-      return response; // { success: false, message: "Error message" }
+      return response; 
     } catch (error) {
       setError(error.message);
       return { success: false, message: error.message };

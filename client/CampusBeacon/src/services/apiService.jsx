@@ -1,8 +1,10 @@
-import axios from 'axios'
+import axios from "axios";
+
+const BASE_URL = "http://localhost:5000"; 
 
 export const handleApiCall = async (endpoint, data) => {
   try {
-    const response = await axios.post(endpoint, data);
+    const response = await axios.post(`${BASE_URL}${endpoint}`, data); 
     if (response.data.token) {
       localStorage.setItem("authToken", response.data.token);
     }

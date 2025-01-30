@@ -4,7 +4,6 @@ import {
   loginUser,
   forgetPassword,
   getCurrentUser,
-  emailVerification,
   resetPassword,
 } from "../appwrite/auth.controller.js";
 import { createUser,deleteUser,getUser } from "../controllers/user.controller.js";
@@ -15,7 +14,7 @@ const router = express.Router();
 
 router.post("/signup",emailMiddleware, signUpUser);
 router.post("/login",emailMiddleware, loginUser);
-router.post("/verify-email", emailVerification);
+// router.post("/verify-email", emailVerification);
 router.post("/forget-password", forgetPassword);
 router.post("/reset-password", resetPassword); 
 router.get("/get-user",getUser)

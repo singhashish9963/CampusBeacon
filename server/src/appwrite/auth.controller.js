@@ -3,9 +3,11 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
-const client = new Client()
-    .setProject(process.env.APPWRITE_PROJECT_ID)
-    .setEndpoint(process.env.APPWRITE_ENDPOINT);
+const client =
+  new Client()
+    .setProject(process.env.APPWRITE_PROJECT_ID || "679a6e2d0021917d3cba")
+    .setEndpoint(process.env.APPWRITE_ENDPOINT ||
+  "https://cloud.appwrite.io/v1");
 
 const account = new Account(client);
 
