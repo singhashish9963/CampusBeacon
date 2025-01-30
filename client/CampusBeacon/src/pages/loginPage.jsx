@@ -37,14 +37,14 @@ function LoginSignup() {
             <h2 className="text-4xl font-bold text-white mb-2">
               {isSignUp ? "Welcome Back!" : "New Here?"}
             </h2>
-            <p className="text-white text-center mb-7 text-l">
+            <p className="text-white text-center mb-7 text-xl">
               {isSignUp
                 ? "Already have an account? Sign in to continue"
                 : "Sign up to start a new journey"}
             </p>
             <button
               onClick={() => setIsSignUP(!isSignUp)}
-              className="px-7 py-3 text-m border-5 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all mb-2"
+              className="px-7 py-3 text-xl border-5 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all mb-2"
             >
               {isSignUp ? "Sign In" : "Sign Up"}
             </button>
