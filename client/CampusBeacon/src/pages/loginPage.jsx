@@ -66,6 +66,16 @@ function LoginSignup() {
               className="w-full p-4 bg-white/5 rounded-lg text-white"
               />
             </motion.dv>
+            <motion.div 
+            whileTap={{scale:0.8}}
+            >
+              <input 
+              type="password"
+              name="password"
+              placeholder="Create a password"
+              className="w-full p-4 bg-white/5 rounded-lg text-white"
+              />
+            </motion.div>
           </form>
         </div>
       </motion.div>
