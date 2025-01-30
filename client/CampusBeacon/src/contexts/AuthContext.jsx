@@ -1,76 +1,83 @@
 import React, { createContext, useState, useContext } from "react";
-import axios from "axios";
+import { handleApiCall } from "../services/apiService"; 
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [isSignUp, setIsSignUP] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [isForgetPassword, setIsForgetPassword] = useState(false);
+  const [user, setUser] = useState(null);
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleSignUp = async (email, password) => {
+  const handleAuth = async (endpoint, data) => {
     try {
-      const response = await axios.post("/signup", { email, password });
-      console.log("Sign up successful with email:", email);
+      const response = await handleApiCall(endpoint, data);
+      if (response.token) {
+        localStorage.setItem("authToken", response.token);
+        setUser(response.user);
+      }
+      return response;
     } catch (error) {
-      console.error("Error during sign up:", error);
+      setError(error.message);
+      throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleSignIn = async (email, password) => {
-    try {
-      const response = await axios.post("/login", { email, password }); // Corrected endpoint
-      console.log("Sign in successful with email:", email);
-    } catch (error) {
-      console.error("Error during sign in:", error);
-    }
-  };
+  const handleSignUp = (email, password) =>
+    handleAuth("/signup", { email, password });
 
-  const handleForgetPassword = async (email) => {
-    try {
-      const response = await axios.post("/forget-password", { email });
-      console.log("Forget password request sent for email:", email);
-    } catch (error) {
-      console.error("Error during forget password:", error);
-    }
-  };
+  const handleSignIn = (email, password) =>
+    handleAuth("/login", { email, password });
 
-  const handleResetPassword = async (email, password) => {
-    try {
-      const response = await axios.post("/reset-password", { email, password });
-      console.log("Reset password successful for email:", email);
-    } catch (error) {
-      console.error("Error during reset password:", error);
-    }
-  };
+  const handleForgetPassword = (email) =>
+    handleAuth("/forget-password", { email });
 
-  const handleSubmit = (e, actionType) => {
+  const handleResetPassword = (email, password) =>
+    handleAuth("/reset-password", { email, password });
+
+  const handleSubmit = async (e, actionType) => {
     e.preventDefault();
     const email = e.target.email.value;
-    const password = e.target.password.value;
+    const password = e.target.password?.value;
 
-    if (actionType === "signUp") {
-      handleSignUp(email, password);
-    } else if (actionType === "signIn") {
-      handleSignIn(email, password);
-    } else if (actionType === "forgetPassword") {
-      handleForgetPassword(email);
-    } else if (actionType === "resetPassword") {
-      handleResetPassword(email, password);
+    try {
+      switch (actionType) {
+        case "signUp":
+          await handleSignUp(email, password);
+          break;
+        case "signIn":
+          await handleSignIn(email, password);
+          break;
+        case "forgetPassword":
+          await handleForgetPassword(email);
+          break;
+        case "resetPassword":
+          await handleResetPassword(email, password);
+          break;
+      }
+    } catch (err) {
+      console.error("Form submission error:", err);
     }
+  };
+
+  const logout = () => {
+    localStorage.removeItem("authToken");
+    setUser(null);
   };
 
   return (
     <AuthContext.Provider
       value={{
         isSignUp,
-        setIsSignUP,
+        setIsSignUp,
         isForgetPassword,
         setIsForgetPassword,
-        handleSignUp,
-        handleSignIn,
-        handleForgetPassword,
-        handleResetPassword,
         handleSubmit,
+        user,
+        logout,
       }}
     >
       {children}
@@ -78,4 +85,10 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};

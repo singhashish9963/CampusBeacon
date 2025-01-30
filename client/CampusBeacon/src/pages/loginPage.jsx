@@ -6,7 +6,7 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 function LoginSignup() {
   const {
     isSignUp,
-    setIsSignUP,
+    setIsSignUp,
     isForgetPassword,
     setIsForgetPassword,
     handleSubmit,
@@ -51,7 +51,7 @@ function LoginSignup() {
               onClick={() =>
                 isForgetPassword
                   ? setIsForgetPassword(false)
-                  : setIsSignUP(!isSignUp)
+                  : setIsSignUp(!isSignUp)
               }
               className="px-7 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all mb-2"
             >
@@ -79,7 +79,7 @@ function LoginSignup() {
                     type="email"
                     name="email"
                     placeholder="Enter your email"
-                    className="mt-4 w-full p-4 text-2xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
+                    className="mt-4 w-full p-4 text-2xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus:outline-none focus:border-purple-500 transition-all"
                     required
                   />
                 </motion.div>
@@ -88,7 +88,7 @@ function LoginSignup() {
                     type="password"
                     name="password"
                     placeholder="Enter your new password"
-                    className="mt-4 w-full p-4 text-2xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
+                    className="mt-4 w-full p-4 text-2xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus:outline-none focus:border-purple-500 transition-all"
                     required
                   />
                 </motion.div>
@@ -117,7 +117,7 @@ function LoginSignup() {
                     type="email"
                     name="email"
                     placeholder="Enter your email"
-                    className="mt-4 w-full p-4 text-2xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus-outline-none focus:border-purple-500 transition-all"
+                    className="mt-4 w-full p-4 text-2xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus:outline-none focus:border-purple-500 transition-all"
                     required
                   />
                 </motion.div>
