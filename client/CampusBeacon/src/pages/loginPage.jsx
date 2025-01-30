@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 function LoginSignup() {
   const [isSignUp, setIsSignUP] = useState(false);
 
-
   const handleSignUP = async (e) => {
     e.preventDefault();
     const email = e.target.email.value;
@@ -57,6 +56,16 @@ function LoginSignup() {
             Create New Account
           </h2>
           <form onSubmit={handleSignUP} className="space-y-6">
+            <motion.dv 
+            whileTap={{scale:0.8}}
+            >
+              <input
+              type="email"
+              name="email"
+              placeholder="Enter your college email id"
+              className="w-full p-4 bg-white/5 rounded-lg text-white"
+              />
+            </motion.dv>
           </form>
         </div>
       </motion.div>
