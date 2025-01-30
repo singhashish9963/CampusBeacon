@@ -24,7 +24,9 @@ const Footer = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h3 className="text-2xl font-bold text-blue-400 mb-4">Contanct Us</h3>
+          <h3 className="text-2xl font-bold text-blue-400 mb-4 font-mono">
+            Contanct Us
+          </h3>
           <div className="space-y-3">
             <a
               href="mailto:campusbeacon0@gmail.com"
@@ -56,7 +58,9 @@ const Footer = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h3 className="text-2xl font-bold text-blue-400 mb-4">Build With</h3>
+          <h3 className="text-2xl font-bold text-blue-400 mb-4 font-mono">
+            Build With
+          </h3>
           <div className="flex flex-wrap gap-4">
             {/* To do: Add Hyperlinks to the icons */}
 
@@ -75,7 +79,7 @@ const Footer = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <h3 className="text-2xl font-bold mb-4 text-blue-400">
+          <h3 className="text-2xl font-bold mb-4 text-blue-400 font-mono">
             Designed And Developed by
           </h3>
           <div className="flex mb-4">
