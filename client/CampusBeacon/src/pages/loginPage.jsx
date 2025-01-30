@@ -24,7 +24,7 @@ function LoginSignup() {
         {/* Sliding Overlay over the page */}
         <motion.div
           animate={{ x: isSignUp ? "100%" : "0%" }}
-          transition={{ type: "silde", stiffness: 300, damping: 30 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
           style={{
             boxShadow: "0 0 50px rgba(139,92,246,0.5)",
