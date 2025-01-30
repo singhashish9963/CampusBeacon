@@ -1,7 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { HiLocationMarker, HiMail, HiPhone } from "react-icons/hi";
-import { SiReact, SiAppwrite, SiJavascript, SiNodedotjs } from "react-icons/si";
+import {
+  SiReact,
+  SiAppwrite,
+  SiJavascript,
+  SiNodedotjs,
+  SiSocketdotio,
+} from "react-icons/si";
+
+import { BiLogoPostgresql } from "react-icons/bi";
 import IconHoverStyle from "./IconHoverStyle";
 
 const Footer = () => {
@@ -49,10 +57,12 @@ const Footer = () => {
         >
           <h3 className="text-2xl font-bold text-blue-400 mb-4">Build With</h3>
           <div className="flex flex-wrap gap-4">
-            <SiReact className={IconHoverStyle} size={24} />
-            <SiNodedotjs className={IconHoverStyle} size={24} />
             <SiJavascript className={IconHoverStyle} size={24} />
+            <SiNodedotjs className={IconHoverStyle} size={24} />
             <SiAppwrite className={IconHoverStyle} size={24} />
+            <SiSocketdotio className={IconHoverStyle} size={24} />
+            <SiReact className={IconHoverStyle} size={24} />
+            <BiLogoPostgresql className={IconHoverStyle} size={24} />
           </div>
         </motion.div>
       </div>
