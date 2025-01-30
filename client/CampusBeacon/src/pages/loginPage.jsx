@@ -40,7 +40,7 @@ const LoginSignup = () => {
           className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
           style={{
             boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
-            backgroundColor: "rgba(139, 92, 246, 0.7)", // Increased opacity of the overlay
+            backgroundColor: "rgba(139, 92, 246, 0.7)", 
           }}
         >
           <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-8">
