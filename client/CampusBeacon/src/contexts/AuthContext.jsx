@@ -11,6 +11,8 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const handleAuth = async (endpoint, data) => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await handleApiCall(endpoint, data);
       if (response.token) {
@@ -57,6 +59,8 @@ export const AuthProvider = ({ children }) => {
         case "resetPassword":
           await handleResetPassword(email, password);
           break;
+        default:
+          throw new Error("Invalid action type");
       }
     } catch (err) {
       console.error("Form submission error:", err);
@@ -78,6 +82,8 @@ export const AuthProvider = ({ children }) => {
         handleSubmit,
         user,
         logout,
+        loading,
+        error,
       }}
     >
       {children}
