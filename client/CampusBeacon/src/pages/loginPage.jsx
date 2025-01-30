@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
 import {useAuth} from "../contexts/AuthContext.jsx"
 
+
 function LoginSignup() {
       const {
         isSignUp,
@@ -122,7 +123,7 @@ function LoginSignup() {
               text="Sign In"
               type="submit"
               textsize="text-xl"
-              buttonsize="w-full p-4" // Adjusted className
+              buttonsize="w-full p-4" 
               className="w-full p-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:opacity-90 transition-all"
             />
           </form>
