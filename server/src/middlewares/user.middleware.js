@@ -22,12 +22,6 @@ export const authMiddleware = async (req, res, next) => {
 
     const user = await account.get();
 
-    if (!user.email.endsWith("@mnnit.ac.in")) {
-       return res
-         .status(403)
-         .json({ error: "Access denied. Only MNNIT students can log in." });
-     }
-
     req.user = {
       id: user.$id,
       email: user.email,
