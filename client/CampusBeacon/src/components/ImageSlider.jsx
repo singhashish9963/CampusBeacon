@@ -1,3 +1,5 @@
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 const ImageSlider = () => {
   const clubs = [
     {
@@ -88,4 +90,4 @@ const ImageSlider = () => {
     </div>
   );
 };
-export  default ImageSlider;
+export default ImageSlider;

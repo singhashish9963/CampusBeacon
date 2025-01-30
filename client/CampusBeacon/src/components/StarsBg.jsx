@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
-const StarBg = ({ delay }) => {
+const StarsBg = ({ delay }) => {
   const [position] = useState({
     x: Math.random() * 100,
     y: Math.random() * 100,
@@ -30,4 +30,22 @@ const StarBg = ({ delay }) => {
   );
 };
 
-export default StarBg;
+
+
+
+const StarryBackground = () => {
+  const starCount = 100; 
+  const delayIncrement = 0.05;
+
+  return (
+    <div className="bg-black min-h-screen text-white relative">
+      <div className="relative w-full h-screen overflow-hidden bg-black">
+        {[...Array(starCount)].map((_, index) => (
+          <StarsBg key={index} delay={index * delayIncrement} />
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default StarryBackground;
