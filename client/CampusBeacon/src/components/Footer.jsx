@@ -1,10 +1,15 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { HiLocationMarker, HiMail, HiPhone } from "react-icons/hi";
+import { SiReact, SiAppwrite, SiJavascript, SiNodedotjs } from "react-icons/si";
+import IconHoverStyle from "./IconHoverStyle";
+
 const Footer = () => {
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black text-white py-8">
-      <div className="container mx-auto grid grid-cols-1 md:grids-cols-3 gap-8 px-4">
+      <div className="container mx-auto grid grid-cols-3 gap-8 px-4">
+        {/* Contact Us Section */}
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -35,7 +40,21 @@ const Footer = () => {
             </a>
           </div>
         </motion.div>
-        <motion.div></motion.div>
+
+        {/* Tech Stack Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h3 className="text-2xl font-bold text-blue-400 mb-4">Build With</h3>
+          <div className="flex flex-wrap gap-4">
+            <SiReact className={IconHoverStyle} size={24} />
+            <SiNodedotjs className={IconHoverStyle} size={24} />
+            <SiJavascript className={IconHoverStyle} size={24} />
+            <SiAppwrite className={IconHoverStyle} size={24} />
+          </div>
+        </motion.div>
       </div>
     </div>
   );
