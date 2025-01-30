@@ -1,5 +1,5 @@
-import users from "../models/user.model";
-import ApiResponse from "../utils/apiResponse";
+import users from "../models/user.model.js";
+import ApiResponse from "../utils/apiResponse.js";
 import ApiError from '../utils/apiError.js';
 import asyncHandler from '../utils/asyncHandler.js';
 

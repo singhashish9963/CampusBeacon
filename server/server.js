@@ -2,13 +2,22 @@ import express from "express";
 import dotenv from "dotenv";
 import sequelize from "./src/db/db.js";
 import userRoutes from "./src/routes/user.routes.js";
-
+import cors from "cors"
 dotenv.config({ path: "./.env" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware to parse incoming JSON requests
+
+app.use(
+  cors({
+    origin: "http://localhost:5174", 
+    credentials: true, 
+  })
+);
+
+
+
 app.use(express.json());
 
 sequelize
@@ -24,7 +33,7 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// Make sure the path starts with '/'
+
 app.use("/api/users", userRoutes);
 
 app.listen(PORT, () => {

@@ -6,10 +6,11 @@ import { useAuth } from "../contexts/AuthContext";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
 
 const LoginSignup = () => {
-  const { isSignUp, setIsSignUp, handleSignUp, handleSignIn } = useAuth();
+  const { isSignUp, setIsSignUp, handleSignUp, handleSignIn,handleSubmit } = useAuth();
   const [focusedInput, setFocusedInput] = useState(null);
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [error, setError] = useState(null);
+
 
 
   const navigate = useNavigate();
@@ -40,7 +41,7 @@ const LoginSignup = () => {
           className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
           style={{
             boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
-            backgroundColor: "rgba(139, 92, 246, 0.7)", 
+            backgroundColor: "rgba(139, 92, 246, 0.7)",
           }}
         >
           <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-8">
@@ -65,7 +66,10 @@ const LoginSignup = () => {
         <div className="w-1/2 p-12">
           <h2 className="text-3xl font-bold text-white mb-8">Create Account</h2>
           {error && <div className="text-red-500 mb-4">{error}</div>}
-          <form onSubmit={handleSignUp} className="space-y-6">
+          <form
+            onSubmit={(e) => handleSubmit(e, "signUp")}
+            className="space-y-6"
+          >
             <input
               type="email"
               name="email"
@@ -88,7 +92,10 @@ const LoginSignup = () => {
         <div className="w-1/2 p-12">
           <h2 className="text-3xl font-bold text-white mb-8">Welcome Back</h2>
           {error && <div className="text-red-500 mb-4">{error}</div>}
-          <form onSubmit={handleSignIn} className="space-y-6">
+          <form
+            onSubmit={(e) => handleSubmit(e, "signIn")}
+            className="space-y-6"
+          >
             <input
               type="email"
               name="email"
