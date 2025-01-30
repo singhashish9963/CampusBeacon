@@ -5,16 +5,38 @@ import ButtonColourfull from "../components/ButtonColourfull";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 function LoginSignup() {
-  const [isSignUp, setIsSignUP] = useState(false);
 
-  const handleSignUP = async (e) => {
+  const {
+    isSignUp,
+    setIsSignUp,
+    isForgetPassword,
+    setIsForgetPassword,
+    handleSubmit,
+  } = useAuth();
+
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+
+
+  const validatePassword = (password) => {
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters long");
+      return false;
+    }
+    setError("");
+    return true;
+  };
+  const handleFormSubmit = async (e) => {
     e.preventDefault();
-    const password = e.target.password.value;
+    const password = e.target.password?.value;
+
     if (isSignUp && !validatePassword(password)) {
       return;
     }
     handleSubmit(e, isSignUp ? "signUp" : "signIn");
   };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center">
       <motion.div
@@ -32,45 +54,25 @@ function LoginSignup() {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
           style={{
-            boxShadow: "0 0 50px rgba(139,92,246,0.5)",
-            background: "rgba(153,113,248,0.7)",
+            backgroundImage: "url('/src/assets/space-overlay.jpg')",
+            boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
+            backgroundColor: "rgba(139, 92, 246, 0.7)", // Increased opacity of the overlay
           }}
         >
           <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-8">
-            <h2 className="text-4xl font-bold text-white mb-2">
-              {isForgetPassword
-                ? "Reset Password"
-                : isSignUp
-                ? "New Here?"
-                : "Welcome Back!"}
+            <h2 className="text-4xl font-bold text-white mb-4">
+              {isSignUp ? "Welcome Back!" : "New Here?"}
             </h2>
-            <p className="text-white text-center mb-7 text-xl">
-              {isForgetPassword
-                ? "Enter your email to reset your password"
-                : isSignUp
-                ? "Sign up and discover a great amount of new opportunities!"
-                : "Already have an account? Sign in to continue."}
+            <p className="text-white/80 text-center mb-8">
+              {isSignUp
+                ? "Already have an account? Sign in to continue your journey"
+                : "Sign up and discover a great amount of new opportunities!"}
             </p>
             <button
-              onClick={() =>
-                isForgetPassword
-                  ? setIsForgetPassword(false)
-                  : setIsSignUp(!isSignUp)
-              }
-              className="px-7 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all mb-2"
-              aria-label={
-                isForgetPassword
-                  ? "Back to Sign In"
-                  : isSignUp
-                  ? "Switch to Sign In"
-                  : "Switch to Sign Up"
-              }
+              onClick={() => setIsSignUp(!isSignUp)}
+              className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all"
             >
-              {isForgetPassword
-                ? "Back to Sign In"
-                : isSignUp
-                ? "Sign In"
-                : "Sign Up"}
+              {isSignUp ? "Sign In" : "Sign Up"}
             </button>
           </div>
         </motion.div>
@@ -227,6 +229,5 @@ function LoginSignup() {
     </div>
   );
 }
-
 
 export default LoginSignup;
