@@ -13,8 +13,8 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <BrowserRouter>
-        {/* <HomePage /> */}
-        <LoginSignup />
+        <HomePage />
+        {/* <LoginSignup /> */}
         <NavBar />
         <Footer />
       </BrowserRouter>

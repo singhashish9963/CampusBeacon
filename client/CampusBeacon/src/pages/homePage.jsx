@@ -19,7 +19,7 @@ const HomePage = () => {
             {isLoggedIn ? (
               <ButtonColourfull text="Logout" />
             ) : (
-              <ButtonColourfull text="Login/Signup" />
+              <ButtonColourfull text="Login/Signup" buttonsize="w-full p-3" />
             )}
           </div>
         </div>

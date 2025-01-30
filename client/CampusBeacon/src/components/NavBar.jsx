@@ -77,12 +77,12 @@ function NavBar() {
                 <div className="flex items-center justify-between h-16">
                   <Link
                     to="/"
-                    className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
+                    className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
                   >
                     CampusBeacon
                   </Link>
 
-                  <div className="flex items-center space-x-8">
+                  <div className="flex items-center space-x-8 text-l">
                     {mainLinks.map((link) => (
                       <Link
                         key={link.name}
