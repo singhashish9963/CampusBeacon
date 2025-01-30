@@ -1,12 +1,22 @@
+import { motion } from "framer-motion";
+import {
+  Calendar,
+  Mail,
+  FileText,
+  Settings,
+  HelpCircle,
+} from "lucide-react"; 
+
 const QuickLinks = () => {
-    const links = [
-      { icon: Calendar, label: "Schedule" },
-      { icon: Mail, label: "Messages" },
-      { icon: FileText, label: "Documents" },
-      { icon: Settings, label: "Settings" },
-      { icon: HelpCircle, label: "Support" },
-    ];
-      return (
+  const links = [
+    { icon: Calendar, label: "Schedule" },
+    { icon: Mail, label: "Messages" },
+    { icon: FileText, label: "Documents" },
+    { icon: Settings, label: "Settings" },
+    { icon: HelpCircle, label: "Support" },
+  ];
+
+  return (
     <div className="py-24 bg-gray-900/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
@@ -30,6 +40,5 @@ const QuickLinks = () => {
     </div>
   );
 };
-
 
 export default QuickLinks;

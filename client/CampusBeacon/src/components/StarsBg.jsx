@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 
- const starBg = ({ delay }) => {
+const StarBg = ({ delay }) => {
   const [position] = useState({
     x: Math.random() * 100,
     y: Math.random() * 100,
@@ -30,4 +30,4 @@ import { motion } from "framer-motion";
   );
 };
 
-export default starBg;
+export default StarBg;
