@@ -7,6 +7,7 @@ import {
   emailVerification,
   resetPassword,
 } from "../appwrite/auth.controller.js";
+import { createUser,deleteUser,getUser } from "../controllers/user.controller.js";
 import authMiddleware from "../middlewares/user.middleware.js";
 import emailMiddleware from "../middlewares/email.middleware.js";
 
@@ -17,6 +18,10 @@ router.post("/login",emailMiddleware, loginUser);
 router.post("/verify-email", emailVerification);
 router.post("/forget-password", forgetPassword);
 router.post("/reset-password", resetPassword); 
+router.get("/get-user",getUser)
+router.post("/create-user",createUser)
+router.delete("/delete-user",deleteUser)
+
 
 router.get("/current-user", authMiddleware, getCurrentUser);
 

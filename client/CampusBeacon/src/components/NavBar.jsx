@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import IconHoverStyle from "./IconHoverStyle";
 
 function NavBar() {
   const [isVisible, setIsVisible] = useState(false);
@@ -21,11 +22,8 @@ function NavBar() {
   ];
 
   const hostelOptions = [
-    { name: "Hostel Management", path: "/hostel" },
-    { name: "A Block", path: "/hostel/a-block" },
-    { name: "B Block", path: "/hostel/b-block" },
-    { name: "C Block", path: "/hostel/c-block" },
-    { name: "Girls Hostel", path: "/hostel/girls" },
+    { name: "SVBH", path: "/SVBH" },
+    { name: "DGJH", path: "/DJGH" },
   ];
 
   const handleMouseEnter = (dropdown) => {
