@@ -3,9 +3,16 @@ import { useNavigate } from "react-router-dom";
 import ButtonColourfull from "../components/ButtonColourfull";
 import StarsBg from "../components/StarsBg";
 
+
+
+
+
+
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
+
+
 
   return (
     <>
