@@ -8,6 +8,7 @@ import {
   SiNodedotjs,
   SiSocketdotio,
 } from "react-icons/si";
+import { FaLinkedin, FaEnvelope, FaGithub } from "react-icons/fa";
 
 import { BiLogoPostgresql } from "react-icons/bi";
 import IconHoverStyle from "./IconHoverStyle";
@@ -57,12 +58,67 @@ const Footer = () => {
         >
           <h3 className="text-2xl font-bold text-blue-400 mb-4">Build With</h3>
           <div className="flex flex-wrap gap-4">
+            {/* To do: Add Hyperlinks to the icons */}
+
             <SiJavascript className={IconHoverStyle} size={24} />
             <SiNodedotjs className={IconHoverStyle} size={24} />
             <SiAppwrite className={IconHoverStyle} size={24} />
             <SiSocketdotio className={IconHoverStyle} size={24} />
             <SiReact className={IconHoverStyle} size={24} />
             <BiLogoPostgresql className={IconHoverStyle} size={24} />
+          </div>
+        </motion.div>
+
+        {/* Social Links Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <h3 className="text-2xl font-bold mb-4 text-blue-400">
+            Designed And Developed by
+          </h3>
+          <div className="flex mb-4">
+            Ayush Jadaun
+            <div className="flex space-x-4 pl-6">
+              <div>
+                <a href="https://github.com/ayush-jadaun">
+                  <FaGithub className={IconHoverStyle} size={24} />
+                </a>
+              </div>
+
+              <FaLinkedin
+                className={IconHoverStyle}
+                size={24}
+                href="https://www.linkedin.com/in/ayush-jadaun-677199311/"
+              />
+              <div>
+                <a href="mailto:ayushjadaun6@gmail.com">
+                  <FaEnvelope className={IconHoverStyle} size={24} />
+                </a>
+              </div>
+            </div>
+          </div>
+          <div className="flex">
+            Ayush Agarwal
+            <div className="flex space-x-4 pl-4">
+              <div>
+                <a href="https://github.com/ayushagr101">
+                  <FaGithub className={IconHoverStyle} size={24} />
+                </a>
+              </div>
+
+              <div>
+                <a href="https://www.linkedin.com/in/ayush-agarwal-108127311/">
+                  <FaLinkedin className={IconHoverStyle} size={24} />
+                </a>
+              </div>
+              <div>
+                <a href="mailto:ayush.agr160@gmail.com">
+                  <FaEnvelope className={IconHoverStyle} size={24} />
+                </a>
+              </div>
+            </div>
           </div>
         </motion.div>
       </div>
