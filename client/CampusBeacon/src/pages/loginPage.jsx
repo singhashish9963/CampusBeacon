@@ -54,12 +54,11 @@ function LoginSignup() {
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
           style={{
-            backgroundImage: "url('/src/assets/space-overlay.jpg')",
             boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
             backgroundColor: "rgba(139, 92, 246, 0.7)", // Increased opacity of the overlay
           }}
         >
-          <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-8">
+          <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-11">
             <h2 className="text-4xl font-bold text-white mb-4">
               {isSignUp ? "Welcome Back!" : "New Here?"}
             </h2>
@@ -99,7 +98,7 @@ function LoginSignup() {
                       type="email"
                       name="email"
                       placeholder="Enter your email"
-                      className="w-full p-4 text-2xl bg-purple-500/15 rounded-lg text-white border border-white/11 focus:outline-none focus:border-purple-500 transition-all"
+                      className="w-full p-4 text-l bg-purple-500/15 rounded-lg text-white border border-white/11 focus:outline-none focus:border-purple-500 transition-all"
                       required
                       aria-label="Email address for password reset"
                     />
