@@ -75,7 +75,7 @@ function LoginSignup() {
               />
             </motion.div>
             <ButtonColourfull
-              text="Submit"
+              text="Sign Up"
               type="submit"
               textsize="text-xl"
               buttonsize="w-1/2 p-4 ml-20 mt-10"
@@ -105,6 +105,12 @@ function LoginSignup() {
                 className="w-full mt-7 p-4 text-2xl bg-purple-500/15 rounded-lg text-white"
               />
             </motion.div>
+            <ButtonColourfull
+              text="Sign In"
+              type="submit"
+              textsize="text-xl"
+              buttonsize="w-1/2 p-4 ml-20 mt-10"
+            />
           </form>
         </div>
       </motion.div>
