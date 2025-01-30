@@ -43,3 +43,23 @@ export const getUser = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, user, "User fetched successfully"));
 });
+
+export const deleteUser = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!id || !id.trim()) {
+        throw new ApiError(400, "User ID is required");
+    }
+
+    const user = await users.findByPk(id);
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    await user.destroy();
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, null, "User deleted successfully"));
+});
