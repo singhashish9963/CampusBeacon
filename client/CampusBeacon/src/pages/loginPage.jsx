@@ -78,7 +78,7 @@ function LoginSignup() {
               text="Sign Up"
               type="submit"
               textsize="text-xl"
-              buttonsize="w-1/2 p-4 ml-25 mt-10"
+              buttonsize="w-1/2 p-4 ml-20 mt-10"
             />
           </form>
         </div>
@@ -109,7 +109,7 @@ function LoginSignup() {
               text="Sign In"
               type="submit"
               textsize="text-xl"
-              buttonsize="w-1/2 p-4 ml-25 mt-10"
+              buttonsize="w-1/2 p-4 ml-27 mt-10"
             />
           </form>
         </div>
