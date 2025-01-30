@@ -26,13 +26,12 @@ const Footer = () => {
             <div className="flex items-center">
               <HiLocationMarker className="mr-2" size={20}/>
               <span>Motilal Nehru National Institute Of Technology, Prayagraj</span>
-
             </div>
-
           </div>
         </motion.div>
         <motion.div>
           
+
         </motion.div>
       </div>
     </div>
