@@ -40,11 +40,13 @@ export const AuthProvider = ({ children }) => {
   const handleResetPassword = (email, password) =>
     handleAuth("/reset-password", { email, password });
 
-  const handleSubmit = async (e, actionType) => {
-    e.preventDefault();
-    const email = e.target.email.value;
-    const password = e.target.password?.value;
+const handleSubmit = async (e, actionType) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const email = formData.get("email");
+  const password = formData.get("password");
 
+  try {
     let response;
     switch (actionType) {
       case "signUp":
@@ -60,14 +62,19 @@ export const AuthProvider = ({ children }) => {
         response = await handleResetPassword(email, password);
         break;
       default:
-        console.error("Invalid action type");
-        return;
+        throw new Error("Invalid action type");
     }
 
-    if (!response.success) {
-      console.error("Form submission error:", response.message);
+    if (response.success) {
+      return response;
+    } else {
+      throw new Error(response.message || "Authentication failed");
     }
-  };
+  } catch (error) {
+    console.error("Form submission error:", error);
+    throw error;
+  }
+};
 
   const logout = () => {
     localStorage.removeItem("authToken");
