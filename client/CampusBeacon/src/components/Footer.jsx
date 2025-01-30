@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import {HiLocationMarker, HiMail, HiPhotograph} from "react-icons/hi";
+import {HiLocationMarker, HiMail, HiPhone} from "react-icons/hi";
 const Footer = () => {
   return (
     <div className="bg-gradient-to-b from blue-900 to-black text-white py-7">
@@ -26,13 +26,12 @@ const Footer = () => {
             <div className="flex items-center">
               <HiLocationMarker className="mr-2" size={20}/>
               <span>Motilal Nehru National Institute Of Technology, Prayagraj</span>
-
             </div>
-
           </div>
         </motion.div>
         <motion.div>
           
+
         </motion.div>
       </div>
     </div>
