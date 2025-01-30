@@ -5,29 +5,9 @@ import ButtonColourfull from "../components/ButtonColourfull";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 function LoginSignup() {
+  const [isSignUp, setIsSignUP] = useState(false);
 
-  const {
-    isSignUp,
-    setIsSignUp,
-    isForgetPassword,
-    setIsForgetPassword,
-    handleSubmit,
-  } = useAuth();
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
-
-  // Basic password validation
-  const validatePassword = (password) => {
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return false;
-    }
-    setError("");
-    return true;
-  };
-
-  const handleFormSubmit = (e) => {
+  const handleSignUP = async (e) => {
     e.preventDefault();
     const password = e.target.password.value;
     if (isSignUp && !validatePassword(password)) {
