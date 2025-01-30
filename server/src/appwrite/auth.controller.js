@@ -31,7 +31,7 @@ const loginUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email and password are required");
     }
 
-    const session = await account.createEmailSession(email, password);
+    const session = await account.createEmailPasswordSession(email, password);
     return res
         .status(200)
         .json(new ApiResponse(200, session, "Login successful"));

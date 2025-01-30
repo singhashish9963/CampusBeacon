@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000"; 
+const BASE_URL = "http://localhost:5000/api/users"; 
 
 export const handleApiCall = async (endpoint, data) => {
   try {
