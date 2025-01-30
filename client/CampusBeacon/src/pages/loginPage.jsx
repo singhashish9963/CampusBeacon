@@ -126,5 +126,4 @@ function LoginSignup() {
     </div>
   );
 }
-
 export default LoginSignup;
