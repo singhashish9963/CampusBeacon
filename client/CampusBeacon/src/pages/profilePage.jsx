@@ -16,12 +16,12 @@ const ProfilePage = () => {
 
   const [userData, setUserData] = useState({
     name: "Ayush Agarwal",
-    email: "john@mnnit.ac.in",
-    phone: "+91 888 888 8888",
-    branch: "Computer Science",
-    year: "3rd Year",
+    email: "ayush@mnnit.ac.in",
+    phone: "+91 777 777 7777",
+    branch: "Electronics and Communication",
+    year: "1st Year",
     registrationNumber: "20BCE10001",
-    semester: "6th Semester",
+    semester: "2nd Semester",
   });
 
   const stats = [
@@ -83,9 +83,24 @@ const ProfilePage = () => {
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Profile Cards */}
                 <Profile vals={userData.branch} header="Branch" />
                 <Profile vals={userData.year} header="Year" />
                 <Profile vals={userData.semester} header="Semester" />
+
+                {/* Stats Section */}
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-15">
+                  {stats.map((stat) =>(
+                    <motion.div 
+                    key={stat.label}
+                    whileHover={{scale:1.1}}
+                    class
+                    ></motion.div>
+
+                  ))}
+                )}
+                </div>
               </div>
             </div>
           </div>
