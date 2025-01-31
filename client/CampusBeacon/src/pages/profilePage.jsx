@@ -71,13 +71,10 @@ const ProfilePage = () => {
                     className="text-4xl font-bold text-white mb-2 bg-transparent border-b border-purple-400 focus:outline-none"
                   />
                 ) : (
-                  <h1 className="text-4xl font-bold text-white mb-2">
+                  <h1 className="text-5xl font-bold text-white mb-2">
                     {userData.name}
                   </h1>
                 )}
-                <p className="text-purple-300 text-lg">
-                  {userData.registrationNumber || "Registration Number N/A"}
-                </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Profile vals={userData.branch} header="Branch" />
