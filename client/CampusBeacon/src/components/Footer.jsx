@@ -125,6 +125,19 @@ const Footer = () => {
           </div>
         </motion.div>
       </div>
+
+      {/* Copyright Section */}
+
+      <motion.div
+        className="text-center mt-10 pt-4 border-t border-gray-900"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.75, delay: 0.5 }}
+      >
+        <p className="text-sm tezt-gray-300">
+          © {new Date().getFullYear()} CampusBeacon. All rights reserved.
+        </p>
+      </motion.div>
     </div>
   );
 };
