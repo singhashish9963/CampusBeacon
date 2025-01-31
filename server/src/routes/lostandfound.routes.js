@@ -12,7 +12,7 @@ import {
 const router = express.Router();
 
 
-const upload = multer({ dest: "lostandfound/" });
+const upload = multer({ dest: "temp/" });
 
 
 router.post("/lost-items", upload.single("image"), createLostItem);

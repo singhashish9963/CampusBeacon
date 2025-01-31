@@ -29,7 +29,7 @@ sequelize
     console.error("Unable to connect to the database ", err);
   });
 
-app.get("/", (req, res) => {
+app.get("/", (_, res) => {
   res.send("Hello World!");
 });
 
@@ -37,7 +37,8 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/lost-and-found",lostAndFoundRoutes);
-app.use("/buy-and-sell",buyAndSellRoutes);
+app.use("/api/buy-and-sell",buyAndSellRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
