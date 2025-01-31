@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Mail,Users,Globe,HelpCircle,Database,Calendar } from "lucide-react";
 import ImageSlider from "../components/ImageSlider.jsx";
 import StarryBackground from "../components/StarsBg.jsx";
+import Footer from "../components/Footer.jsx";
 
 
 const HomePage = () => {
@@ -160,6 +161,7 @@ const HomePage = () => {
           </div>
         </section>
         <EventsSection />
+        <Footer />
       </div>
     </>
   );
