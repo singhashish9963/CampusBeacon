@@ -5,6 +5,7 @@ import userRoutes from "./src/routes/user.routes.js";
 import cors from "cors"
 import contactRoutes from "./src/routes/contact.routes.js"
 import lostAndFoundRoutes from "./src/routes/lostandfound.routes.js"
+import buyAndSellRoutes from "./src/routes/buyandsell.routes.js"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -36,6 +37,7 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/lost-and-found",lostAndFoundRoutes);
+app.use("/buy-and-sell",buyAndSellRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
