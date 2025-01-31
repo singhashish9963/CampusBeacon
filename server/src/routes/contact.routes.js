@@ -13,5 +13,6 @@ import { createContacts,
  router.post("create-contact",createContacts)
  router.put("/edit-contact:id",editContact)
  router.delete("/delete-contact:id",deleteContact)
- 
 
+
+ export default router;

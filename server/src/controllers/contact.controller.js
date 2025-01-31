@@ -76,6 +76,34 @@ export const deleteContact = asyncHandler(async (req, res) => {
             )
         );    
 });
+export const getContact= asyncHandler(async(req,res)=>{
+    const {id}= req.params;
 
+    const contacts= await Contact.findByPk(id);
+    if(!contacts){
+        throw new ApiError("Contact was not found", 404);
+    }
 
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                contacts,
+                "Contact retrieved successfully"
+            )
+        );
+})
+export const getAllContacts = asyncHandler(async (req, res) => {
+    const allContacts = await Contact.findAll();
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                allContacts,
+                "All contacts retrieved successfully"
+            )
+        );
+});
 
