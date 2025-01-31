@@ -5,6 +5,7 @@ import { createContacts,
     getContact,
     getAllContacts
  } from "../controllers/contact.controller.js"
+ import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
 
 
