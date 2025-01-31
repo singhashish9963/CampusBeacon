@@ -5,14 +5,13 @@ import { createContacts,
     getContact,
     getAllContacts
  } from "../controllers/contact.controller.js"
- import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
-
+ import multer from "multer";
 
 
  const router=express.Router();
 
- router.post("create-contact",createContacts)
+ router.post("create-contact",upload.single('image'),createContacts)
  router.put("/edit-contact:id",editContact)
  router.delete("/delete-contact:id",deleteContact)
  router.get("/get-contact:id",getContact);
