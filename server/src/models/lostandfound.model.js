@@ -1,5 +1,5 @@
 import { DataTypes } from 'sequelize';
-import { sequelize } from '../db/db.js';
+import  sequelize  from "../db/db.js";
 
 const LostAndFound = sequelize.define(
   'LostAndFound',
@@ -47,6 +47,9 @@ const LostAndFound = sequelize.define(
       onUpdate: DataTypes.NOW,
     },
   },
+  {
+    timestamps: false,
+  }
 );
 
 export default LostAndFound;
