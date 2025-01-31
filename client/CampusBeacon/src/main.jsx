@@ -9,6 +9,7 @@ import HomePage from "./pages/homePage.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import ProfilePage from "./pages/profilePage.jsx";
+import Marketplace from "./pages/buyAndSellPage.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -17,7 +18,8 @@ createRoot(document.getElementById("root")).render(
         <NavBar />
         {/* <HomePage /> */}
         {/* <LoginSignup /> */}
-        <ProfilePage />
+        {/* <ProfilePage /> */}
+        <Marketplace />
         <Footer />
       </BrowserRouter>
     </AuthProvider>
