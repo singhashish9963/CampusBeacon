@@ -32,7 +32,6 @@ export const createContacts = asyncHandler(async (req, res) => {
             )
         );
 });
-
 export const editContact = asyncHandler(async (req,res)=>{
     const {id}= req.params;
     const {name, email, phone, designation, image_url}= req.body
@@ -77,4 +76,6 @@ export const deleteContact = asyncHandler(async (req, res) => {
             )
         );    
 });
+
+
 
