@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
+import Footer from "../components/Footer.jsx";
 
 const LoginSignup = () => {
   const { isSignUp, setIsSignUp, handleSignUp, handleSignIn,handleSubmit } = useAuth();
@@ -24,6 +25,7 @@ const LoginSignup = () => {
   }, [welcomeMessage, navigate]);
 
   return (
+    <>
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -132,6 +134,8 @@ const LoginSignup = () => {
         </motion.div>
       )}
     </div>
+    <Footer />
+    </>
   );
 };
 

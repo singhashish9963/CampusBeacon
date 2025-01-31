@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+
+
 const ImageSlider = () => {
   const clubs = [
     {
-      title: "Coding Club",
+      title: "Computer Coding Club",
       description: "Explore the world of programming and development",
       icon: "💻",
-      image: "https://images.unsplash.com/photo-1504639725590-34d0984388bd",
+      image: "CampusBeacon\client\CampusBeacon\src\assets\images\ccImage.png",
     },
     {
       title: "Robotics Club",
@@ -15,16 +17,16 @@ const ImageSlider = () => {
       image: "https://images.unsplash.com/photo-1581092921461-eab62e97a2aa",
     },
     {
-      title: "Cultural Club",
+      title: "Core Dramatics",
       description: "Express creativity through art and performance",
       icon: "🎭",
       image: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3",
     },
     {
-      title: "Sports Club",
-      description: "Compete and excel in various athletics",
+      title: "Green Club",
+      description: "Connet with nature and help save the environment",
       icon: "⚽",
-      image: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211",
+      image: "https://unsplash.com/photos/tree-trunk-hEceQrBaIiE",
     },
   ];
 

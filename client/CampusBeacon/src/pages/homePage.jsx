@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { Mail,Users,Globe,HelpCircle,Database,Calendar } from "lucide-react";
 import ImageSlider from "../components/ImageSlider.jsx";
 import StarryBackground from "../components/StarsBg.jsx";
+import Footer from "../components/Footer.jsx";
 
 
 const HomePage = () => {
@@ -63,7 +64,7 @@ const HomePage = () => {
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-7xl md:text-8xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
+              className="text-6xl md:text-8xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
             >
               Welcome to CampusBeacon
             </motion.h1>
@@ -71,13 +72,13 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-2xl text-gray-300 max-w-2xl mx-auto"
+              className="font-mono text-2xl text-gray-300 max-w-2xl mx-auto"
             >
-              A beacon that connects
+              A beacon that connects...
             </motion.p>
           </div>
         </div>
-        <section className="min-h-screen relative z-10 py-32">
+        <section className="min-h-screen relative z-10 py-15">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -85,51 +86,52 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-5xl font-bold text-white mb-6"> Features</h2>
-              <p className="text-xl text-gray-400">
-                Discover what makes us unique!
+              <h2 className="text-4xl font-bold text-white mb-6"> Features</h2>
+              <p className="text-xl text-gray-400 font-mono">
+                We offer various services
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-12">
               <FeatureCard
                 icon={Mail}
-                description="Stay connected with peers, faculty, and administration"
-                href="/community"
+                title="Eatries"
+                description="Discover places to eat around campus"
+                href="/"
               />
               <FeatureCard
                 icon={Users}
                 title="Hostel Management"
                 description="Seamless hostel allocation and maintenance request system"
-                href="/hostel-management"
+                href="/"
               />
               <FeatureCard
                 icon={HelpCircle}
-                title="Lost and Found"
+                title="Lost & Found"
                 description="Connect with campus community to find lost items"
-                href="/lost-and-found"
+                href="/"
               />
               <FeatureCard
                 icon={Globe}
-                title="Buy and Sell"
+                title="Buy & Sell"
                 description="Campus marketplace for students to trade books and essentials"
-                href="/buy-sell"
+                href="/"
               />
               <FeatureCard
                 icon={Calendar}
                 title="Attendance Manager"
                 description="Track and manage your attendance across all subjects efficiently"
-                href="/attendance"
+                href="/"
               />
               <FeatureCard
                 icon={Database}
                 title="Marks Predictor"
                 description="Advanced analytics to predict and improve your academic performance"
-                href="/marks-predictor"
+                href="/"
               />
             </div>
           </div>
         </section>
-        <section className="min-h-screen relative z-10 py-20">
+        <section className="min-h-screen relative z-10 py-15">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -137,7 +139,8 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-5xl font-bold text-white mb-6"> QuickLinks</h2>
+              <h2 className="text-5xl font-bold text-white mb-6"> Quick Links</h2>
+              <p className="text-xl text-gray-400 font-mono">Quick accessible links</p>
             </motion.div>
 
             <QuickLinks />
@@ -149,17 +152,18 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-16"
+              className="text-center mb-15"
             >
               <h2 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-8">
-                Explore The Campus
+                Clubs annd Activities
               </h2>
-              <p className="text-xl text-gray-400">Be the Moti</p>
+              <p className="text-xl text-gray-400 font-mono">Be a Moti</p>
             </motion.div>
             <ImageSlider />
           </div>
         </section>
         <EventsSection />
+        <Footer />
       </div>
     </>
   );

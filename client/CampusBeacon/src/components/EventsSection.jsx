@@ -59,7 +59,7 @@ const EventsSection = () => {
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold text-center mb-12 bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
+          className="text-4xl font-bold text-center mb-20 bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
         >
           Club Events
         </motion.h2>
