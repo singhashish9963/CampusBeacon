@@ -37,5 +37,25 @@ export const editContact = asyncHandler(async (req,res)=>{
     const {id}= req.params;
     const {name, email, phone, designation, image_url}= req.body
     
-    
-})
+    const contacts = await Contact.findByPk(id);
+    if(!contacts){
+        throw new ApiError("Contact was missing", 400);
+    }
+    contacts.name = name || contacts.name;
+    contacts.email = email || contacts.email;
+    contacts.designation = designation || contacts.designation;
+    contacts.phone = phone || contacts.phone;
+    contacts.image_url = image_url || contacts.image_url;
+
+    await contacts.save();
+
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                contacts,
+                "Contact updated successfully"
+            )
+        );
+});
