@@ -2,7 +2,7 @@ const achievements = [
   {
     title: "DevJam Winner",
     icon: Award,
-    description: "Won DevJam event ",
+    description: "Won DevJam event #1",
   },
   {
     title: "CodeStart #69",

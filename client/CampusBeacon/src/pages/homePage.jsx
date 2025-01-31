@@ -31,7 +31,7 @@ const HomePage = () => {
   return (
     <>
 
-      <div className="fixed inset-0 z-0">
+      <div className="fixed inset-0">
         <StarryBackground />
       </div>
 
@@ -163,7 +163,7 @@ const HomePage = () => {
           </div>
         </section>
         <EventsSection />
-        <Footer />
+        {/* <Footer /> */}
       </div>
     </>
   );
