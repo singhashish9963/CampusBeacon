@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Book, Hash, Star } from "lucide-react";
+import { Calendar, Book, Hash, Star, Pencil } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
 
 const ProfilePage = () => {
@@ -91,15 +91,21 @@ const ProfilePage = () => {
                 {/* Stats Section */}
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-15">
-                  {stats.map((stat) =>(
-                    <motion.div 
-                    key={stat.label}
-                    whileHover={{scale:1.1}}
-                    class
-                    ></motion.div>
-
+                  {stats.map((stat) => (
+                    <motion.div
+                      key={stat.label}
+                      whileHover={{ scale: 1.1 }}
+                      className="bg-white/5 rounded-xl p-6 text-center relative group"
+                    >
+                      <motion.button
+                      className="absolute top-4 right-4 opacity-0 geoup-hover:opacity-100 transition-all"
+                      whileHover={{scale:1.25}}
+                      onClick={handleChange}
+                      >
+                        <Pencil className="w-5 h-5 text-purple-400" />
+                      </motion.button>
+                    </motion.div>
                   ))}
-                )}
                 </div>
               </div>
             </div>
