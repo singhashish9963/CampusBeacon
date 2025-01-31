@@ -47,4 +47,40 @@ export const createLostItem = asyncHandler(async (req, res) => {
     );
 });
 
+export const updateLostItem = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const {
+    item_name,
+    description,
+    location_found,
+    date_found,
+    owner_contact,
+    registration_number,
+  } = req.body;
 
+  const item = await LostAndFound.findByPk(id);
+  if (!item) {
+    throw new ApiError("Item not found", 404);
+  }
+
+  let image_url = item.image_url;
+  if (req.file) {
+    image_url = await uploadImageToCloudinary(req.file.path, "lost-and-found");
+  }
+
+  item.item_name = item_name || item.item_name;
+  item.description = description || item.description;
+  item.location_found = location_found || item.location_found;
+  item.date_found = date_found || item.date_found;
+  item.owner_contact = owner_contact || item.owner_contact;
+  item.registration_number = registration_number || item.registration_number;
+  item.image_url = image_url;
+
+  await item.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, item, "Lost and found item updated successfully")
+    );
+});
