@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Rocket } from "lucide-react";
+import { Rocket, Search } from "lucide-react";
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
@@ -97,7 +97,20 @@ const Marketplace = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full p-3 pl-10 bg-gray-800 rounded-lg text-xl"
                   />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="p-3 bg-gray-800 rounded-lg"
+                >
+                  <option value="">All Categories</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Furniture">Furniture</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Accessories">Clothing</option>
+                  <option value="Cycle">Clothing</option>
+                </select>
               </div>
             </motion.div>
           )}
