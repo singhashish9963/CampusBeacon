@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Book, Hash, Star, Pencil } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
-
+import Achievements from "../components/ProfilePage/achievements";
 const ProfilePage = () => {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -89,24 +89,56 @@ const ProfilePage = () => {
                 <Profile vals={userData.semester} header="Semester" />
 
                 {/* Stats Section */}
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-15">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
                   {stats.map((stat) => (
                     <motion.div
                       key={stat.label}
-                      whileHover={{ scale: 1.1 }}
+                      whileHover={{ scale: 1.05 }}
                       className="bg-white/5 rounded-xl p-6 text-center relative group"
                     >
                       <motion.button
-                      className="absolute top-4 right-4 opacity-0 geoup-hover:opacity-100 transition-all"
-                      whileHover={{scale:1.25}}
-                      onClick={handleChange}
+                        className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                        whileHover={{ scale: 1.1 }}
+                        onClick={handleChange}
                       >
                         <Pencil className="w-5 h-5 text-purple-400" />
                       </motion.button>
+                      <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-3" />
+                      <p className="text-3xl font-bold text-purple-400 mb-2">
+                        {stat.value}
+                      </p>
+                      <p className="text-gray-400">{stat.label}</p>
                     </motion.div>
                   ))}
                 </div>
+                {/* Achievements Section */}
+                <motion.div
+                  className="mt-12 border-t border-white/10 pt-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                >
+                  <h2 className="text-3xl font-bold text-white mb-6">
+                    Achievements
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {Achievements.map((achievement) => (
+                      <motion.div
+                        key={Achievements.title}
+                        whileHover={{ scale: 1.02 }}
+                        className="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all"
+                      >
+                        <achievement.icon className="w-8 h-8 text-purple-400 mb-4" />
+                        <h3 className="text-xl font-semibold text-purple-400 mb-2">
+                          {achievement.title}
+                        </h3>
+                        <p className="text-gray-400">
+                          {Achievements.description}
+                        </p>
+                      </motion.div>
+                    ))}
+                  </div>
+                </motion.div>
               </div>
             </div>
           </div>

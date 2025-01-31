@@ -1,4 +1,6 @@
-const achievements = [
+import { Award, Star, Hash } from "lucide-react";
+
+const Achievements = [
   {
     title: "DevJam Winner",
     icon: Award,
@@ -11,9 +13,9 @@ const achievements = [
   },
   {
     title: "9.0+ CGPA",
-    icon: Star,
+    icon: Hash,
     description: "Maintained a 9.0+ GPA for three consecutive semesters.",
   },
 ];
 
-export default achievements;
+export default Achievements;
