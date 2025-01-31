@@ -64,7 +64,7 @@ const HomePage = () => {
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-7xl md:text-8xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
+              className="text-6xl md:text-8xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
             >
               Welcome to CampusBeacon
             </motion.h1>
@@ -72,9 +72,9 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-2xl text-gray-300 max-w-2xl mx-auto"
+              className="font-mono text-2xl text-gray-300 max-w-2xl mx-auto"
             >
-              A beacon that connects
+              A beacon that connects...
             </motion.p>
           </div>
         </div>
@@ -88,44 +88,45 @@ const HomePage = () => {
             >
               <h2 className="text-5xl font-bold text-white mb-6"> Features</h2>
               <p className="text-xl text-gray-400">
-                Discover what makes us unique!
+                We offer various services
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-12">
               <FeatureCard
                 icon={Mail}
-                description="Stay connected with peers, faculty, and administration"
-                href="/community"
+                title="Eatries"
+                description="Discover places to eat around campus"
+                href="/"
               />
               <FeatureCard
                 icon={Users}
                 title="Hostel Management"
                 description="Seamless hostel allocation and maintenance request system"
-                href="/hostel-management"
+                href="/"
               />
               <FeatureCard
                 icon={HelpCircle}
-                title="Lost and Found"
+                title="Lost & Found"
                 description="Connect with campus community to find lost items"
-                href="/lost-and-found"
+                href="/"
               />
               <FeatureCard
                 icon={Globe}
-                title="Buy and Sell"
+                title="Buy & Sell"
                 description="Campus marketplace for students to trade books and essentials"
-                href="/buy-sell"
+                href="/"
               />
               <FeatureCard
                 icon={Calendar}
                 title="Attendance Manager"
                 description="Track and manage your attendance across all subjects efficiently"
-                href="/attendance"
+                href="/"
               />
               <FeatureCard
                 icon={Database}
                 title="Marks Predictor"
                 description="Advanced analytics to predict and improve your academic performance"
-                href="/marks-predictor"
+                href="/"
               />
             </div>
           </div>
