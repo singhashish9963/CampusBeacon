@@ -59,3 +59,22 @@ export const editContact = asyncHandler(async (req,res)=>{
             )
         );
 });
+export const deleteContact = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    const contacts = await Contact.findByPk(id);
+    if (!contacts) {
+        throw new ApiError("Contact was not found", 404);
+    }
+    await contacts.destroy();
+    return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                null,
+                "Contact deleted successfully"
+            )
+        );    
+});
+
