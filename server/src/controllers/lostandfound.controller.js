@@ -116,3 +116,19 @@ export const getLostItem = asyncHandler(async (req, res) => {
       new ApiResponse(200, item, "Lost and found item retrieved successfully")
     );
 });
+
+export const getAllLostItems = asyncHandler(async (req, res) => {
+  const items = await LostAndFound.findAll({
+    order: [["created_at", "DESC"]], 
+  });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        items,
+        "All lost and found items retrieved successfully"
+      )
+    );
+});
