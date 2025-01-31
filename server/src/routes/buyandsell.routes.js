@@ -1,31 +1,30 @@
-import { Router } from "express";
-import {
-  createListing,
-  getListings,
-  getListingById,
-  updateListing,
-  deleteListing,
-} from "../controllers/buyandsell.controller.js";
+import express from "express";
 import multer from "multer";
-// import authMiddleware from "../middlewares/";
+import {
+  createBuyAndSellItem,
+  updateBuyAndSellItem,
+  deleteBuyAndSellItem,
+  getBuyAndSellItem,
+  getAllBuyAndSellItems,
+  getUserItems,
+  searchBuyAndSellItems,
+} from "../controllers/buyandsell.controller.js"
 
-const router = Router();
 
-const upload = multer({ dest: "temp/" });
+const router = express.Router();
 
-router.post(
-  "/create-list",
-  authMiddleware,
-  upload.single("image"),
-  createListing
-);
-router.get("/get-list", getListings);
-router.get("/get-list-id/:id", getListingById);
-router.put(
-  "/update-list/:id",
-  upload.single("image"),
-  updateListing
-);
-router.delete("/delete-list/:id",  deleteListing);
+
+const upload = multer({ dest: "uploads/" });
+
+
+
+
+router.post("/create-item", upload.single("image"), createBuyAndSellItem);
+router.put("/update-item/:id", upload.single("image"), updateBuyAndSellItem);
+router.delete("/delete-item/:id", deleteBuyAndSellItem);
+router.get("/get-item/:id", getBuyAndSellItem);
+router.get("/get-all-item", getAllBuyAndSellItems);
+router.get("/user-/:registration_number", getUserItems);
+router.get("/search-item", searchBuyAndSellItems);
 
 export default router;
