@@ -16,6 +16,7 @@ createRoot(document.getElementById("root")).render(
         <NavBar />
         <HomePage />
         {/* <LoginSignup /> */}
+        {/* <Footer /> */}
       </BrowserRouter>
     </AuthProvider>
   </StrictMode>
