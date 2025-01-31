@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import sequelize from "./src/db/db.js";
 import userRoutes from "./src/routes/user.routes.js";
 import cors from "cors"
+import contactRoutes from "./src/routes/contact.routes.js"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -35,6 +36,7 @@ app.get("/", (req, res) => {
 
 
 app.use("/api/users", userRoutes);
+app.use("/api/contact", contactRoutes)
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
