@@ -84,3 +84,20 @@ export const updateLostItem = asyncHandler(async (req, res) => {
       new ApiResponse(200, item, "Lost and found item updated successfully")
     );
 });
+
+export const deleteLostItem = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const item = await LostAndFound.findByPk(id);
+  if (!item) {
+    throw new ApiError("Item not found", 404);
+  }
+
+  await item.destroy();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(200, null, "Lost and found item deleted successfully")
+    );
+});
