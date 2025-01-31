@@ -132,3 +132,23 @@ export const getAllLostItems = asyncHandler(async (req, res) => {
       )
     );
 });
+
+
+export const getLostItemsByRegistration = asyncHandler(async (req, res) => {
+  const { registration_number } = req.params;
+
+  const items = await LostAndFound.findAll({
+    where: { registration_number },
+    order: [["created_at", "DESC"]],
+  });
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        items,
+        "Lost and found items for registration number retrieved successfully"
+      )
+    );
+});
