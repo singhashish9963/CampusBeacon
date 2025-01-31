@@ -134,7 +134,7 @@ const LoginSignup = () => {
         </motion.div>
       )}
     </div>
-    <Footer />
+    {/* <Footer /> */}
     </>
   );
 };

@@ -8,15 +8,17 @@ import Footer from "./components/Footer.jsx";
 import HomePage from "./pages/homePage.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import ProfilePage from "./pages/profilePage.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <BrowserRouter>
         <NavBar />
-        <HomePage />
+        {/* <HomePage /> */}
         {/* <LoginSignup /> */}
-        {/* <Footer /> */}
+        <ProfilePage />
+        <Footer />
       </BrowserRouter>
     </AuthProvider>
   </StrictMode>
