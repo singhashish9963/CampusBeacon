@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Book, Hash, Star, Pencil } from "lucide-react";
+import { Calendar, Book, Hash, Star } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
 
 const ProfilePage = () => {
