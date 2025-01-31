@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ButtonColourfull from "../components/ButtonColourfull";
-import FeatureCard from "../components/FeatureCard.jsx";
-import QuickLinks from "../components/QuickLinks.jsx"
-import EventsSection from "../components/EventsSection.jsx"
+import FeatureCard from "../components/HomePage/FeatureCard.jsx";
+import QuickLinks from "../components/HomePage/QuickLinks.jsx"
+import EventsSection from "../components/HomePage/EventsSection.jsx"
 import { motion } from "framer-motion";
 import { Mail,Users,Globe,HelpCircle,Database,Calendar } from "lucide-react";
-import ImageSlider from "../components/ImageSlider.jsx";
-import StarryBackground from "../components/StarsBg.jsx";
+import ImageSlider from "../components/HomePage/ImageSlider.jsx";
+import StarryBackground from "../components/HomePage/StarsBg.jsx";
 import Footer from "../components/Footer.jsx";
 
 
@@ -155,7 +155,7 @@ const HomePage = () => {
               className="text-center mb-15"
             >
               <h2 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-8">
-                Clubs annd Activities
+                Clubs and Activities
               </h2>
               <p className="text-xl text-gray-400 font-mono">Be a Moti</p>
             </motion.div>
