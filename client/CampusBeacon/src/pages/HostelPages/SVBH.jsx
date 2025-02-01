@@ -164,7 +164,7 @@ const SVBH = () => {
       phone: "6395140791",
       email: "anmolsken2025@gmail.com",
     },
-];
+  ];
   const getCurrentMeal = () => {
     const hour = currentTime.getHours();
     if (hour >= 6 && hour < 10) return "breakfast";
@@ -217,6 +217,7 @@ const SVBH = () => {
                   )}
               </div>
             </motion.div>
+
             {/* Officials Section */}
 
             <motion.div
@@ -237,9 +238,11 @@ const SVBH = () => {
                     <h3 className="text-white font-semibold">
                       {official.name}
                     </h3>
-                    <p className="text-purple-300 text-sm">{official.designation}</p>
+                    <p className="text-purple-300 text-sm">
+                      {official.designation}
+                    </p>
                     <p className="text-gray-400 text-sm flex items-center mt-2">
-                      <Phone className="mr-2 h-4 w-4" /> {official.phone}
+                      <Phone className="mr-2 h-4 w-4" />+91 {official.phone}
                     </p>
                     <p className="text-gray-400 text-sm flex items-center mt-1">
                       <Mail className="mr-2 h-4 w-4" /> {official.email}
