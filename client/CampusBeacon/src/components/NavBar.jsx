@@ -12,7 +12,7 @@ function NavBar() {
   const mainLinks = [
     { name: "Home", path: "/" },
     { name: "Lost & Found", path: "/lost-found" },
-    { name: "Buy & Sell", path: "/marketplace" },
+    { name: "Buy & Sell", path: "/Marketplace" },
     { name: "Profile", path: "/profile" },
   ];
 
