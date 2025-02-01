@@ -147,85 +147,85 @@ const Marketplace = () => {
                       className="bg-gray-700 p-3 rounded-lg"
                       required
                     />
-                    <input 
-                    type="number"
-                    name="price"
-                    value={listingItem.price}
-                    onChange={handleInputChange}
-                    placeholder="Price"
-                    className="bg-gray-700 p-3 rounded-lg"
-                    required
-                  />
-                  <div className="grid grid-cols-2 gap-4 mt-4">
-                    <select
-                      name="category"
-                      value={listingItem.category}
+                    <input
+                      type="number"
+                      name="price"
+                      value={listingItem.price}
                       onChange={handleInputChange}
+                      placeholder="Price"
                       className="bg-gray-700 p-3 rounded-lg"
                       required
-                    >
-                      <option value="">Select Category</option>
-                      <option value="Electronics">Electronics</option>
-                      <option value="Furniture">Furniture</option>
-                      <option value="Clothing">Clothing</option>
-                      <option value="Cycle">Cycle</option>
-                    </select>
-                    <select
-                      name="condition"
-                      value={listingItem.condition}
-                      onChange={handleInputChange}
-                      className="bg-gray-700 p-3 rounded-lg"
-                      required
-                    >
-                      <option value="">Item Condition</option>
-                      <option value="New">New</option>
-                      <option value="Like New">Like New</option>
-                      <option value="Good">Used/Fair</option>
-                      <option value="Fair">Little Damaged</option>
-                    </select>
-                  </div>
-
-                  <textarea
-                    name="description"
-                    value={listingItem.description}
-                    onChange={handleInputChange}
-                    placeholder="Item Description"
-                    className="w-full bg-gray-700 p-3 rounded-lg mt-4"
-                    rows="4"
-                    required
-                  />
-
-                  <input
-                    type="tel"
-                    name="contact"
-                    value={listingItem.contactNumber}
-                    onChange={handleInputChange}
-                    placeholder="Contact Number"
-                    className="w-full bg-gray-700 p-3 rounded-lg mt-4"
-                    required
-                  />
-                  <div className="flex items-center space-x-4 mt-4">
-                    <input 
-                    typle="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="imageUpload"
                     />
-                    <label
-                    htmlFor="imageUpload"
-                    className="flex items-center bg-blue-600 p-3 rounded-lg cursor-pointer  hover:bg-blue-700 transition-colors"
-                    >
-                      <Plus className="mr-2" /> Upload Image
-                    </label>
-                    {listingItem.image && (
-                      <img
-                        src={listingItem.image}
-                        alt="Preview"
-                        className="h-24 w-24 object-cover rounded-lg"
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <select
+                        name="category"
+                        value={listingItem.category}
+                        onChange={handleInputChange}
+                        className="bg-gray-700 p-3 rounded-lg"
+                        required
+                      >
+                        <option value="">Select Category</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Furniture">Furniture</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Cycle">Cycle</option>
+                      </select>
+                      <select
+                        name="condition"
+                        value={listingItem.condition}
+                        onChange={handleInputChange}
+                        className="bg-gray-700 p-3 rounded-lg"
+                        required
+                      >
+                        <option value="">Item Condition</option>
+                        <option value="New">New</option>
+                        <option value="Like New">Like New</option>
+                        <option value="Good">Used/Fair</option>
+                        <option value="Fair">Little Damaged</option>
+                      </select>
+                    </div>
+
+                    <textarea
+                      name="description"
+                      value={listingItem.description}
+                      onChange={handleInputChange}
+                      placeholder="Item Description"
+                      className="w-full bg-gray-700 p-3 rounded-lg mt-4"
+                      rows="4"
+                      required
+                    />
+
+                    <input
+                      type="tel"
+                      name="contact"
+                      value={listingItem.contactNumber}
+                      onChange={handleInputChange}
+                      placeholder="Contact Number"
+                      className="w-full bg-gray-700 p-3 rounded-lg mt-4"
+                      required
+                    />
+                    <div className="flex items-center space-x-4 mt-4">
+                      <input
+                        typle="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        id="imageUpload"
                       />
-                    )}
-                  </div>
+                      <label
+                        htmlFor="imageUpload"
+                        className="flex items-center bg-blue-600 p-3 rounded-lg cursor-pointer  hover:bg-blue-700 transition-colors"
+                      >
+                        <Plus className="mr-2" /> Upload Image
+                      </label>
+                      {listingItem.image && (
+                        <img
+                          src={listingItem.image}
+                          alt="Preview"
+                          className="h-24 w-24 object-cover rounded-lg"
+                        />
+                      )}
+                    </div>
                   </div>
                   <button
                     type="submit"
