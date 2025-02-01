@@ -7,7 +7,7 @@ import ButtonColourfull from "../components/ButtonColourfull.jsx";
 import Footer from "../components/Footer.jsx";
 
 const LoginSignup = () => {
-  const { isSignUp, setIsSignUp, handleSignUp, handleSignIn,handleSubmit } = useAuth();
+  const { isSignUp, setIsSignUp, handleSignUp, handleSignIn,handleSubmit,handlePasswordAction } = useAuth();
   const [focusedInput, setFocusedInput] = useState(null);
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [error, setError] = useState(null);
@@ -166,7 +166,46 @@ const LoginSignup = () => {
             </button>
           </motion.div>
         )}
-        
+
+        {authMode === "resetPassword" && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="p-8 bg-white/10 rounded-2xl flex flex-col items-center justify-center"
+            style={{ backdropFilter: "blur(10px)" }}
+          >
+            <h2 className="text-2xl font-bold text-white mb-4">
+              Reset Password
+            </h2>
+            {error && <div className="text-red-500 mb-4">{error}</div>}
+            <form
+              className="space-y-6"
+              onSubmit={(e) => handlePasswordAction(e, "resetPassword")}
+            >
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
+                required
+              />
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter a new password"
+                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
+                required
+              />
+              <ButtonColourfull text="Reset Password" type="submit" />
+            </form>
+            <button
+              className="text-purple-400 hover:underline mt-4"
+              onClick={() => setAuthMode("default")}
+            >
+              Back
+            </button>
+          </motion.div>
+        )}
 
         {welcomeMessage && (
           <motion.div

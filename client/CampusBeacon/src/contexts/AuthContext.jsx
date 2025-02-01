@@ -40,6 +40,35 @@ export const AuthProvider = ({ children }) => {
   const handleResetPassword = (email, password) =>
     handleAuth("/reset-password", { email, password });
 
+  const handlePasswordAction = async (e, actionType) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const email = formData.get("email");
+    let password = "";
+    if (actionType === "resetPassword") {
+
+      password = formData.get("password");
+    }
+
+    try {
+      let response;
+      if (actionType === "forgotPassword") {
+        response = await handleForgetPassword(email);
+      } else if (actionType === "resetPassword") {
+        response = await handleResetPassword(email, password);
+      } else {
+        throw new Error("Invalid action type");
+      }
+      if (response?.success) {
+        setWelcomeMessage(response.message || "Success!");
+      } else {
+        setError(response?.message || "Action failed.");
+      }
+    } catch (err) {
+      setError(err.message);
+    }
+  };
+
 const handleSubmit = async (e, actionType) => {
   e.preventDefault();
   const formData = new FormData(e.target);
@@ -97,6 +126,7 @@ const handleSubmit = async (e, actionType) => {
         handleSignUp,
         handleAuth,
         logout,
+        handlePasswordAction,
       }}
     >
       {children}
