@@ -6,6 +6,7 @@ import cors from "cors"
 import contactRoutes from "./src/routes/contact.routes.js"
 import lostAndFoundRoutes from "./src/routes/lostandfound.routes.js"
 import buyAndSellRoutes from "./src/routes/buyandsell.routes.js"
+import messageRoutes from "./src/routes/message.routes.js"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -29,7 +30,7 @@ sequelize
     console.error("Unable to connect to the database ", err);
   });
 
-app.get("/", (_, res) => {
+app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
@@ -38,6 +39,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/lost-and-found",lostAndFoundRoutes);
 app.use("/api/buy-and-sell",buyAndSellRoutes);
+app.use("/api/message",messageRoutes);
 
 
 app.listen(PORT, () => {
