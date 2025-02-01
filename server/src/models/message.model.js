@@ -1,7 +1,7 @@
 import sequelize from "../db/db.js"
 import { DataTypes } from "sequelize"
 import users from "./user.model.js";
-export const message=sequelize.define("message",{
+ const message=sequelize.define("message",{
     id:{
         type:DataTypes.INTEGER,
         autoIncrement:true,
@@ -26,3 +26,4 @@ export const message=sequelize.define("message",{
 users.hasMany(message);
 message.belongsTo(users);
 
+export default message;
