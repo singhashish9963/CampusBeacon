@@ -43,15 +43,9 @@ const BuyAndSell = sequelize.define("BuyAndSell", {
   item_condition: {
     type: DataTypes.ENUM("Good", "Fair", "Poor"),
     allowNull: false,
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-  updated_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
+  } 
+}, {
+  timestamps: true
 });
 
 export default BuyAndSell;
