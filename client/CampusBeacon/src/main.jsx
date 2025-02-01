@@ -10,16 +10,18 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
 import ProfilePage from "./pages/profilePage.jsx";
 import Marketplace from "./pages/buyAndSellPage.jsx";
+import LostAndFound from "./pages/lostAndFound.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
       <BrowserRouter>
         <NavBar />
-        <HomePage />
+        {/* <HomePage /> */}
         {/* <LoginSignup /> */}
         {/* <ProfilePage /> */}
         {/* <Marketplace /> */}
+        <LostAndFound />
         <Footer />
       </BrowserRouter>
     </AuthProvider>
