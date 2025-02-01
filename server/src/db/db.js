@@ -1,18 +1,22 @@
 import {Sequelize} from 'sequelize';
+import asyncHandler from '../utils/asyncHandler.js';
 
 
-const sequelize=new Sequelize('CampusBeacon','postgres','superman',{
-    host:'localhost',
+const DB_NAME = process.env.DB_NAME || "CampusBeacon";
+const DB_USER = process.env.DB_USER || "postgres";
+const DB_PASSWORD = process.env.DB_PASSWORD || "superman";
+const DB_HOST = process.env.DB_HOST 
+const DB_PORT = process.env.DB_PORT 
+
+const sequelize=new Sequelize(DB_NAME,DB_USER,DB_PASSWORD,{
+    host:DB_HOST,
     dialect:'postgres',
-    post:'5432',
+    port:DB_PORT,
 });
-const connectDb = (async () => {
-    try {
+export const connectDb = asyncHandler(async () => {
         await sequelize.authenticate();
-        console.log('Connection has been established successfully.');
-    } catch (error) {
-        console.error('Unable to connect to the database:', error);
-    }
+        console.log(' DatabaseConnection has been established successfully.');
+   
 });
 
 export default sequelize;
