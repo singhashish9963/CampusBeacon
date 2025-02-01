@@ -11,6 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext.jsx";
 import ProfilePage from "./pages/profilePage.jsx";
 import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
+import SVBH from "./pages/HostelPages/SVBH.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
@@ -21,7 +22,8 @@ createRoot(document.getElementById("root")).render(
         {/* <LoginSignup /> */}
         {/* <ProfilePage /> */}
         {/* <Marketplace /> */}
-        <LostAndFound />
+        {/* <LostAndFound /> */}
+        <SVBH />
         <Footer />
       </BrowserRouter>
     </AuthProvider>
