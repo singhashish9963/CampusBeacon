@@ -4,10 +4,11 @@ import ApiError from "./apiError.js"
 import ApiResponse from "./apiResponse.js"
 
 cloudinary.config({
-    cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_sECRET,
-})
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "CampusBeacon",
+  api_key: process.env.CLOUDINARY_API_KEY || "356661483266385",
+  api_secret:
+    process.env.CLOUDINARY_API_SECRET || "RwHLc5V-C6mM51D2tHACEdA50fA",
+});
 
 export const uploadImageToCloudinary= asyncHandler(async(req,res)=>{
     const result= await cloudinary.v2.uploader.upload(File.path,{
