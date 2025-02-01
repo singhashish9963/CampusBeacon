@@ -1,67 +1,75 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
 
-const users = sequelize.define("users", {
+
+
+const users = sequelize.define(
+  "users",
+  {
     id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
     },
     name: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     registration_number: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        unique: true,
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      index: true,
+      // for faster search(can be used for fetching particular data in later versions and for chat)
     },
     semester: {
-        type: DataTypes.ENUM,
-        values: [
-            "First",
-            "Second",
-            "Third",
-            "Fourth",
-            "Fifth",
-            "Sixth",
-            "Seventh",
-            "Eighth",
-        ],
-        allowNull: false,
+      type: DataTypes.ENUM,
+      values: [
+        "First",
+        "Second",
+        "Third",
+        "Fourth",
+        "Fifth",
+        "Sixth",
+        "Seventh",
+        "Eighth",
+      ],
+      allowNull: true,
     },
     branch: {
-        type: DataTypes.ENUM,
-        values: [
-            "Electronics and Communication Engineering",
-            "Computer Science Engineering",
-            "Electrical Engineering",
-            "Mechanical Engineering",
-            "Civil Engineering",
-            "Engineering and Computational Mechanics",
-            "Chemical Engineering",
-            "Material Engineering",
-            "Production and Industrial Engineering",
-            "Biotechnology",
-        ],
-        allowNull: false,
+      type: DataTypes.ENUM,
+      values: [
+        "Electronics and Communication Engineering",
+        "Computer Science Engineering",
+        "Electrical Engineering",
+        "Mechanical Engineering",
+        "Civil Engineering",
+        "Engineering and Computational Mechanics",
+        "Chemical Engineering",
+        "Material Engineering",
+        "Production and Industrial Engineering",
+        "Biotechnology",
+      ],
+      allowNull: true,
     },
     hostel: {
-        type: DataTypes.STRING,
-        allowNull: false,
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     graduation_year: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
+      type: DataTypes.INTEGER,
+      allowNull: true,
     },
-    createdAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-    },
-});
+  },
+  {
+    timestamps: true,
+    indexes: [
+      {
+        unique: true,
+        fields: ["registration_number"],
+      },
+    ],
+  }
+);
 
 export default users;

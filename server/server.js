@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import sequelize from "./src/db/db.js";
+import sequelize, { connectDb } from "./src/db/db.js";
 import userRoutes from "./src/routes/user.routes.js";
 import cors from "cors"
 import contactRoutes from "./src/routes/contact.routes.js"
@@ -25,14 +25,8 @@ const io = new Server(httpServer, {
 });
 app.use(express.json());
 
-sequelize
-  .authenticate()
-  .then(() => {
-    console.log("Connection has been established successfully.");
-  })
-  .catch((err) => {
-    console.error("Unable to connect to the database ", err);
-  });
+connectDb()
+
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
