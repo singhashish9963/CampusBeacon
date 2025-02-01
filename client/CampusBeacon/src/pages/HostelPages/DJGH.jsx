@@ -158,7 +158,7 @@ const SVBH = () => {
               className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50 mt-10"
             >
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                <Utensils className="mr-2" /> Today's Mess Menu -> SVBH
+                <Utensils className="mr-2" /> Today's Mess Menu : DJGH
                 <span className="ml-4 text-lg text-purple-300">
                   {daysOfWeek[currentDay]}
                 </span>
