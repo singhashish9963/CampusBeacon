@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Utensils, Phone, Mail } from "lucide-react";
+import { Utensils, Phone, Mail, Bell, Wrench } from "lucide-react";
 import { FaUsersGear } from "react-icons/fa6";
 const SVBH = () => {
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
@@ -53,7 +53,7 @@ const SVBH = () => {
       Breakfast: "Samosa, Chola, Milk, Bread, Jam, Banana, Sprouts",
       Lunch: "Shahi Paneer, Mix Dal, Rice, Roti, Gulab Jamun, Salad",
       Snacks: "—Break—",
-      Dinner: "Veg Biryani/Pulao, Boondi Raita, Chutni",
+      Dinner: "Veg Pulao, Boondi Raita, Papad, Chutni",
     },
     Sunday: {
       Breakfast:
@@ -165,6 +165,23 @@ const SVBH = () => {
       email: "anmolsken2025@gmail.com",
     },
   ];
+
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      message:
+        "Due to the non-availability of supplies in Allahabad, the regular mess menu will not be followed for the next few days. The details of the next meal will be shared via notification.",
+      type: "notice",
+      timestamp: new Date(),
+    },
+    {
+      id: 2,
+      message:
+        "At midnight, two students were discovered stealing carrots from the mess. If this behavior is repeated, they will face penalties.",
+      type: "warning",
+      timestamp: new Date(),
+    },
+  ]);
   const getCurrentMeal = () => {
     const hour = currentTime.getHours();
     if (hour >= 6 && hour < 10) return "breakfast";
@@ -183,8 +200,8 @@ const SVBH = () => {
               animate={{ opacity: 1, y: 0 }}
               className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50 mt-10"
             >
-              <h2 className="text-3xl font-bold text-white mb-6 flex items-center">
-                <Utensils className="mr-2" /> Today's Mess Menu
+              <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <Utensils className="mr-2" /> Today's Mess Menu -> SVBH
                 <span className="ml-4 text-lg text-purple-300">
                   {daysOfWeek[currentDay]}
                 </span>
@@ -202,7 +219,7 @@ const SVBH = () => {
                             : "bg-black/30 border-white/10"
                         }`}
                       >
-                        <h3 className="text-xl font-semibold text-white capitalize mb-3">
+                        <h3 className="text-xl font-semibold text-white capitalize mb-3 ">
                           {meal}
                         </h3>
                         <ul className="space-y-2">
@@ -218,17 +235,61 @@ const SVBH = () => {
               </div>
             </motion.div>
 
+            {/* Notifications */}
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
+            >
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                <Bell className="mr-2" /> Notifications
+              </h2>
+              <div className="space-y-4">
+                {notifications.map((notif) => (
+                  <motion.div
+                    key={notif.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className={`p-4 rounded-lg border ${
+                      notif.type === "warning"
+                        ? "bg-yellow-500/20 border-yellow-500"
+                        : "bg-blue-500/20 border-blue-500"
+                    }`}
+                  >
+                    <p className="text-white">{notif.message}</p>
+                    <p className="text-sm text-gray-400 mt-2">
+                      {notif.timestamp.toLocaleTimeString()}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+
+            <div className="space-y-6">
+            {/* Complaint Form */}
+
+            <motion.div 
+            initial={{opacity:0,x:20}}
+            animate={{opacity:1,x:0}}
+            className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
+            >
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                <Wrench className="mr-2" />File Complaint
+              </h2>
+            </motion.div>
+            </div>
             {/* Officials Section */}
 
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50 w-366"
             >
               <h2 className="text-white font-bold text-2xl mb-4 flex items-center">
                 <FaUsersGear className="mr-2" /> SVBH Officials
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-4 grid grid-cols-1 lg:grid-cols-4 gap-7">
                 {hostelOfficials.map((official) => (
                   <motion.div
                     key={official.name}
@@ -242,7 +303,8 @@ const SVBH = () => {
                       {official.designation}
                     </p>
                     <p className="text-gray-400 text-sm flex items-center mt-2">
-                      <Phone className="mr-2 h-4 w-4" />+91 {official.phone}
+                      <Phone className="mr-2 h-4 w-4" />
+                      +91 {official.phone}
                     </p>
                     <p className="text-gray-400 text-sm flex items-center mt-1">
                       <Mail className="mr-2 h-4 w-4" /> {official.email}
