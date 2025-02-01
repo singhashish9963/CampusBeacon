@@ -52,13 +52,13 @@ export const deleteUser = asyncHandler(async (req, res) => {
     if (req.user.id !== id) {
         throw new ApiError(403, "Unauthorized access");
     }
-
+// find by primary key :/
     const user = await users.findByPk(id);
 
     if (!user) {
         throw new ApiError(404, "User not found");
     }
-
+// destroy the user with the provided id 
     await users.destroy({
         where: {
             id: id
