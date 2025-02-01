@@ -116,3 +116,10 @@ export const updateUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, user, "User updated successfully"));
 });
+
+export const getAllUser = asyncHandler(async (req, res) => {
+    const allUsers = await users.findAll();
+    return res
+        .status(200)
+        .json(new ApiResponse(200, allUsers, "Users fetched successfully"));
+});
