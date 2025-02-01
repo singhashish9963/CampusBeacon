@@ -114,11 +114,107 @@ const Marketplace = () => {
                   <option value="Cycle">Clothing</option>
                 </select>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {marketItems.map((item, id) => (
                   <ItemCard key={item.id} item={item} />
                 ))}
               </div>
+            </motion.div>
+          )}
+          {activeTab === "sell" && (
+            <motion.div
+              key="sell"
+              nitial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex justify-center items-center"
+            >
+              <form
+                onSubmit={submitListing}
+                className="bg-gray-800 p-8 rounded-lg space-y-6 w-full max-w-lg shadow-2xl"
+              >
+                <motion.div
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <div className="grid gir-cols-2 gap-4">
+                    <input
+                      type="text"
+                      name="name"
+                      value={listingItem.name}
+                      onChange={handleInputChange}
+                      placeholder="Item Name"
+                      className="bg-gray-700 p-3 rounded-lg"
+                      required
+                    />
+                    <input 
+                    type="number"
+                    name="price"
+                    value={listingItem.price}
+                    onChange={handleInputChange}
+                    placeholder="Price"
+                    className="bg-gray-700 p-3 rounded-lg"
+                    required
+                  />
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <select
+                      name="category"
+                      value={listingItem.category}
+                      onChange={handleInputChange}
+                      className="bg-gray-700 p-3 rounded-lg"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      <option value="Electronics">Electronics</option>
+                      <option value="Furniture">Furniture</option>
+                      <option value="Clothing">Clothing</option>
+                      <option value="Cycle">Cycle</option>
+                    </select>
+                    <select
+                      name="condition"
+                      value={listingItem.condition}
+                      onChange={handleInputChange}
+                      className="bg-gray-700 p-3 rounded-lg"
+                      required
+                    >
+                      <option value="">Item Condition</option>
+                      <option value="New">New</option>
+                      <option value="Like New">Like New</option>
+                      <option value="Good">Used/Fair</option>
+                      <option value="Fair">Little Damaged</option>
+                    </select>
+                  </div>
+
+                  <textarea
+                    name="description"
+                    value={listingItem.description}
+                    onChange={handleInputChange}
+                    placeholder="Item Description"
+                    className="w-full bg-gray-700 p-3 rounded-lg mt-4"
+                    rows="4"
+                    required
+                  />
+
+                  <input
+                    type="tel"
+                    name="contact"
+                    value={listingItem.contactNumber}
+                    onChange={handleInputChange}
+                    placeholder="Contact Number"
+                    className="w-full bg-gray-700 p-3 rounded-lg mt-4"
+                    required
+                  />
+                  
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-yellow-500 text-black p-4 rounded-lg hover:bg-yellow-400 mt-6 transition-colors"
+                  >
+                    List Item
+                  </button>
+                </motion.div>
+              </form>
             </motion.div>
           )}
         </AnimatePresence>
