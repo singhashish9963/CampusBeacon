@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Rocket, Search, Plus } from "lucide-react";
-import ItemCard from "../components/ItemCard";
+import LostItemCard from "../components/LostItemCard";
 const LostAndFound = () => {
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
   const [listingItem, setListingItem] = useState({
     name: "",
-    price: "",
     category: "",
-    description: "",
-    condition: "",
+    location: "",
     contact: "",
     image: null,
   });
@@ -20,10 +18,8 @@ const LostAndFound = () => {
     {
       id: 1,
       name: "RGB Keyboard",
-      price: 2000,
       category: "Electronics",
-      description: "Portonics bluetooth backlit rgb mechanical keyboard",
-      condition: "Like New",
+      location: "Found in NLHC2",
       contact: "9026695299",
       image: "/",
     },
@@ -58,9 +54,7 @@ const LostAndFound = () => {
         >
           <div className="flex items-center space-x-4">
             <Rocket className="text-yellow-400 animate-pulse" size={48} />
-            <h1 className="text-4xl font-bold tracking-wide">
-              Lost & Found
-            </h1>
+            <h1 className="text-4xl font-bold tracking-wide">Lost & Found</h1>
           </div>
           <div className="bg-gray-800 rounded-full">
             <button
@@ -115,7 +109,7 @@ const LostAndFound = () => {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {marketItems.map((item, id) => (
-                  <ItemCard key={item.id} item={item} />
+                  <LostItemCard key={item.id} item={item} />
                 ))}
               </div>
             </motion.div>
@@ -164,8 +158,8 @@ const LostAndFound = () => {
                     </div>
 
                     <textarea
-                      name="description"
-                      value={listingItem.description}
+                      name="location"
+                      value={listingItem.location}
                       onChange={handleInputChange}
                       placeholder="Item Description"
                       className="w-full bg-gray-700 p-3 rounded-lg mt-4"
