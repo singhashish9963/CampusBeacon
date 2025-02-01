@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Rocket, Search } from "lucide-react";
+import ItemCard from "../components/ItemCard";
+
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
@@ -11,19 +13,19 @@ const Marketplace = () => {
     category: "",
     description: "",
     condition: "",
-    contactNumber: "",
+    contact: "",
     image: null,
   });
 
   const [marketItems, setMarketItems] = useState([
     {
       id: 1,
-      name: "Gaming Laptop",
-      price: 799.99,
+      name: "RGB Keyboard",
+      price: 2000,
       category: "Electronics",
-      description: "High-performance gaming laptop, 16GB RAM, RTX 3060",
+      description: "Portonics bluetooth backlit rgb mechanical keyboard",
       condition: "Like New",
-      contactNumber: "555-1234",
+      contact: "555-1234",
       image: "/",
     },
   ]);
@@ -111,6 +113,11 @@ const Marketplace = () => {
                   <option value="Accessories">Clothing</option>
                   <option value="Cycle">Clothing</option>
                 </select>
+              </div>
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {marketItems.map((item, id) => (
+                  <ItemCard key={item.id} item={item} />
+                ))}
               </div>
             </motion.div>
           )}
