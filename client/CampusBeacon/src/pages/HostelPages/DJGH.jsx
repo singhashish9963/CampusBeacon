@@ -35,49 +35,64 @@ const SVBH = () => {
   const menu = {
     Monday: {
       Breakfast:
-        "Aalo Paratha, Aachar, Sauce, Chai, Bread, Jam, Banana, Sprouts",
-      Lunch: "Dal Tadka, Aalo Gobi Rasedar, Rice, Roti, Raita, Salad",
-      Snacks: "Chow Mein, Sauce, Hot Coffee",
-      Dinner: "Aalo Soya Methi, Fry Arhar Dal, Rice, Roti, Sewain, Salad",
+        "Aalo/Gobi Paratha, Aachar, Ketchup, Chutney, Chai, Bread, Jam, Seasonal Fruit, Sprouts",
+      Lunch: "Rajma, Sookha Tamatar Aalo, Rice, Roti, Raita, Salad",
+      Snacks: "Aalo Samosa, Chola, Chai",
+      Dinner:
+        "Masoor/Khadi Moong Dal, PhoolGobi+Gajar+Matar, Rice, Onion, Milk, Bournvita, Khoya Barfi",
     },
     Tuesday: {
-      Breakfast: "Pav Bhaji, Hot Coffee, Bread, Jam, Banana, Sprouts",
-      Lunch: "Dal Makhani, Aalo Jeera, Rice, Roti, Raita, Salad",
-      Snacks: "Vada Pav, Chai",
-      Dinner: "Aalo Tamatar Rasedar, Methi Paratha, Rice, Custard, Salad",
+      Breakfast:
+        "Aalo Paratha/(Sada Paratha+Aalo Bhujiya), Milk, Bread, Jam, Seasonal Fruit, Sprouts, Cornflakes",
+      Lunch: "Khadi, Aalo Bhujiya, Tali Hui Mirchi, Rice, Roti, Salad",
+      Snacks: "Chowmein, Tomato+Chili Sauce, Coffee",
+      Dinner:
+        "Aalo Kofta, Sukha Patta Gobi Aalo, Rice, Onion, Roti, Gajar/Lauki ka Halwa",
     },
     Wednesday: {
       Breakfast:
-        "Idli, Sambar, Nariya Chutni, Bournvita, Bread, Jam, Banana, Sprouts",
-      Lunch: "Kali Masoor Dal, Mix Veg, Rice, Roti, Raita, Salad",
-      Snacks: "Aalo Sandwich, Chai",
-      Dinner: "Palak Paneer, Chana Dal, Roti, Rice, Gulab Jamun, Salad",
+        "Matar ki Kachori, Aalo ki Sabzi, Ketchup, Milk, Bournvita, Bread, Jam, Seasonal Fruit, Sprouts",
+      Lunch:
+        "Sukhi Mooli ki Bhaji, Arhar/Chane ki Dal, Rice, Roti, Aachar, Salad",
+      Snacks: "Papdi Chat (Matar/Chola+Chutney+Dahi+Pyaaz) / Bhejpuri, Chai",
+      Dinner:
+        "Kaale Chane, Aalo Tamatar ki Sabzi, Rice, Onion, Milk, Bournvita, Gulab Jamun, Parathe",
     },
     Thursday: {
-      Breakfast: "Paneer Paratha, Milk, Bread, Jam, Banana, Sprouts",
-      Lunch: "Khadi, Aalo Fry, Rice, Roti, Salad",
-      Snacks: "Tikiyan, Chutni, Bournvita",
-      Dinner: "Mix Dal, Aalo Gobhi, Roti, Rice, Custard, Salad",
+      Breakfast:
+        "Bread, Butter, Methi Puri, Jam, Chai, Sprouts, Aachar, Ketchup, Chutni, Seasonal Fruits, Milk, Bournvita",
+      Lunch:
+        "Kadhai Paneer ki Sabzi / Matha Aalo ki Sabzi, Roti, Salad, Chawal, Aachar",
+      Snacks: "Pakode, Coffee",
+      Dinner:
+        "Arhar ki daal, Bati, Chokha, Rice, Onion, Mirch, Milk, Bournvita, Rasmalai / Rasgulla",
     },
     Friday: {
       Breakfast:
-        "Vada, Sambar, Nariya Chutni, Milk, Bread, Jam, Banana, Sprouts",
-      Lunch: "Malai Kofta, Arhar Dal, Rice, Roti, Salad",
-      Snacks: "Burger, Sauce, Hot Coffee",
-      Dinner: "Mushroom, Dal Makhani, Roti, Rice, Ice Cream, Salad",
+        "Paneer Paratha, Bread, Butter, Jam, Sprouts, Chai, Aachar, Ketchup, Chutni, Seasonal Fruit, Milk, Bournvita",
+      Lunch: "Palak ki Dal, Gajar Matar Aalu ki Sabji, Roti Salad Aachar",
+      Snacks: "Fry Maggi / French Fries, Chai",
+      Dinner:
+        "Kabuli Chane ke Chole, Aalo Gobi Matar, Jeera Rice, Onion, Milk, Bournvita, Khoya Barfi",
     },
     Saturday: {
-      Breakfast: "Samosa, Chola, Milk, Bread, Jam, Banana, Sprouts",
-      Lunch: "Shahi Paneer, Mix Dal, Rice, Roti, Gulab Jamun, Salad",
-      Snacks: "—Break—",
-      Dinner: "Veg Pulao, Boondi Raita, Papad, Chutni",
+      Breakfast:
+        "Namkeen Jave, Jalebi, Ketchup, Chutney, Chai, Bread, Jam, Seasonal Fruit, Sprouts, Milk, Bournvita",
+      Lunch:
+        "Malai Dam Aalo, Methi Matar Aalo Gajar Ki Sabjhi, Rice, Roti, Salad",
+      Snacks: "OFF",
+      Dinner:
+        "Arhar Dal, Kashmiri Pulao/Briyani/Kichdi, Hari Chutney, Frymes, Milk, Bournvita",
     },
     Sunday: {
       Breakfast:
-        "Chana Masala, Poodi, Sooji Halwa, Milk, Bread, Jam, Banana, Sprouts",
-      Lunch: "Chola, Bhatura, Rice, Roti, Dahi Vada, Salad",
-      Snacks: "Pasta, Sauce, Chai",
-      Dinner: "Litti Chokha, Arhar Dal, Rice, Kheer, Salad",
+        "Idli/Medu Vada, Sambhar, Ketchup, Chutney, Chai, Bread, Jam, Seasonal Fruit, Sprouts",
+      Lunch:
+        "Arhar ki Dal, Sookhe Matar Aalo ki Sabzi, Rice, Roti, Aachar, Salad, Chach",
+      Snacks:
+        "Gollgappa, Gollgappe ka Pani, Matar Chole, Chutney, Dahi, Onion, Coffee",
+      Dinner:
+        "Palak Paneer, Lobiya Wali Dal, Rice, Onion, Mirch, MotiChoor ke Ladoo",
     },
   };
 
@@ -92,110 +107,34 @@ const SVBH = () => {
   const hostelOfficials = [
     {
       designation: "Hostel President",
-      name: "Mr. Ayush Kunwar Singh",
-      phone: "884077607",
-      email: "aks23ks@gmail.com",
+      name: "Miss Abhilaasha Pandey",
     },
     {
       designation: "All Floor Representative (Electrical Maintenance)",
-      name: "Mr. Vishal Singh",
-      phone: "9685140993",
-      email: "vishalsingh9144247902@gmail.com",
+      name: "Miss Akshita Yadav",
     },
     {
       designation: "All Floor Representative (Civil Maintenance)",
-      name: "Mr. Aishvary Dwivedi",
-      phone: "9166514968",
-      email: "aishvarydwivedi8@gmail.com",
+      name: "Miss Jhanvi Kapoor",
     },
     {
       designation:
         "OverAll Floor Representative (Lift Maintenance & Water Supply Maintenance)",
-      name: "Mr. Mahendra Kumar",
-      phone: "7742876688",
-      email: "mjrandha@gmail.com",
-    },
-    {
-      designation: "1st Floor Representative",
-      name: "Mr. Iswar Kumavat",
-      phone: "637581855",
-      email: "aatmaram1435@gmail.com",
-    },
-    {
-      designation: "2nd Floor Representative",
-      name: "Mr. Nakul Bansal",
-      phone: "7225991488",
-      email: "nakulbansal2103@gmail.com",
-    },
-    {
-      designation: "3rd Floor Representative",
-      name: "Mr. Krishna Yadav",
-      phone: "8290649988",
-      email: "krishna20246084@mnnit.ac.in",
-    },
-    {
-      designation: "4th Floor Representative",
-      name: "Mr. Hemant Pal",
-      phone: "9555623647",
-      email: "hemantpal2529@gmail.com",
-    },
-    {
-      designation: "5th Floor Representative",
-      name: "Mr. Aishvary Singh",
-      phone: "9819667631",
-      email: "singhsumit4@gmail.com",
-    },
-    {
-      designation: "6th Floor Representative",
-      name: "Mr. Pratham Jain",
-      phone: "743300295",
-      email: "theprathamjain@gmail.com",
-    },
-    {
-      designation: "7th Floor Representative",
-      name: "Mr. Garvit Jain",
-      phone: "79761687270",
-      email: "jaingarvit862@gmail.com",
-    },
-    {
-      designation: "Mess Manager I",
-      name: "Mr. Kaushal Yadav",
-      phone: "8852010214",
-      email: "kaushal.20241313@mnnit.ac.in",
-    },
-    {
-      designation: "Mess Manager II",
-      name: "Mr. Shivam Verma",
-      phone: "7983684607",
-      email: "rohitash12909@gmail.com",
-    },
-    {
-      designation: "Mess Manager III",
-      name: "Mr. Sujal Jain",
-      phone: "7067002427",
-      email: "jainsujal431@gmail.com",
-    },
-    {
-      designation: "Mess Manager IV",
-      name: "Mr. Anmol Saxena",
-      phone: "6395140791",
-      email: "anmolsken2025@gmail.com",
+      name: "Miss Ifa Khatoon",
     },
   ];
 
   const [notifications, setNotifications] = useState([
     {
       id: 1,
-      message:
-        "Due to the non-availability of supplies in Allahabad, the regular mess menu will not be followed for the next few days. The details of the next meal will be shared via notification.",
+      message: "From tomorrow morning there is yoga classes from 6:00am",
       type: "notice",
       timestamp: new Date(),
     },
     {
       id: 2,
-      message:
-        "At midnight, two students were discovered stealing carrots from the mess. If this behavior is repeated, they will face penalties.",
-      type: "warning",
+      message: "Intime has been updated to 9:00pm",
+      type: "info",
       timestamp: new Date(),
     },
   ]);
