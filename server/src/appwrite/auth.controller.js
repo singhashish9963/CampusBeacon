@@ -10,7 +10,7 @@ const client =
   "https://cloud.appwrite.io/v1");
 
 const account = new Account(client);
-
+// use of async handler to wrap everything in promise :))
 const signUpUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
 
@@ -43,7 +43,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
     if (!email?.trim()) {
         throw new ApiError(400, "Email is required");
     }
-
+    // createRecovery sends a secret key and email with the redirect url 
     const recovery = await account.createRecovery(email, "http://localhost:5173/reset-password");
     return res
         .status(200)
@@ -69,6 +69,7 @@ const loginGoogle = asyncHandler(async (req, res) => {
 });
 
 const resetPassword = asyncHandler(async (req, res) => {
+    // user id comes in queryparameters from url
     const { userId, secret, password } = req.body;
 
     if (!userId || !secret || !password) {
