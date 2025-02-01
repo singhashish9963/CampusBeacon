@@ -19,11 +19,11 @@ createRoot(document.getElementById("root")).render(
       <BrowserRouter>
         <NavBar />
         {/* <HomePage /> */}
-        {/* <LoginSignup /> */}
+        <LoginSignup />
         {/* <ProfilePage /> */}
         {/* <Marketplace /> */}
         {/* <LostAndFound /> */}
-        <SVBH />
+        {/* <SVBH /> */}
         <Footer />
       </BrowserRouter>
     </AuthProvider>
