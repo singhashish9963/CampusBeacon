@@ -91,7 +91,7 @@ const Footer = () => {
                 </a>
               </div>
               <div>
-                <a href="https://www.linkedin.com/in/ayush-agarwal-108127311/">
+                <a href="https://www.linkedin.com/in/ayush-jadaun-677199311/">
                   <FaLinkedin className={IconHoverStyle} size={24} />
                 </a>
               </div>
