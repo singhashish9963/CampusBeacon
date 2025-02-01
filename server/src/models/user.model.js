@@ -15,6 +15,7 @@ const users = sequelize.define("users", {
         type: DataTypes.INTEGER,
         allowNull: false,
         unique: true,
+        index:true,
     },
     semester: {
         type: DataTypes.ENUM,
@@ -54,14 +55,20 @@ const users = sequelize.define("users", {
         type: DataTypes.INTEGER,
         allowNull: false,
     },
-    createdAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-    },
-});
+   
+},{
+    timestamps:true,
+    indexes:[
+        {
+            unique:true,
+            fields:['registration_number']
+        },
+        {
+            unique:true,
+            fields:['email']
+        }
+    ]
+}
+);
 
 export default users;
