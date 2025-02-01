@@ -36,3 +36,18 @@ export const getMessagesByChannel = asyncHandler(async (req, res) => {
     .status(200)
     .json(new apiResponse(200, messages, "Messages fetched successfully"));
 });
+
+export const deleteMessage = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  const existingMessage = await message.findByPk(id);
+  if (!existingMessage) {
+    throw new apiError("Message not found", 404);
+  }
+
+  await existingMessage.destroy();
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, null, "Message deleted successfully"));
+});
