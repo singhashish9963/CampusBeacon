@@ -22,3 +22,17 @@ export const createMessage = asyncHandler(async (req, res) => {
     .status(201)
     .json(new apiResponse(201, newMessage, "Message sent successfully"));
 });
+
+export const getMessagesByChannel = asyncHandler(async (req, res) => {
+  const { channelId } = req.params;
+
+  const messages = await message.findAll({
+    where: { channelId },
+    include: ["user"],
+    order: [["createdAt", "DESC"]],
+  });
+
+  return res
+    .status(200)
+    .json(new apiResponse(200, messages, "Messages fetched successfully"));
+});
