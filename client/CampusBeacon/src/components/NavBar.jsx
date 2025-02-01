@@ -10,7 +10,7 @@ function NavBar() {
   const showTimeoutRef = useRef(null);
 
   const mainLinks = [
-    { name: "Home", path: "/" },
+    { name: "Home", path: "/home" },
     { name: "Lost & Found", path: "/lost-found" },
     { name: "Buy & Sell", path: "/Marketplace" },
     { name: "Profile", path: "/profile" },
