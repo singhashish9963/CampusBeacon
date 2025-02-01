@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Utensils } from "lucide-react";
+import { Utensils, Phone, Mail } from "lucide-react";
+import { FaUsersGear } from "react-icons/fa6";
 const SVBH = () => {
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -11,8 +12,8 @@ const SVBH = () => {
     "Wednesday",
     "Thursday",
     "Friday",
-    "Saturday"
-  ]
+    "Saturday",
+  ];
 
   const menu = {
     Monday: {
@@ -71,99 +72,99 @@ const SVBH = () => {
     "Other",
   ];
 
-  const hostelOfficials = {
-    0: {
+  const hostelOfficials = [
+    {
       designation: "Hostel President",
       name: "Mr. Ayush Kunwar Singh",
       phone: "884077607",
       email: "aks23ks@gmail.com",
     },
-    1: {
+    {
       designation: "All Floor Representative (Electrical Maintenance)",
       name: "Mr. Vishal Singh",
       phone: "9685140993",
       email: "vishalsingh9144247902@gmail.com",
     },
-    2: {
+    {
       designation: "All Floor Representative (Civil Maintenance)",
       name: "Mr. Aishvary Dwivedi",
       phone: "9166514968",
       email: "aishvarydwivedi8@gmail.com",
     },
-    3: {
+    {
       designation:
         "OverAll Floor Representative (Lift Maintenance & Water Supply Maintenance)",
       name: "Mr. Mahendra Kumar",
       phone: "7742876688",
       email: "mjrandha@gmail.com",
     },
-    4: {
+    {
       designation: "1st Floor Representative",
       name: "Mr. Iswar Kumavat",
       phone: "637581855",
       email: "aatmaram1435@gmail.com",
     },
-    5: {
+    {
       designation: "2nd Floor Representative",
       name: "Mr. Nakul Bansal",
       phone: "7225991488",
       email: "nakulbansal2103@gmail.com",
     },
-    6: {
+    {
       designation: "3rd Floor Representative",
       name: "Mr. Krishna Yadav",
       phone: "8290649988",
       email: "krishna20246084@mnnit.ac.in",
     },
-    7: {
+    {
       designation: "4th Floor Representative",
       name: "Mr. Hemant Pal",
       phone: "9555623647",
       email: "hemantpal2529@gmail.com",
     },
-    8: {
+    {
       designation: "5th Floor Representative",
       name: "Mr. Aishvary Singh",
       phone: "9819667631",
       email: "singhsumit4@gmail.com",
     },
-    9: {
+    {
       designation: "6th Floor Representative",
       name: "Mr. Pratham Jain",
       phone: "743300295",
       email: "theprathamjain@gmail.com",
     },
-    10: {
+    {
       designation: "7th Floor Representative",
       name: "Mr. Garvit Jain",
       phone: "79761687270",
       email: "jaingarvit862@gmail.com",
     },
-    11: {
+    {
       designation: "Mess Manager I",
       name: "Mr. Kaushal Yadav",
       phone: "8852010214",
       email: "kaushal.20241313@mnnit.ac.in",
     },
-    12: {
+    {
       designation: "Mess Manager II",
       name: "Mr. Shivam Verma",
       phone: "7983684607",
       email: "rohitash12909@gmail.com",
     },
-    13: {
+    {
       designation: "Mess Manager III",
       name: "Mr. Sujal Jain",
       phone: "7067002427",
       email: "jainsujal431@gmail.com",
     },
-    14: {
+    {
       designation: "Mess Manager IV",
       name: "Mr. Anmol Saxena",
       phone: "6395140791",
       email: "anmolsken2025@gmail.com",
     },
-  };
+  ];
   const getCurrentMeal = () => {
     const hour = currentTime.getHours();
     if (hour >= 6 && hour < 10) return "breakfast";
@@ -176,6 +177,7 @@ const SVBH = () => {
       <div className="container mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
+            {/* Mess Menu */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -213,6 +215,40 @@ const SVBH = () => {
                       </motion.div>
                     )
                   )}
+              </div>
+            </motion.div>
+
+            {/* Officials Section */}
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
+            >
+              <h2 className="text-white font-bold text-2xl mb-4 flex items-center">
+                <FaUsersGear className="mr-2" /> SVBH Officials
+              </h2>
+              <div className="space-y-4">
+                {hostelOfficials.map((official) => (
+                  <motion.div
+                    key={official.name}
+                    whileHover={{ scale: 1.02 }}
+                    className="p-4 bg-black/30 rounded-lg border border-purple-500/30"
+                  >
+                    <h3 className="text-white font-semibold">
+                      {official.name}
+                    </h3>
+                    <p className="text-purple-300 text-sm">
+                      {official.designation}
+                    </p>
+                    <p className="text-gray-400 text-sm flex items-center mt-2">
+                      <Phone className="mr-2 h-4 w-4" />+91 {official.phone}
+                    </p>
+                    <p className="text-gray-400 text-sm flex items-center mt-1">
+                      <Mail className="mr-2 h-4 w-4" /> {official.email}
+                    </p>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
           </div>
