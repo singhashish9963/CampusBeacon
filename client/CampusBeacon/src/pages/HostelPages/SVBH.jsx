@@ -326,7 +326,7 @@ const SVBH = () => {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50 w-366"
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50 w-386"
             >
               <h2 className="text-white font-bold text-2xl mb-4 flex items-center">
                 <FaUsersGear className="mr-2" /> SVBH Officials
