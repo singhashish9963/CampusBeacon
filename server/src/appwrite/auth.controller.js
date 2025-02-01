@@ -81,6 +81,12 @@ const resetPassword = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, result, "Password reset successful"));
 });
+const emailVerification = asyncHandler(async (req, res) => {
+    const verification = await account.createVerification("http://localhost:5173/verify-email");
+    return res
+        .status(200)
+        .json(new ApiResponse(200, verification, "Verification email sent"));
+});
 
 export {
     signUpUser,
@@ -88,5 +94,6 @@ export {
     forgetPassword,
     getCurrentUser,
     loginGoogle,
-    resetPassword
+    resetPassword,
+    emailVerification
 };
