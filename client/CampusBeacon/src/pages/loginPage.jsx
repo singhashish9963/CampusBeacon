@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -7,15 +6,23 @@ import ButtonColourfull from "../components/ButtonColourfull.jsx";
 import Footer from "../components/Footer.jsx";
 
 const LoginSignup = () => {
-  const { isSignUp, setIsSignUp, handleSignUp, handleSignIn,handleSubmit,handlePasswordAction } = useAuth();
-  const [focusedInput, setFocusedInput] = useState(null);
-  const [welcomeMessage, setWelcomeMessage] = useState("");
+
+  const {
+    isSignUp,
+    setIsSignUp,
+    handleSubmit,
+    handleForgetPassword,
+    handleResetPassword,
+    handlePasswordAction,
+    welcomeMessage
+  } = useAuth();
+
+  const [authMode, setAuthMode] = useState("default");
+
   const [error, setError] = useState(null);
-  const [authMode, setAuthMode] = useState("default")
-
-
 
   const navigate = useNavigate();
+
 
   useEffect(() => {
     if (welcomeMessage) {
@@ -25,9 +32,12 @@ const LoginSignup = () => {
     }
   }, [welcomeMessage, navigate]);
 
+
+
   return (
     <>
       <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center">
+
         {authMode === "default" && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -38,7 +48,7 @@ const LoginSignup = () => {
               backdropFilter: "blur(10px)",
             }}
           >
-            {/* Sliding Overlay */}
+
             <motion.div
               animate={{ x: isSignUp ? "100%" : "0%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -66,7 +76,6 @@ const LoginSignup = () => {
               </div>
             </motion.div>
 
-            {/* Signup Form */}
             <div className="w-1/2 p-12">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Create Account
@@ -94,7 +103,6 @@ const LoginSignup = () => {
               </form>
             </div>
 
-            {/* Login Form */}
             <div className="w-1/2 p-12">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Welcome Back
@@ -120,20 +128,24 @@ const LoginSignup = () => {
                 />
                 <ButtonColourfull text="Sign In" type="submit" />
               </form>
-            </div>
-            <div className="mt-4">
-              <button
-                className="text-purple-400 hover:underline"
-                onClick={() => {
-                  setError(null);
-                  setAuthMode("forgotPassword");
-                }}
-              >
-                Forget Password?
-              </button>
+
+              {/* Forgot Password Button */}
+              <div className="mt-4">
+                <button
+                  className="text-purple-400 hover:underline"
+                  onClick={() => {
+                    setError(null);
+                    setAuthMode("forgotPassword");
+                  }}
+                >
+                  Forgot Password?
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
+
+
         {authMode === "forgotPassword" && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -166,6 +178,7 @@ const LoginSignup = () => {
             </button>
           </motion.div>
         )}
+
 
         {authMode === "resetPassword" && (
           <motion.div
@@ -207,6 +220,7 @@ const LoginSignup = () => {
           </motion.div>
         )}
 
+      
         {welcomeMessage && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -224,6 +238,7 @@ const LoginSignup = () => {
           </motion.div>
         )}
       </div>
+      <Footer />
     </>
   );
 };
