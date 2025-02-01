@@ -63,10 +63,6 @@ const users = sequelize.define("users", {
             unique:true,
             fields:['registration_number']
         },
-        {
-            unique:true,
-            fields:['email']
-        }
     ]
 }
 );
