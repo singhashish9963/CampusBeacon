@@ -24,7 +24,7 @@ function App() {
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/hostel" element={<SVBH />} />
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="*" element={<Navigate to="/home" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
           <Footer />
