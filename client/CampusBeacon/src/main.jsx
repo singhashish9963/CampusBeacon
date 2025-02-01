@@ -16,10 +16,10 @@ createRoot(document.getElementById("root")).render(
     <AuthProvider>
       <BrowserRouter>
         <NavBar />
-        {/* <HomePage /> */}
+        <HomePage />
         {/* <LoginSignup /> */}
         {/* <ProfilePage /> */}
-        <Marketplace />
+        {/* <Marketplace /> */}
         <Footer />
       </BrowserRouter>
     </AuthProvider>
