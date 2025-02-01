@@ -9,6 +9,7 @@ import ProfilePage from "./pages/profilePage.jsx";
 import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
 import SVBH from "./pages/HostelPages/SVBH.jsx";
+import DJGH from "./pages/HostelPages/DJGH.jsx"
 
 function App() {
   return (
@@ -22,7 +23,8 @@ function App() {
               <Route path="/login" element={<LoginSignup />} />
               <Route path="/lost-found" element={<LostAndFound />} />
               <Route path="/marketplace" element={<Marketplace />} />
-              <Route path="/hostel" element={<SVBH />} />
+              <Route path="/SVBH" element={<SVBH />} />
+              <Route path="/DJGH" element={<DJGH />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
