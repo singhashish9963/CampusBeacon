@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Rocket, Search, Plus } from "lucide-react";
-import ItemCard from "../components/ItemCard";
-const Marketplace = () => {
+import LostItemCard from "../components/LostItemCard";
+const LostAndFound = () => {
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
   const [listingItem, setListingItem] = useState({
     name: "",
-    price: "",
     category: "",
-    description: "",
-    condition: "",
+    location: "",
     contact: "",
     image: null,
   });
@@ -20,10 +18,8 @@ const Marketplace = () => {
     {
       id: 1,
       name: "RGB Keyboard",
-      price: 2000,
       category: "Electronics",
-      description: "Portonics bluetooth backlit rgb mechanical keyboard",
-      condition: "Like New",
+      location: "Found in NLHC2",
       contact: "9026695299",
       image: "/",
     },
@@ -58,9 +54,7 @@ const Marketplace = () => {
         >
           <div className="flex items-center space-x-4">
             <Rocket className="text-yellow-400 animate-pulse" size={48} />
-            <h1 className="text-4xl font-bold tracking-wide">
-              College Marketplace
-            </h1>
+            <h1 className="text-4xl font-bold tracking-wide">Lost & Found</h1>
           </div>
           <div className="bg-gray-800 rounded-full">
             <button
@@ -69,7 +63,7 @@ const Marketplace = () => {
                 activeTab === "browse" ? "bg-blue-600" : ""
               }`}
             >
-              Browse Items
+              Lost Item
             </button>
             <button
               onClick={() => setActiveTab("sell")}
@@ -77,7 +71,7 @@ const Marketplace = () => {
                 activeTab === "sell" ? "bg-blue-600" : ""
               }`}
             >
-              Sell Item
+              Found Item
             </button>
           </div>
         </motion.div>
@@ -93,7 +87,7 @@ const Marketplace = () => {
                 <div className="relative flex-grow">
                   <input
                     type="text"
-                    placeholder="Search marketplace..."
+                    placeholder="Search for your lost items..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full p-3 pl-10 bg-gray-800 rounded-lg text-xl"
@@ -115,7 +109,7 @@ const Marketplace = () => {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {marketItems.map((item, id) => (
-                  <ItemCard key={item.id} item={item} />
+                  <LostItemCard key={item.id} item={item} />
                 ))}
               </div>
             </motion.div>
@@ -147,15 +141,6 @@ const Marketplace = () => {
                       className="bg-gray-700 p-3 rounded-lg"
                       required
                     />
-                    <input
-                      type="number"
-                      name="price"
-                      value={listingItem.price}
-                      onChange={handleInputChange}
-                      placeholder="Price"
-                      className="bg-gray-700 p-3 rounded-lg"
-                      required
-                    />
                     <div className="grid grid-cols-2 gap-4 mt-4">
                       <select
                         name="category"
@@ -171,26 +156,13 @@ const Marketplace = () => {
                         <option value="Accessories">Accessories</option>
                         <option value="Cycle">Cycle</option>
                       </select>
-                      <select
-                        name="condition"
-                        value={listingItem.condition}
-                        onChange={handleInputChange}
-                        className="bg-gray-700 p-3 rounded-lg"
-                        required
-                      >
-                        <option value="">Item Condition</option>
-                        <option value="New">New</option>
-                        <option value="Like New">Like New</option>
-                        <option value="Good">Used/Fair</option>
-                        <option value="Fair">Little Damaged</option>
-                      </select>
                     </div>
 
                     <textarea
-                      name="description"
-                      value={listingItem.description}
+                      name="location"
+                      value={listingItem.location}
                       onChange={handleInputChange}
-                      placeholder="Item Description"
+                      placeholder="Item Loaction"
                       className="w-full bg-gray-700 p-3 rounded-lg mt-4"
                       rows="4"
                       required
@@ -232,7 +204,7 @@ const Marketplace = () => {
                     type="submit"
                     className="w-full bg-yellow-500 text-black p-4 rounded-lg hover:bg-yellow-400 mt-6 transition-colors"
                   >
-                    List Item
+                    List Found Item
                   </button>
                 </motion.div>
               </form>
@@ -244,4 +216,4 @@ const Marketplace = () => {
   );
 };
 
-export default Marketplace;
+export default LostAndFound;
