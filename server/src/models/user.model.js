@@ -15,13 +15,8 @@ const users = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    appwrite_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true, 
-    },
     registration_number: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING,
       allowNull: false,
       unique: true,
       index: true,
@@ -39,7 +34,7 @@ const users = sequelize.define(
         "Seventh",
         "Eighth",
       ],
-      allowNull: false,
+      allowNull: true,
     },
     branch: {
       type: DataTypes.ENUM,
@@ -55,15 +50,15 @@ const users = sequelize.define(
         "Production and Industrial Engineering",
         "Biotechnology",
       ],
-      allowNull: false,
+      allowNull: true,
     },
     hostel: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     graduation_year: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {

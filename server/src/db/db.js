@@ -5,15 +5,26 @@ import asyncHandler from '../utils/asyncHandler.js';
 const DB_NAME = process.env.DB_NAME || "CampusBeacon";
 const DB_USER = process.env.DB_USER || "postgres";
 const DB_PASSWORD = process.env.DB_PASSWORD || "superman";
-const DB_HOST = process.env.DB_HOST 
-const DB_PORT = process.env.DB_PORT 
+const DB_HOST = process.env.DB_HOST || "localhost";
+const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432;
 
 // inititalise an instance of sequelize
-const sequelize=new Sequelize(DB_NAME,DB_USER,DB_PASSWORD,{
-    host:DB_HOST,
-    dialect:'postgres',
-    port:DB_PORT,
+const sequelize = new Sequelize("CampusBeacon", "postgres", "superman", {
+    host: "localhost",
+    dialect: 'postgres',
+    port:5432,
 });
+
+
+
+sequelize
+  .sync()
+  .then(() => {
+    console.log("Database & tables have been updated!");
+  })
+  .catch((error) => {
+    console.error("Error updating database schema:", error);
+  });
 
 // helper function to debug connection error if any
 export const connectDb = asyncHandler(async () => {
