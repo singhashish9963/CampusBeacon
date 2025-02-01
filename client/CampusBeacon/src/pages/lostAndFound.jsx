@@ -59,7 +59,7 @@ const LostAndFound = () => {
           <div className="flex items-center space-x-4">
             <Rocket className="text-yellow-400 animate-pulse" size={48} />
             <h1 className="text-4xl font-bold tracking-wide">
-              College Marketplace
+              Lost & Found
             </h1>
           </div>
           <div className="bg-gray-800 rounded-full">
@@ -69,7 +69,7 @@ const LostAndFound = () => {
                 activeTab === "browse" ? "bg-blue-600" : ""
               }`}
             >
-              Browse Items
+              Lost Item
             </button>
             <button
               onClick={() => setActiveTab("sell")}
@@ -77,7 +77,7 @@ const LostAndFound = () => {
                 activeTab === "sell" ? "bg-blue-600" : ""
               }`}
             >
-              Sell Item
+              Found Item
             </button>
           </div>
         </motion.div>
@@ -93,7 +93,7 @@ const LostAndFound = () => {
                 <div className="relative flex-grow">
                   <input
                     type="text"
-                    placeholder="Search marketplace..."
+                    placeholder="Search for your lost items..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full p-3 pl-10 bg-gray-800 rounded-lg text-xl"
@@ -147,15 +147,6 @@ const LostAndFound = () => {
                       className="bg-gray-700 p-3 rounded-lg"
                       required
                     />
-                    <input
-                      type="number"
-                      name="price"
-                      value={listingItem.price}
-                      onChange={handleInputChange}
-                      placeholder="Price"
-                      className="bg-gray-700 p-3 rounded-lg"
-                      required
-                    />
                     <div className="grid grid-cols-2 gap-4 mt-4">
                       <select
                         name="category"
@@ -169,19 +160,6 @@ const LostAndFound = () => {
                         <option value="Furniture">Furniture</option>
                         <option value="Clothing">Clothing</option>
                         <option value="Cycle">Cycle</option>
-                      </select>
-                      <select
-                        name="condition"
-                        value={listingItem.condition}
-                        onChange={handleInputChange}
-                        className="bg-gray-700 p-3 rounded-lg"
-                        required
-                      >
-                        <option value="">Item Condition</option>
-                        <option value="New">New</option>
-                        <option value="Like New">Like New</option>
-                        <option value="Good">Used/Fair</option>
-                        <option value="Fair">Little Damaged</option>
                       </select>
                     </div>
 
@@ -231,7 +209,7 @@ const LostAndFound = () => {
                     type="submit"
                     className="w-full bg-yellow-500 text-black p-4 rounded-lg hover:bg-yellow-400 mt-6 transition-colors"
                   >
-                    List Item
+                    List Found Item
                   </button>
                 </motion.div>
               </form>
