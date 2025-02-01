@@ -5,6 +5,23 @@ import { FaUsersGear } from "react-icons/fa6";
 const SVBH = () => {
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [selectedComplaintType, setSelectedComplaintType] = useState("");
+  const [complaintDescription, setComplaintDescription] = useState("");
+
+  const submitComplaint = () => {
+    if (selectedComplaintType && complaintDescription) {
+      const newNotification = {
+        id: Date.now(),
+        message: `New ${selectedComplaintType}: ${complaintDescription}`,
+        type: "warning",
+        timestamp: new Date(),
+      };
+      setNotifications([newNotification, ...notifications]);
+      setSelectedComplaintType("");
+      setComplaintDescription("");
+    }
+  };
+
   const daysOfWeek = [
     "Sunday",
     "Monday",
@@ -182,6 +199,7 @@ const SVBH = () => {
       timestamp: new Date(),
     },
   ]);
+
   const getCurrentMeal = () => {
     const hour = currentTime.getHours();
     if (hour >= 6 && hour < 10) return "breakfast";
@@ -267,17 +285,41 @@ const SVBH = () => {
             </motion.div>
 
             <div className="space-y-6">
-            {/* Complaint Form */}
+              {/* Complaint Form */}
 
-            <motion.div 
-            initial={{opacity:0,x:20}}
-            animate={{opacity:1,x:0}}
-            className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
-            >
-              <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-                <Wrench className="mr-2" />File Complaint
-              </h2>
-            </motion.div>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
+              >
+                <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                  <Wrench className="mr-2" /> File Complaint
+                </h2>
+                <select
+                  value={selectedComplaintType}
+                  onChange={(e) => setSelectedComplaintType(e.target.value)}
+                  className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white"
+                >
+                  <option value="">Select Type</option>
+                  {complaintTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+                <textarea
+                  value={complaintDescription}
+                  onChange={(e) => setComplaintDescription(e.target.value)}
+                  placeholder="Describe your complaint"
+                  className="w-full p-2 bg-black/30 rounded-lg text-white h-24 mb-4"
+                />
+                <button
+                  onClick={submitComplaint}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-colors"
+                >
+                  Submit
+                </button>
+              </motion.div>
             </div>
             {/* Officials Section */}
 
