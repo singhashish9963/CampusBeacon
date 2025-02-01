@@ -1,9 +1,8 @@
 import LostAndFound from "../models/lostandfound.model.js";
-import asyncHandler from "../utils/asyncHandler.js"
-import ApiError from "../utils/apiError.js"
-import ApiResponse from "../utils/apiResponse.js"
-
-
+import asyncHandler from "../utils/asyncHandler.js";
+import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
+import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
 export const createLostItem = asyncHandler(async (req, res) => {
   const {
@@ -15,7 +14,6 @@ export const createLostItem = asyncHandler(async (req, res) => {
     registration_number,
   } = req.body;
 
-
   if (!item_name?.trim()) {
     throw new ApiError("Item name is required", 400);
   }
@@ -24,10 +22,9 @@ export const createLostItem = asyncHandler(async (req, res) => {
     throw new ApiError("Registration number is required", 400);
   }
 
-
   let image_url;
   if (req.file) {
-    image_url = await uploadImageToCloudinary(req.file.path, "lost-and-found");
+    image_url = uploadImageToCloudinary(req.file.path, "lost-and-found");
   }
 
   const newItem = await LostAndFound.create({
@@ -67,6 +64,7 @@ export const updateLostItem = asyncHandler(async (req, res) => {
   if (req.file) {
     image_url = await uploadImageToCloudinary(req.file.path, "lost-and-found");
   }
+
 
   item.item_name = item_name || item.item_name;
   item.description = description || item.description;
@@ -119,7 +117,7 @@ export const getLostItem = asyncHandler(async (req, res) => {
 
 export const getAllLostItems = asyncHandler(async (req, res) => {
   const items = await LostAndFound.findAll({
-    order: [["created_at", "DESC"]], 
+    order: [["createdAt", "DESC"]], 
   });
 
   return res
@@ -133,13 +131,12 @@ export const getAllLostItems = asyncHandler(async (req, res) => {
     );
 });
 
-
 export const getLostItemsByRegistration = asyncHandler(async (req, res) => {
   const { registration_number } = req.params;
 
   const items = await LostAndFound.findAll({
     where: { registration_number },
-    order: [["created_at", "DESC"]],
+    order: [["createdAt", "DESC"]],
   });
 
   return res
