@@ -162,7 +162,7 @@ const LostAndFound = () => {
                       name="location"
                       value={listingItem.location}
                       onChange={handleInputChange}
-                      placeholder="Item Description"
+                      placeholder="Item Loaction"
                       className="w-full bg-gray-700 p-3 rounded-lg mt-4"
                       rows="4"
                       required
