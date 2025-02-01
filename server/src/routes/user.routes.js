@@ -5,6 +5,7 @@ import {
   forgetPassword,
   getCurrentUser,
   resetPassword,
+  emailVerification,
 } from "../appwrite/auth.controller.js";
 import {createUser, deleteUser, getUser, updateUser } from "../controllers/user.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
