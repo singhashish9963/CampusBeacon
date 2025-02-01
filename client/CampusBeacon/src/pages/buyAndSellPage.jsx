@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Rocket, Search } from "lucide-react";
+import { Rocket, Search, Plus } from "lucide-react";
 import ItemCard from "../components/ItemCard";
-
 const Marketplace = () => {
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
@@ -205,7 +204,28 @@ const Marketplace = () => {
                     className="w-full bg-gray-700 p-3 rounded-lg mt-4"
                     required
                   />
-                  
+                  <div className="flex items-center space-x-4 mt-4">
+                    <input 
+                    typle="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="imageUpload"
+                    />
+                    <label
+                    htmlFor="imageUpload"
+                    className="flex items-center bg-blue-600 p-3 rounded-lg cursor-pointer  hover:bg-blue-700 transition-colors"
+                    >
+                      <Plus className="mr-2" /> Upload Image
+                    </label>
+                    {listingItem.image && (
+                      <img
+                        src={listingItem.image}
+                        alt="Preview"
+                        className="h-24 w-24 object-cover rounded-lg"
+                      />
+                    )}
+                  </div>
                   </div>
                   <button
                     type="submit"
