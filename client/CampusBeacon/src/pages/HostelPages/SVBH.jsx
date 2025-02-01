@@ -5,14 +5,14 @@ const SVBH = () => {
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
   const [currentTime, setCurrentTime] = useState(new Date());
   const daysOfWeek = [
+    "Sunday",
     "Monday",
     "Tuesday",
     "Wednesday",
     "Thursday",
     "Friday",
-    "Saturday",
-    "Sunday",
-  ];
+    "Saturday"
+  ]
 
   const menu = {
     Monday: {
