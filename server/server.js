@@ -16,6 +16,10 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
 
+app.use(cors({
+  origin: "http://localhost:5174",
+  credentials: true
+}));
 
 const io = new Server(httpServer, {
   cors: {
