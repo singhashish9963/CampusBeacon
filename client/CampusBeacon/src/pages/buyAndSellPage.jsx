@@ -25,7 +25,7 @@ const Marketplace = () => {
       category: "Electronics",
       description: "Portonics bluetooth backlit rgb mechanical keyboard",
       condition: "Like New",
-      contact: "555-1234",
+      contact: "9026695299",
       image: "/",
     },
   ]);
