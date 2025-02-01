@@ -1,7 +1,7 @@
-import { message } from "../models/message.model.js";
-import asyncHandler from "../utils/asyncHandler.js";
-import ApiError from "../utils/apiError.js";
-import ApiResponse from "../utils/apiResponse.js";
+import message from "../src/models/message.model.js";
+import asyncHandler from "../src/utils/asyncHandler.js";
+import ApiError from "../src/utils/apiError.js";
+import ApiResponse from "../src/utils/apiResponse.js";
 
 class ChatController {
   constructor(io) {
