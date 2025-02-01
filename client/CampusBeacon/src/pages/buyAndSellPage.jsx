@@ -109,8 +109,8 @@ const Marketplace = () => {
                   <option value="Electronics">Electronics</option>
                   <option value="Furniture">Furniture</option>
                   <option value="Clothing">Clothing</option>
-                  <option value="Accessories">Clothing</option>
-                  <option value="Cycle">Clothing</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Cycle">Cycle</option>
                 </select>
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -164,10 +164,11 @@ const Marketplace = () => {
                         className="bg-gray-700 p-3 rounded-lg"
                         required
                       >
-                        <option value="">Select Category</option>
+                        <option value="">All Categories</option>
                         <option value="Electronics">Electronics</option>
                         <option value="Furniture">Furniture</option>
                         <option value="Clothing">Clothing</option>
+                        <option value="Accessories">Accessories</option>
                         <option value="Cycle">Cycle</option>
                       </select>
                       <select
