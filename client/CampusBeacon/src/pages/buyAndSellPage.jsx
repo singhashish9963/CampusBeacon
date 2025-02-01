@@ -169,7 +169,7 @@ const Marketplace = () => {
                         <option value="Furniture">Furniture</option>
                         <option value="Clothing">Clothing</option>
                         <option value="Accessories">Accessories</option>
-                        <option value="Cycle">Cycle</option>
+                        <option value="Cycle">Cycle</option>  
                       </select>
                       <select
                         name="condition"

@@ -1,7 +1,7 @@
 import React from "react";
 import { Mail, Phone } from "lucide-react";
 
-function ContactCard({ name, phone, email }) {
+function ContactCard({ name, phone, email, designation }) {
   return (
     <div
       style={{
@@ -13,6 +13,7 @@ function ContactCard({ name, phone, email }) {
       }}
     >
       <h2 style={{ marginBottom: "8px" }}>{name}</h2>
+      <h2 style={{ marginBottom: "8px" }}>{designation}</h2>
       <div
         style={{ display: "flex", alignItems: "center", marginBottom: "4px" }}
       >
