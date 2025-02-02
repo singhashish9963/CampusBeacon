@@ -10,15 +10,17 @@ export const authMiddleware = async (req, res, next) => {
 
   try {
     const authHeader = req.headers.authorization;
-    if (!authHeader) {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({ error: "No token provided" });
     }
 
     const jwt = authHeader.split(" ")[1];
     if (!jwt) {
-      return res.status(401).json({ error: "No token provided" });
+      return res.status(401).json({ error: "Invalid token format" });
     }
 
+
+    client.setJWT(jwt);
 
     const user = await account.get();
 
@@ -27,6 +29,7 @@ export const authMiddleware = async (req, res, next) => {
       email: user.email,
       login: user.email.split("@")[0],
       verified: user.emailVerification || false,
+      appwrite_id: user.$id, 
     };
 
     next();

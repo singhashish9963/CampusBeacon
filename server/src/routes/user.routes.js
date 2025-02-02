@@ -24,7 +24,7 @@ router.get("/get/all/user",getAllUser);
 
 
 // protected routes
-router.get("/current-user", authMiddleware, getCurrentUser);
-router.post("/update-user",authMiddleware, updateUser);
+router.get("/current-user",  getCurrentUser);
+router.post("/update-user", updateUser);
 
 export default router;
