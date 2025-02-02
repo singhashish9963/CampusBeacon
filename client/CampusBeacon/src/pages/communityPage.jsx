@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { Code, MessageSquare, Search } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -11,7 +11,7 @@ const CommunityPage = () => {
   });
   const [newMessage, setNewMessage]= useState("");
   const [isLoading, setIsLoading]=useState(null);
-  const [pinnedMessages, setPinnedMessages]=useStae([]);
+  const [pinnedMessages, setPinnedMessages]=useState([]);
   const [showEmojiPicker, setShowEmojiPicker]=useState(false);
 
   const currentUser = {
@@ -37,6 +37,43 @@ const CommunityPage = () => {
       color: "text-pink-500",
     },
   ];
+
+  //Dummy messages for display purposes
+
+  useEffect() => {
+    const mockMessages = {
+      general: [
+        {
+          id: 1,
+          user: {
+            name: "Devansh",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=alex",
+          },
+          content: "Hey everyone! Tomorrow maths class mass bunk?",
+          timestamp: new Date(Date.now() - 3600000).toISOString(),
+          reactions: ["👋", "😊"],
+        },
+      ],
+      coding: [
+        {
+          id: 1,
+          user: {
+            name: "Manya",
+            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
+          },
+          content:
+            "Can anyone help with bit manupulation?",
+          timestamp: new Date(Date.now() - 7200000).toISOString(),
+          reactions: ["👨‍💻"],
+          codeSnippet: `
+            useEffect(() => {
+              // My code here
+            }, [dependency])
+          `,
+        },
+        // Add more mock messages
+      ],
+    };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800">
