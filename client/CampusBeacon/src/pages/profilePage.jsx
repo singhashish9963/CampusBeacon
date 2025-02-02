@@ -80,7 +80,7 @@ const ProfilePage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <Profile vals={userData.branch} header="Branch" />
                 <Profile vals={userData.year} header="Year" />
-                <Profile vals={userData.semester} header="Semester" />
+                <Profile vals={userData.email} header="Email ID" />
               </div>
             </div>
 
