@@ -18,26 +18,30 @@ export const AuthProvider = ({ children }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
-  const handleAuth = useCallback(async (endpoint, data) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await handleApiCall(endpoint, data);
-      if (response.success) {
-        localStorage.setItem("authToken", response.data.token);
-        setUser(response.data.user);
-        return { success: true, user: response.data.user };
-      }
-      setError(response.message);
-      return response;
-    } catch (error) {
-      setError(error.message);
-      return { success: false, message: error.message };
-    } finally {
-      setLoading(false);
+const handleAuth = useCallback(async (endpoint, data) => {
+  setLoading(true);
+  setError(null);
+  try {
+    const response = await handleApiCall(endpoint, data);
+    if (response.success) {
+      localStorage.setItem("authToken", response.data.token);
+      setUser(response.data.user);
+      setWelcomeMessage(`Welcome back}!`);
+      return { 
+        success: true, 
+        user: response.data.user,
+        message: `Welcome back}!`
+      };
     }
-  }, []);
-
+    setError(response.message);
+    return { success: false, message: response.message };
+  } catch (error) {
+    setError(error.message);
+    return { success: false, message: error.message };
+  } finally {
+    setLoading(false);
+  }
+}, []);
   const handleSignUp = useCallback(
     (email, password) => handleAuth("/signup", { email, password }),
     [handleAuth]
