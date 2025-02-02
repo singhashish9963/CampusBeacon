@@ -39,7 +39,7 @@ const ProfilePage = () => {
     /*Use state for storing dummy user stats to display */
   }
   const stats = [
-    { label: "Attendance", value: "92%", icon: Calendar },
+    { label: "Attendance", value: "87%", icon: Calendar },
     { label: "Semester", value: userData.semester, icon: Book },
     { label: "Semester Credits", value: "21", icon: Star },
     { label: "Registration", value: userData.registrationNumber, icon: Hash },

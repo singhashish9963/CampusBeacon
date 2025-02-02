@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Code, MessageSquare, Search } from "lucide-react";
 import { motion } from "framer-motion";
 
 const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeChannel, setActiveChannel] = useState("general");
+  const [messages, setMessages] = useState({
+    general: [],
+    coding: [],
+  });
+  const [newMessage, setNewMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(null);
+  const [pinnedMessages, setPinnedMessages] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
   const currentUser = {
     id: "1",
     name: "Ayush Jadaun",
@@ -28,6 +38,34 @@ const CommunityPage = () => {
     },
   ];
 
+  //Dummy messages for display purposes
+  const mockMessages = {
+    general: [
+      {
+        id: 1,
+        user: {
+          name: "Devansh",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=alex",
+        },
+        content: "Hey everyone! Tomorrow maths class mass bunk?",
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        reactions: ["👋", "😊"],
+      },
+    ],
+    coding: [
+      {
+        id: 1,
+        user: {
+          name: "Manya",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
+        },
+        content: "Can anyone help with bit manupulation?",
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        reactions: ["👨‍💻"],
+        codeSnippet: "",
+      },
+    ],
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -40,7 +78,7 @@ const CommunityPage = () => {
                   Community Channel
                 </h2>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform-transform y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/4 transform-transform y-1/2 text-gray-400 w-5 h-5 pr-1" />
                   <input
                     type="text"
                     placeholder="Search channels..."
@@ -49,6 +87,18 @@ const CommunityPage = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
+              </div>
+              {/* Channel List */}
+              <div className="space-y-2">
+                {channels.map((channel) => (
+                  <motion.div
+                    key={channel.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveChannel(channel.id)}
+                    className="`w-full p-3 rounded-lg flex items-center space-x-3 transition-all"
+                  ></motion.div>
+                ))}
               </div>
             </div>
           </div>
