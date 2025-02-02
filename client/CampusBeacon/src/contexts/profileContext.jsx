@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { handleApiCall } from "./userService"; 
+import { handleApiCall } from "../services/userService"; 
 
 
 const ProfileContext = createContext();
@@ -13,11 +13,15 @@ export const ProfileProvider = ({ children }) => {
   const fetchProfile = async () => {
     setLoading(true);
     try {
-      const data = await handleApiCall("/current-user", {});
-      setProfile(data);
+      const response = await handleApiCall("/current-user", {}, "GET");
+      if (!response) {
+        throw new Error("Failed to fetch profile data");
+      }
+      setProfile(response);
       setError(null);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An error occurred while fetching profile");
+      setProfile(null);
     } finally {
       setLoading(false);
     }

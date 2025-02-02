@@ -1,36 +1,75 @@
+// ProfilePage.js
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Calendar, Book, Hash, Star, Pencil } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
 import Achievements from "../components/ProfilePage/achievements";
+import { useProfile } from "../contexts/profileContext"; // Adjust the path as needed
 
 const ProfilePage = () => {
-  const [isEditing, setIsEditing] = useState(false);
+  // Get profile data and update function from our ProfileContext
+  const { profile, updateProfile, loading, error } = useProfile();
 
+  // Local state to control edit mode; you may expand this later for more fields
+  const [isEditing, setIsEditing] = useState(false);
+  const [localProfile, setLocalProfile] = useState(null);
+
+  // When profile loads from context, initialize localProfile
+  React.useEffect(() => {
+    if (profile) {
+      setLocalProfile(profile);
+    }
+  }, [profile]);
+
+  // Handle form input changes during edit mode
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setUserData((prevData) => ({
+    setLocalProfile((prevData) => ({
       ...prevData,
       [name]: value,
     }));
   };
 
-  const [userData, setUserData] = useState({
-    name: "Ayush Agarwal",
-    email: "ayush@mnnit.ac.in",
-    phone: "+91 777 777 7777",
-    branch: "Electronics and Communication",
-    year: "1st Year",
-    registrationNumber: "20244047",
-    semester: "2nd Semester",
-  });
-
+  // Example stats array based on the profile data
   const stats = [
     { label: "Attendance", value: "99%", icon: Calendar },
-    { label: "Semester", value: userData.semester, icon: Book },
-    { label: "Semester Credits", value: "20", icon: Star },  // Example value for credits
-    { label: "Registration", value: userData.registrationNumber, icon: Hash },
+    { label: "Semester", value: localProfile?.semester || "", icon: Book },
+    { label: "Semester Credits", value: "20", icon: Star }, // Example value for credits
+    {
+      label: "Registration",
+      value: localProfile?.registrationNumber || "",
+      icon: Hash,
+    },
   ];
+
+  // Handle saving the updates by calling the updateProfile function from context
+  const handleSave = async () => {
+    try {
+      await updateProfile(localProfile);
+      setIsEditing(false);
+    } catch (err) {
+      // You can implement additional error handling or toast messages here
+      console.error(err);
+    }
+  };
+
+  // When data is still loading from the API
+  if (loading || !localProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-white">Loading...</p>
+      </div>
+    );
+  }
+
+  // Render error state if there is an error
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 py-20 px-4 overflow-hidden">
@@ -66,20 +105,20 @@ const ProfilePage = () => {
                   <input
                     type="text"
                     name="name"
-                    value={userData.name}
+                    value={localProfile.name}
                     onChange={handleChange}
                     className="text-4xl font-bold text-white mb-2 bg-transparent border-b border-purple-400 focus:outline-none"
                   />
                 ) : (
                   <h1 className="text-5xl font-bold text-white mb-2">
-                    {userData.name}
+                    {localProfile.name}
                   </h1>
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Profile vals={userData.branch} header="Branch" />
-                <Profile vals={userData.year} header="Year" />
-                <Profile vals={userData.semester} header="Semester" />
+                <Profile vals={localProfile.branch} header="Branch" />
+                <Profile vals={localProfile.year} header="Year" />
+                <Profile vals={localProfile.semester} header="Semester" />
               </div>
             </div>
             {/* Stats Section */}
@@ -93,7 +132,8 @@ const ProfilePage = () => {
                   <motion.button
                     className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity"
                     whileHover={{ scale: 1.1 }}
-                    onClick={handleChange}
+                    // For example, if you want to toggle editing for a particular field
+                    onClick={() => setIsEditing(true)}
                   >
                     <Pencil className="w-5 h-5 text-purple-400" />
                   </motion.button>
@@ -105,7 +145,7 @@ const ProfilePage = () => {
                 </motion.div>
               ))}
             </div>
-            {/* Achievements Sections */}
+            {/* Achievements Section */}
             <motion.div
               className="mt-12 border-t border-white/10 pt-8"
               initial={{ opacity: 0 }}
@@ -126,13 +166,22 @@ const ProfilePage = () => {
                     <h3 className="text-xl font-semibold text-purple-400 mb-2">
                       {achievement.title}
                     </h3>
-                    <p className="text-gray-400">
-                      {achievement.description}
-                    </p>
+                    <p className="text-gray-400">{achievement.description}</p>
                   </motion.div>
                 ))}
               </div>
             </motion.div>
+            {/* Save Button when Editing */}
+            {isEditing && (
+              <div className="mt-6 flex justify-end">
+                <button
+                  onClick={handleSave}
+                  className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-all"
+                >
+                  Save Changes
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </motion.div>
