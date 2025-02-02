@@ -1,17 +1,6 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { handleApiCall } from "../services/userService";
 
-
-const DUMMY_PROFILE = {
-  name: "John Doe",
-  email: "john.doe@example.com",
-  phone: "123-456-7890",
-  branch: "Undeclared",
-  year: "Freshman",
-  registrationNumber: "00000000",
-  semester: "N/A",
-};
-
 const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
