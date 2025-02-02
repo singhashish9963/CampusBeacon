@@ -166,7 +166,10 @@ const DJGH = () => {
               className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-purple-500/50"
             >
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
+
+
                 <Utensils className="mr-2" /> Today's Mess Menu : DJGH
+
                 <span className="ml-4 text-lg text-purple-300">
                   {daysOfWeek[currentDay]}
                 </span>

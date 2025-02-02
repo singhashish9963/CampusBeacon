@@ -1,18 +1,24 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useCallback } from "react";
 import { handleApiCall } from "../services/loginService";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(() => {
 
-  const [user, setUser] = useState(null);
+    const token = localStorage.getItem("authToken");
+    if (token) {
+   
+      return { token };
+    }
+    return null;
+  });
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
-
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
-  const handleAuth = async (endpoint, data) => {
+  const handleAuth = useCallback(async (endpoint, data) => {
     setLoading(true);
     setError(null);
     try {
@@ -30,109 +36,128 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
+  const handleSignUp = useCallback(
+    (email, password) => handleAuth("/signup", { email, password }),
+    [handleAuth]
+  );
 
-  const handleSignUp = (email, password) =>
-    handleAuth("/signup", { email, password });
-  const handleSignIn = (email, password) =>
-    handleAuth("/login", { email, password });
-  const handleForgetPassword = (email) =>
-    handleAuth("/forget-password", { email });
-  const handleResetPassword = (email, password) =>
-    handleAuth("/reset-password", { email, password });
+  const handleSignIn = useCallback(
+    (email, password) => handleAuth("/login", { email, password }),
+    [handleAuth]
+  );
 
-  const handlePasswordAction = async (e, actionType) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const email = formData.get("email");
-    let password = "";
-    if (actionType === "resetPassword") {
-      password = formData.get("password");
-    }
+  const handleForgetPassword = useCallback(
+    (email) => handleAuth("/forget-password", { email }),
+    [handleAuth]
+  );
 
-    try {
-      let response;
-      if (actionType === "forgotPassword") {
-        response = await handleForgetPassword(email);
-      } else if (actionType === "resetPassword") {
-        response = await handleResetPassword(email, password);
-      } else {
-        throw new Error("Invalid action type");
+  const handleResetPassword = useCallback(
+    (email, password) => handleAuth("/reset-password", { email, password }),
+    [handleAuth]
+  );
+
+  const handlePasswordAction = useCallback(
+    async (e, actionType) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const email = formData.get("email");
+      const password =
+        actionType === "resetPassword" ? formData.get("password") : "";
+
+      try {
+        const response =
+          actionType === "forgotPassword"
+            ? await handleForgetPassword(email)
+            : await handleResetPassword(email, password);
+
+        if (response?.success) {
+          setWelcomeMessage(response.message || "Success!");
+        } else {
+          setError(response?.message || "Action failed.");
+        }
+      } catch (err) {
+        setError(err.message);
       }
-      if (response?.success) {
-        setWelcomeMessage(response.message || "Success!");
-      } else {
-        setError(response?.message || "Action failed.");
-      }
-    } catch (err) {
-      setError(err.message);
-    }
-  };
+    },
+    [handleForgetPassword, handleResetPassword]
+  );
 
-  const handleSubmit = async (e, actionType) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const email = formData.get("email");
-    const password = formData.get("password");
+  const handleSubmit = useCallback(
+    async (e, actionType) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const email = formData.get("email");
+      const password = formData.get("password");
 
-    try {
-      let response;
-      switch (actionType) {
-        case "signUp":
-          response = await handleSignUp(email, password);
-          break;
-        case "signIn":
-          response = await handleSignIn(email, password);
-          break;
-        case "forgetPassword":
-          response = await handleForgetPassword(email);
-          break;
-        case "resetPassword":
-          response = await handleResetPassword(email, password);
-          break;
-        default:
+      try {
+        const handlers = {
+          signUp: handleSignUp,
+          signIn: handleSignIn,
+          forgetPassword: handleForgetPassword,
+          resetPassword: handleResetPassword,
+        };
+
+        const handler = handlers[actionType];
+        if (!handler) {
           throw new Error("Invalid action type");
-      }
+        }
 
-      if (response.success) {
+        const response = await handler(email, password);
+        if (!response.success) {
+          throw new Error(response.message || "Authentication failed");
+        }
+
         return response;
-      } else {
-        throw new Error(response.message || "Authentication failed");
+      } catch (error) {
+        console.error("Form submission error:", error);
+        throw error;
       }
-    } catch (error) {
-      console.error("Form submission error:", error);
-      throw error;
-    }
-  };
+    },
+    [handleSignUp, handleSignIn, handleForgetPassword, handleResetPassword]
+  );
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("authToken");
     setUser(null);
     setError(null);
     setLoading(false);
-  };
+  }, []);
+
+  const contextValue = React.useMemo(
+    () => ({
+      isSignIn: !!user,
+      user,
+      error,
+      loading,
+      isSignUp,
+      setIsSignUp,
+      handleSubmit,
+      handleSignIn,
+      handleSignUp,
+      handleAuth,
+      logout,
+      handlePasswordAction,
+      welcomeMessage,
+    }),
+    [
+      user,
+      error,
+      loading,
+      isSignUp,
+      handleSubmit,
+      handleSignIn,
+      handleSignUp,
+      handleAuth,
+      logout,
+      handlePasswordAction,
+      welcomeMessage,
+    ]
+  );
 
   return (
-    <AuthContext.Provider
-      value={{
-        isSignIn: !!user,
-        user,
-        error,
-        loading,
-        isSignUp,
-        setIsSignUp,
-        handleSubmit,
-        handleSignIn,
-        handleSignUp,
-        handleAuth,
-        logout,
-        handlePasswordAction,
-        welcomeMessage,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+    <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
   );
 };
 

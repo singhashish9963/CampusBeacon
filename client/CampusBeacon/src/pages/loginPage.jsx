@@ -1,242 +1,241 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
 import Footer from "../components/Footer.jsx";
 
 const LoginSignup = () => {
-
   const {
     isSignUp,
     setIsSignUp,
     handleSubmit,
-    handleForgetPassword,
-    handleResetPassword,
     handlePasswordAction,
-    welcomeMessage
+    welcomeMessage,
   } = useAuth();
 
   const [authMode, setAuthMode] = useState("default");
-
   const [error, setError] = useState(null);
-
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-
 
   useEffect(() => {
     if (welcomeMessage) {
-      setTimeout(() => {
-        navigate("/home");
-      }, 3000);
+      const timer = setTimeout(() => {
+        navigate("/");
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, [welcomeMessage, navigate]);
 
+const handleFormSubmit = async (e, type) => {
+  e.preventDefault();
+  setError(null);
+  setIsLoading(true);
 
+  try {
+    if (type === "forgotPassword" || type === "resetPassword") {
+      await handlePasswordAction(e, type);
+    } else {
+      const response = await handleSubmit(e, type);
+    
+      if (response && response.success) {
+       
+        setTimeout(() => {
+          navigate("/");
+        }, 1500);
+      } else {
+       
+        throw new Error(response?.message || "Authentication failed");
+      }
+    }
+  } catch (err) {
+    setError(err.message || "An error occurred");
+    setIsLoading(false);
+  }
+};
+
+  const AuthForm = ({ type }) => (
+    <form onSubmit={(e) => handleFormSubmit(e, type)} className="space-y-6">
+      <input
+        type="email"
+        name="email"
+        placeholder="Enter your email"
+        className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500 transition-all"
+        required
+      />
+      {type !== "forgotPassword" && (
+        <input
+          type="password"
+          name="password"
+          placeholder={
+            type === "resetPassword" ? "Enter new password" : "Enter password"
+          }
+          className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500 transition-all"
+          required
+        />
+      )}
+      <ButtonColourfull
+        text={
+          type === "signUp"
+            ? "Create Account"
+            : type === "signIn"
+            ? "Sign In"
+            : type === "forgotPassword"
+            ? "Send Reset Link"
+            : "Reset Password"
+        }
+        type="submit"
+        disabled={isLoading}
+      />
+    </form>
+  );
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center">
-
-        {authMode === "default" && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative w-[900px] h-[600px] rounded-2xl overflow-hidden flex"
-            style={{
-              background: "rgba(0, 0, 0, 0.7)",
-              backdropFilter: "blur(10px)",
-            }}
-          >
-
+      <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center p-4">
+        <AnimatePresence mode="wait">
+          {authMode === "default" ? (
             <motion.div
-              animate={{ x: isSignUp ? "100%" : "0%" }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
+              key="default"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="relative w-full max-w-[900px] h-[600px] rounded-2xl overflow-hidden flex shadow-2xl"
               style={{
-                boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
-                backgroundColor: "rgba(139, 92, 246, 0.7)",
+                background: "rgba(0, 0, 0, 0.7)",
+                backdropFilter: "blur(10px)",
               }}
             >
-              <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-8">
-                <h2 className="text-4xl font-bold text-white mb-4">
-                  {isSignUp ? "Welcome Back!" : "New Here?"}
+              {/* Sliding Panel */}
+              <motion.div
+                animate={{ x: isSignUp ? "100%" : "0%" }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
+                style={{
+                  boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
+                  backgroundColor: "rgba(139, 92, 246, 0.7)",
+                }}
+              >
+                <div className="w-full h-full bg-purple-900/50 backdrop-blur-sm flex flex-col items-center justify-center p-8">
+                  <h2 className="text-4xl font-bold text-white mb-4">
+                    {isSignUp ? "Welcome Back!" : "New Here?"}
+                  </h2>
+                  <p className="text-white/80 text-center mb-8">
+                    {isSignUp
+                      ? "Already have an account? Sign in to continue your journey"
+                      : "Sign up and discover a great amount of new opportunities!"}
+                  </p>
+                  <button
+                    onClick={() => {
+                      setIsSignUp(!isSignUp);
+                      setError(null);
+                    }}
+                    className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all"
+                  >
+                    {isSignUp ? "Sign In" : "Sign Up"}
+                  </button>
+                </div>
+              </motion.div>
+
+              {/* Sign Up Form */}
+              <div className="w-1/2 p-12">
+                <h2 className="text-3xl font-bold text-white mb-8">
+                  Create Account
                 </h2>
-                <p className="text-white/80 text-center mb-8">
-                  {isSignUp
-                    ? "Already have an account? Sign in to continue your journey"
-                    : "Sign up and discover a great amount of new opportunities!"}
-                </p>
-                <button
-                  onClick={() => setIsSignUp(!isSignUp)}
-                  className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all"
-                >
-                  {isSignUp ? "Sign In" : "Sign Up"}
-                </button>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-lg"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+                <AuthForm type="signUp" />
               </div>
-            </motion.div>
 
-            <div className="w-1/2 p-12">
-              <h2 className="text-3xl font-bold text-white mb-8">
-                Create Account
-              </h2>
-              {error && <div className="text-red-500 mb-4">{error}</div>}
-              <form
-                onSubmit={(e) => handleSubmit(e, "signUp")}
-                className="space-y-6"
-              >
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
-                  required
-                />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Create a password"
-                  className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
-                  required
-                />
-                <ButtonColourfull text="Create Account" type="submit" />
-              </form>
-            </div>
-
-            <div className="w-1/2 p-12">
-              <h2 className="text-3xl font-bold text-white mb-8">
-                Welcome Back
-              </h2>
-              {error && <div className="text-red-500 mb-4">{error}</div>}
-              <form
-                onSubmit={(e) => handleSubmit(e, "signIn")}
-                className="space-y-6"
-              >
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter your email"
-                  className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
-                  required
-                />
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Enter your password"
-                  className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
-                  required
-                />
-                <ButtonColourfull text="Sign In" type="submit" />
-              </form>
-
-              {/* Forgot Password Button */}
-              <div className="mt-4">
+              {/* Sign In Form */}
+              <div className="w-1/2 p-12">
+                <h2 className="text-3xl font-bold text-white mb-8">
+                  Welcome Back
+                </h2>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-lg"
+                  >
+                    {error}
+                  </motion.div>
+                )}
+                <AuthForm type="signIn" />
                 <button
-                  className="text-purple-400 hover:underline"
+                  className="mt-4 text-purple-400 hover:text-purple-300 transition-colors"
                   onClick={() => {
-                    setError(null);
                     setAuthMode("forgotPassword");
+                    setError(null);
                   }}
                 >
                   Forgot Password?
                 </button>
               </div>
-            </div>
-          </motion.div>
-        )}
-
-
-        {authMode === "forgotPassword" && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="p-8 bg-white/10 rounded-2xl flex flex-col items-center justify-center"
-            style={{ backdropFilter: "blur(10px)" }}
-          >
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Forgot Password
-            </h2>
-            {error && <div className="text-red-500 mb-4">{error}</div>}
-            <form
-              className="space-y-6"
-              onSubmit={(e) => handlePasswordAction(e, "forgotPassword")}
+            </motion.div>
+          ) : (
+            <motion.div
+              key={authMode}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="p-8 bg-white/10 backdrop-blur-10 rounded-2xl shadow-2xl w-full max-w-[400px]"
             >
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
-                required
-              />
-              <ButtonColourfull text="Send Reset Link" type="submit" />
-            </form>
-            <button
-              className="text-purple-400 hover:underline mt-4"
-              onClick={() => setAuthMode("default")}
-            >
-              Back
-            </button>
-          </motion.div>
-        )}
+              <h2 className="text-2xl font-bold text-white mb-6 text-center">
+                {authMode === "forgotPassword"
+                  ? "Forgot Password"
+                  : "Reset Password"}
+              </h2>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-lg"
+                >
+                  {error}
+                </motion.div>
+              )}
+              <AuthForm type={authMode} />
+              <button
+                className="mt-4 text-purple-400 hover:text-purple-300 transition-colors w-full text-center"
+                onClick={() => {
+                  setAuthMode("default");
+                  setError(null);
+                }}
+              >
+                Back to Login
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-
-        {authMode === "resetPassword" && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="p-8 bg-white/10 rounded-2xl flex flex-col items-center justify-center"
-            style={{ backdropFilter: "blur(10px)" }}
-          >
-            <h2 className="text-2xl font-bold text-white mb-4">
-              Reset Password
-            </h2>
-            {error && <div className="text-red-500 mb-4">{error}</div>}
-            <form
-              className="space-y-6"
-              onSubmit={(e) => handlePasswordAction(e, "resetPassword")}
+        {/* Welcome Message Overlay */}
+        <AnimatePresence>
+          {welcomeMessage && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
             >
-              <input
-                type="email"
-                name="email"
-                placeholder="Enter your email"
-                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
-                required
-              />
-              <input
-                type="password"
-                name="password"
-                placeholder="Enter a new password"
-                className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500"
-                required
-              />
-              <ButtonColourfull text="Reset Password" type="submit" />
-            </form>
-            <button
-              className="text-purple-400 hover:underline mt-4"
-              onClick={() => setAuthMode("default")}
-            >
-              Back
-            </button>
-          </motion.div>
-        )}
-
-      
-        {welcomeMessage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center"
-          >
-            <motion.h1
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-white text-8xl font-bold"
-            >
-              {welcomeMessage}
-            </motion.h1>
-          </motion.div>
-        )}
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="text-white text-4xl md:text-6xl font-bold text-center p-8 rounded-lg"
+              >
+                {welcomeMessage}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       <Footer />
     </>
