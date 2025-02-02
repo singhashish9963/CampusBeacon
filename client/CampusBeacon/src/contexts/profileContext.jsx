@@ -5,7 +5,7 @@ const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
 
-  const [profile, setProfile] = useState(DUMMY_PROFILE);
+  const [profile, setProfile] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
