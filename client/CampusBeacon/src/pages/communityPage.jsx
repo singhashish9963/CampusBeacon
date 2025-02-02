@@ -4,6 +4,16 @@ import { motion } from "framer-motion";
 
 const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeChannel, setActiveChannel] = useState("general");
+  const [messages, setMessages] = useState({
+    general: [],
+    coding: [],
+  });
+  const [newMessage, setNewMessage]= useState("");
+  const [isLoading, setIsLoading]=useState(null);
+  const [pinnedMessages, setPinnedMessages]=useStae([]);
+  const [showEmojiPicker, setShowEmojiPicker]=useState(false);
+
   const currentUser = {
     id: "1",
     name: "Ayush Jadaun",
@@ -40,7 +50,7 @@ const CommunityPage = () => {
                   Community Channel
                 </h2>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform-transform y-1/2 text-gray-400 w-5 h-5" />
+                  <Search className="absolute left-3 top-1/4 transform-transform y-1/2 text-gray-400 w-5 h-5 pr-1" />
                   <input
                     type="text"
                     placeholder="Search channels..."
@@ -49,6 +59,16 @@ const CommunityPage = () => {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
+              </div>
+              {/* Channel List */}
+              <div className="space-y-2">
+                {channels.map((channel) => (
+                  <motion.div
+                    key={channel.id}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
+                  ></motion.div>
+                ))}
               </div>
             </div>
           </div>
