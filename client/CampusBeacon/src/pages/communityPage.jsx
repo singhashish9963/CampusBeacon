@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Code, MessageSquare, Search } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -9,10 +9,10 @@ const CommunityPage = () => {
     general: [],
     coding: [],
   });
-  const [newMessage, setNewMessage]= useState("");
-  const [isLoading, setIsLoading]=useState(null);
-  const [pinnedMessages, setPinnedMessages]=useState([]);
-  const [showEmojiPicker, setShowEmojiPicker]=useState(false);
+  const [newMessage, setNewMessage] = useState("");
+  const [isLoading, setIsLoading] = useState(null);
+  const [pinnedMessages, setPinnedMessages] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
   const currentUser = {
     id: "1",
@@ -39,42 +39,33 @@ const CommunityPage = () => {
   ];
 
   //Dummy messages for display purposes
-
-  useEffect() => {
-    const mockMessages = {
-      general: [
-        {
-          id: 1,
-          user: {
-            name: "Devansh",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=alex",
-          },
-          content: "Hey everyone! Tomorrow maths class mass bunk?",
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-          reactions: ["👋", "😊"],
+  const mockMessages = {
+    general: [
+      {
+        id: 1,
+        user: {
+          name: "Devansh",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=alex",
         },
-      ],
-      coding: [
-        {
-          id: 1,
-          user: {
-            name: "Manya",
-            avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
-          },
-          content:
-            "Can anyone help with bit manupulation?",
-          timestamp: new Date(Date.now() - 7200000).toISOString(),
-          reactions: ["👨‍💻"],
-          codeSnippet: `
-            useEffect(() => {
-              // My code here
-            }, [dependency])
-          `,
+        content: "Hey everyone! Tomorrow maths class mass bunk?",
+        timestamp: new Date(Date.now() - 3600000).toISOString(),
+        reactions: ["👋", "😊"],
+      },
+    ],
+    coding: [
+      {
+        id: 1,
+        user: {
+          name: "Manya",
+          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
         },
-        // Add more mock messages
-      ],
-    };
-
+        content: "Can anyone help with bit manupulation?",
+        timestamp: new Date(Date.now() - 7200000).toISOString(),
+        reactions: ["👨‍💻"],
+        codeSnippet: "",
+      },
+    ],
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -104,6 +95,8 @@ const CommunityPage = () => {
                     key={channel.id}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.98 }}
+                    onClick={() => setActiveChannel(channel.id)}
+                    className="`w-full p-3 rounded-lg flex items-center space-x-3 transition-all"
                   ></motion.div>
                 ))}
               </div>
