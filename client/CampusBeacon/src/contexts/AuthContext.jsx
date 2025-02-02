@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useCallback } from "react";
-import { handleApiCall } from "../services/loginService";
+import { handleApiCall } from "../services/userService.jsx";
 
 const AuthContext = createContext(null);
 
