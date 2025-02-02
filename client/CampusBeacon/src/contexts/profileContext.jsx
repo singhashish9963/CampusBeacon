@@ -1,27 +1,39 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { handleApiCall } from "../services/userService"; 
+import { handleApiCall } from "../services/userService";
 
+
+const DUMMY_PROFILE = {
+  name: "John Doe",
+  email: "john.doe@example.com",
+  phone: "123-456-7890",
+  branch: "Undeclared",
+  year: "Freshman",
+  registrationNumber: "00000000",
+  semester: "N/A",
+};
 
 const ProfileContext = createContext();
 
-
 export const ProfileProvider = ({ children }) => {
-  const [profile, setProfile] = useState(null);
+
+  const [profile, setProfile] = useState(DUMMY_PROFILE);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const fetchProfile = async () => {
     setLoading(true);
     try {
+
       const response = await handleApiCall("/current-user", {}, "GET");
       if (!response) {
         throw new Error("Failed to fetch profile data");
       }
+
       setProfile(response);
       setError(null);
     } catch (err) {
+
       setError(err.message || "An error occurred while fetching profile");
-      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -54,7 +66,6 @@ export const ProfileProvider = ({ children }) => {
     </ProfileContext.Provider>
   );
 };
-
 
 export const useProfile = () => {
   const context = useContext(ProfileContext);
