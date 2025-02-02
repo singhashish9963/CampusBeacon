@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Pencil } from "lucide-react";
 
+{/*Profile Card to display on Profile Page */}
+
 function Profile({ vals, header }) {
   const [isEditing, setIsEditing] = useState(false);
   const handleEdit = () => {
