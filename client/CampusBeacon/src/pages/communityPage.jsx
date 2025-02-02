@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { Code, MessageSquare, Search } from "lucide-react";
+import { Hash, Search, Users } from "lucide-react";
 import { motion } from "framer-motion";
-
+import { FaCode } from "react-icons/fa";
+import { TiMessages } from "react-icons/ti";
 const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeChannel, setActiveChannel] = useState("general");
@@ -25,16 +26,16 @@ const CommunityPage = () => {
     {
       id: "general",
       name: "General Chat",
-      icon: MessageSquare,
-      description: "Campus-wide discussions and announcements",
+      icon: TiMessages,
+      description: "Campus-wide discussions",
       color: "text-purple-500",
     },
     {
       id: "coding",
       name: "Coding Doubts",
-      icon: Code,
+      icon: FaCode,
       description: "Get help with programming questions",
-      color: "text-pink-500",
+      color: "text-pink-700",
     },
   ];
 
@@ -74,15 +75,15 @@ const CommunityPage = () => {
           <div className="col-span-3 border-r border-purple-500/20 p-4">
             <div className="space-y-6">
               <div className="space-y-4">
-                <h2 className="text-2xl font-bold text-white">
+                <h2 className="text-3xl font-bold text-white">
                   Community Channel
                 </h2>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/4 transform-transform y-1/2 text-gray-400 w-5 h-5 pr-1" />
+                  <Search className="absolute left-3 top-1/4 transform-transform y-1/2 text-gray-400 w-5 h-7" />
                   <input
                     type="text"
                     placeholder="Search channels..."
-                    className="w-full bg-purple-500/10 text-white rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    className="h-14 text-xl w-full bg-purple-500/10 text-white rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -96,13 +97,48 @@ const CommunityPage = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveChannel(channel.id)}
-                    className="`w-full p-3 rounded-lg flex items-center space-x-3 transition-all"
-                  ></motion.div>
+                    className={`w-full p-3 rounded-lg flex items-center space-x-3 transition-all h-20
+                    ${
+                      activeChannel === channel.id
+                        ? "bg-purple-600/30 border border-purple 500/50"
+                        : "hover:bg-purple-600/10"
+                    }`}
+                  >
+                    <channel.icon className={`w-5 h-5 ${channel.color}`} />
+                    <div className="text-left">
+                      <p className="text-white font-m">{channel.name}</p>
+                      <p className="text-gray-400 text-sm">
+                        {channel.description}
+                      </p>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
           </div>
-          <div className="col-span-3 border-r border-purple-500/20 p-4"></div>
+
+          {/* Main Chat Area */}
+
+          <div className="col-span-9 flex flex-col">
+            <div className="p-4 border-b border-purple-500/30">
+              <div className="flex items-center justify-between">
+                <Hash className="w-6- h-6 text-purple-600" />
+                <div>
+                  <h3 className="text-xl font-bold text-white">
+                    {channels.find((c) => c.id == activeChannel)?.name}
+                  </h3>
+                  <p className="text-gray-400 tezt-sm">
+                    {channels.find((c) => c.id == activeChannel)?.description}
+                  </p>
+                </div>
+              </div>
+              {/* Displaying number of active users  */}
+              <div className="flex items-center space-x-4">
+                <Users className="w-5- h-6 text-purple-500" />
+                <span className="text-green-400">19 online</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
