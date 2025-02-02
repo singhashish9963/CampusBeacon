@@ -63,7 +63,7 @@ const LostAndFound = () => {
                 activeTab === "browse" ? "bg-blue-600" : ""
               }`}
             >
-              Lost Item
+              Upload Item
             </button>
             <button
               onClick={() => setActiveTab("sell")}
@@ -71,7 +71,7 @@ const LostAndFound = () => {
                 activeTab === "sell" ? "bg-blue-600" : ""
               }`}
             >
-              Found Item
+              Browse Item
             </button>
           </div>
         </motion.div>

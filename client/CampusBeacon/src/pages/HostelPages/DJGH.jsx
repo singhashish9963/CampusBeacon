@@ -2,11 +2,26 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Utensils, Phone, Mail, Bell, Wrench } from "lucide-react";
 import { FaUsersGear } from "react-icons/fa6";
-const SVBH = () => {
+
+const DJGH = () => {
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [selectedComplaintType, setSelectedComplaintType] = useState("");
   const [complaintDescription, setComplaintDescription] = useState("");
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      message: "Yoga classes will start from tomorrow, from 6:00am",
+      type: "notice",
+      timestamp: new Date(),
+    },
+    {
+      id: 2,
+      message: "Intime for girls has been updated to 9:00pm",
+      type: "warning",
+      timestamp: new Date(),
+    },
+  ]);
 
   const submitComplaint = () => {
     if (selectedComplaintType && complaintDescription) {
@@ -107,79 +122,72 @@ const SVBH = () => {
   const hostelOfficials = [
     {
       designation: "Hostel President",
-      name: "Miss Abhilaasha Pandey",
+      name: "Miss Abhiaasha Pandey",
+      phone: "8888888888",
+      email: "email@example.com",
     },
     {
       designation: "All Floor Representative (Electrical Maintenance)",
-      name: "Miss Akshita Yadav",
+      name: "Miss Jhanvi Gupta",
+      phone: "2222222222",
+      email: "email@example.com",
     },
     {
       designation: "All Floor Representative (Civil Maintenance)",
-      name: "Miss Jhanvi Kapoor",
+      name: "Miss Ifa Khatoon",
+      phone: "1111111111",
+      email: "email@example.com",
     },
     {
       designation:
         "OverAll Floor Representative (Lift Maintenance & Water Supply Maintenance)",
-      name: "Miss Ifa Khatoon",
+      name: "Miss Akshita Yadav",
+      phone: "1234567890",
+      email: "email@example.com",
     },
   ];
 
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      message: "From tomorrow morning there is yoga classes from 6:00am",
-      type: "notice",
-      timestamp: new Date(),
-    },
-    {
-      id: 2,
-      message: "Intime has been updated to 9:00pm",
-      type: "info",
-      timestamp: new Date(),
-    },
-  ]);
-
   const getCurrentMeal = () => {
     const hour = currentTime.getHours();
-    if (hour >= 6 && hour < 10) return "breakfast";
-    if (hour >= 12 && hour < 15) return "lunch";
-    if (hour >= 16 && hour < 19) return "snacks";
-    return "dinner";
+    if (hour >= 6 && hour < 10) return "Breakfast";
+    if (hour >= 12 && hour < 15) return "Lunch";
+    if (hour >= 16 && hour < 19) return "Snacks";
+    return "Dinner";
   };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 p-8">
-      <div className="container mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-6">
-            {/* Mess Menu */}
+    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 py-8">
+      <div className="container mx-auto px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2 space-y-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50 mt-10"
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-purple-500/50"
             >
               <h2 className="text-2xl font-bold text-white mb-6 flex items-center">
-                <Utensils className="mr-2" /> Today's Mess Menu - SVBH
+                <Utensils className="mr-2" /> Today's Mess Menu : DJGH
                 <span className="ml-4 text-lg text-purple-300">
                   {daysOfWeek[currentDay]}
                 </span>
               </h2>
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-7">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {menu[daysOfWeek[currentDay]] &&
                   Object.entries(menu[daysOfWeek[currentDay]]).map(
                     ([meal, items]) => (
                       <motion.div
                         key={meal}
-                        whileHover={{ scale: 1.12 }}
+                        whileHover={{ scale: 1.05 }}
                         className={`p-4 rounded-lg border ${
                           getCurrentMeal() === meal
                             ? "bg-purple-500/20 border-purple-500"
                             : "bg-black/30 border-white/10"
                         }`}
                       >
-                        <h3 className="text-xl font-semibold text-white capitalize mb-3 ">
+                        <h3 className="text-xl font-semibold text-white capitalize mb-3">
                           {meal}
                         </h3>
-                        <ul className="space-y-2">
+                        <ul className="space-y-1">
                           {items.split(", ").map((item, index) => (
                             <li key={index} className="text-gray-300">
                               • {item}
@@ -192,12 +200,10 @@ const SVBH = () => {
               </div>
             </motion.div>
 
-            {/* Notifications */}
-
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-purple-500/50"
             >
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
                 <Bell className="mr-2" /> Notifications
@@ -223,54 +229,51 @@ const SVBH = () => {
               </div>
             </motion.div>
 
-            <div className="space-y-6">
-              {/* Complaint Form */}
-
-              <motion.div
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50"
-              >
-                <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-                  <Wrench className="mr-2" /> File Complaint
-                </h2>
-                <select
-                  value={selectedComplaintType}
-                  onChange={(e) => setSelectedComplaintType(e.target.value)}
-                  className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white"
-                >
-                  <option value="">Select Type</option>
-                  {complaintTypes.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-                <textarea
-                  value={complaintDescription}
-                  onChange={(e) => setComplaintDescription(e.target.value)}
-                  placeholder="Describe your complaint"
-                  className="w-full p-2 bg-black/30 rounded-lg text-white h-24 mb-4"
-                />
-                <button
-                  onClick={submitComplaint}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-colors"
-                >
-                  Submit
-                </button>
-              </motion.div>
-            </div>
-            {/* Officials Section */}
-
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/50 w-386"
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-purple-500/50"
+            >
+              <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
+                <Wrench className="mr-2" /> File Complaint
+              </h2>
+              <select
+                value={selectedComplaintType}
+                onChange={(e) => setSelectedComplaintType(e.target.value)}
+                className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white"
+              >
+                <option value="">Select Type</option>
+                {complaintTypes.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+              <textarea
+                value={complaintDescription}
+                onChange={(e) => setComplaintDescription(e.target.value)}
+                placeholder="Describe your complaint"
+                className="w-full p-2 bg-black/30 rounded-lg text-white h-24 mb-4"
+              />
+              <button
+                onClick={submitComplaint}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-colors"
+              >
+                Submit
+              </button>
+            </motion.div>
+          </div>
+
+          <div className="space-y-8">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-purple-500/50"
             >
               <h2 className="text-white font-bold text-2xl mb-4 flex items-center">
-                <FaUsersGear className="mr-2" /> SVBH Officials
+                <FaUsersGear className="mr-2" /> DJGH Officials
               </h2>
-              <div className="space-y-4 grid grid-cols-1 lg:grid-cols-4 gap-7">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {hostelOfficials.map((official) => (
                   <motion.div
                     key={official.name}
@@ -301,4 +304,4 @@ const SVBH = () => {
   );
 };
 
-export default SVBH;
+export default DJGH;
