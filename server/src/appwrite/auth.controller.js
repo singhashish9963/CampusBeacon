@@ -21,6 +21,9 @@ const signUpUser = asyncHandler(async (req, res) => {
     const appwriteUser = await account.create(ID.unique(), email, password);
     const userId=appwriteUser.$id;
 
+    const signedUp = await users.create({
+        appwriteId: userId
+    });
 
     return res
         .status(201)
@@ -47,7 +50,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email is required");
     }
     // createRecovery sends a secret key and email with the redirect url 
-    const recovery = await account.createRecovery(email, "http://localhost:5173/reset-password");
+    const recovery = await account.createRecovery(email, "http://localhost:5173/login");
     return res
         .status(200)
         .json(new ApiResponse(200, recovery, "Password recovery email sent"));
