@@ -1,47 +1,69 @@
-import React, { createContext, useState, useContext, useCallback } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useCallback,
+  useEffect,
+} from "react";
 import { handleApiCall } from "../services/userService.jsx";
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(() => {
-
-    const token = localStorage.getItem("authToken");
-    if (token) {
-   
-      return { token };
+  // Retrieve the stored user from localStorage (if available)
+  const getStoredUser = () => {
+    const userStorage = localStorage.getItem("authUser");
+    if (userStorage) {
+      try {
+        return JSON.parse(userStorage);
+      } catch (e) {
+        console.error("Error parsing stored user:", e);
+      }
     }
     return null;
-  });
+  };
+
+  const [user, setUser] = useState(getStoredUser());
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
-const handleAuth = useCallback(async (endpoint, data) => {
-  setLoading(true);
-  setError(null);
-  try {
-    const response = await handleApiCall(endpoint, data);
-    if (response.success) {
-      localStorage.setItem("authToken", response.data.token);
-      setUser(response.data.user);
-      setWelcomeMessage(`Welcome back}!`);
-      return { 
-        success: true, 
-        user: response.data.user,
-        message: `Welcome back}!`
-      };
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("authUser", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("authUser");
     }
-    setError(response.message);
-    return { success: false, message: response.message };
-  } catch (error) {
-    setError(error.message);
-    return { success: false, message: error.message };
-  } finally {
-    setLoading(false);
-  }
-}, []);
+  }, [user]);
+
+  const handleAuth = useCallback(async (endpoint, data) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await handleApiCall(endpoint, data);
+      if (response.success) {
+    
+        localStorage.setItem("authToken", response.data.token);
+        setUser(response.data.user);
+        setWelcomeMessage(`Welcome back!`);
+        return {
+          success: true,
+          user: response.data.user,
+          message: `Welcome back!`,
+        };
+      }
+      setError(response.message);
+      return { success: false, message: response.message };
+    } catch (error) {
+      setError(error.message);
+      return { success: false, message: error.message };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const handleSignUp = useCallback(
     (email, password) => handleAuth("/signup", { email, password }),
     [handleAuth]
@@ -69,13 +91,11 @@ const handleAuth = useCallback(async (endpoint, data) => {
       const email = formData.get("email");
       const password =
         actionType === "resetPassword" ? formData.get("password") : "";
-
       try {
         const response =
           actionType === "forgotPassword"
             ? await handleForgetPassword(email)
             : await handleResetPassword(email, password);
-
         if (response?.success) {
           setWelcomeMessage(response.message || "Success!");
         } else {
@@ -124,6 +144,7 @@ const handleAuth = useCallback(async (endpoint, data) => {
 
   const logout = useCallback(() => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("authUser");
     setUser(null);
     setError(null);
     setLoading(false);
