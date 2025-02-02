@@ -8,7 +8,7 @@ import users from "./user.model.js";
         primaryKey:true
     },
     channelId:{
-        type:DataTypes.INTEGER,
+        type:DataTypes.STRING,
         allowNull:false,
         field:'channel_id'
     },
