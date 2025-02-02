@@ -2,7 +2,7 @@ import { Client, ID, Account } from "appwrite";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
-
+import users from "../models/user.model.js"
 const client =
   new Client()
     .setProject(process.env.APPWRITE_PROJECT_ID || "679a6e2d0021917d3cba")
@@ -18,7 +18,10 @@ const signUpUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required");
     }
 
-    const signedUp = await account.create(ID.unique(), email, password);
+    const appwriteUser = await account.create(ID.unique(), email, password);
+    const userId=appwriteUser.$id;
+
+
     return res
         .status(201)
         .json(new ApiResponse(201, signedUp, "Account created successfully"));
