@@ -81,12 +81,16 @@ const ProfilePage = () => {
                     className="text-4xl font-bold text-white mb-2 bg-transparent border-b border-purple-400 focus:outline-none"
                   />
                 ) : (
-                  <h1 className="text-5xl font-bold text-white mb-2"> {/*Displaying name*/ }
-                    {userData.name} 
+                  <h1 className="text-5xl font-bold text-white mb-2">
+                    {" "}
+                    {/*Displaying name*/}
+                    {userData.name}
                   </h1>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> {/*Defining grid on right of name */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {" "}
+                {/*Defining grid on right of name */}
                 <Profile vals={userData.branch} header="Branch" />
                 <Profile vals={userData.year} header="Year" />
                 <Profile vals={userData.email} header="Email ID" />
@@ -95,7 +99,9 @@ const ProfilePage = () => {
 
             {/* Stats Section */}
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12"> {/*Defining grid for stats section */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
+              {" "}
+              {/*Defining grid for stats section */}
               {stats.map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -128,7 +134,9 @@ const ProfilePage = () => {
               <h2 className="text-3xl font-bold text-white mb-6">
                 Achievements
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6"> {/*Defining grid for achievements section */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {" "}
+                {/*Defining grid for achievements section */}
                 {Achievements.map((achievement) => (
                   <motion.div
                     key={achievement.title}
