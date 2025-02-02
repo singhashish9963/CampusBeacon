@@ -66,12 +66,6 @@ const users = sequelize.define(
   },
   {
     timestamps: true,
-    indexes: [
-      {
-        unique: true,
-        fields: [""],
-      },
-    ],
   }
 );
 
