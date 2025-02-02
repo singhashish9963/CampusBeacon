@@ -13,14 +13,17 @@ const users = sequelize.define(
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     registration_number: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       unique: true,
-      index: true,
-      // for faster search(can be used for fetching particular data in later versions and for chat)
+    },
+    appwriteId:{
+      type:DataTypes.STRING,
+      allowNull:false,
+      unique:true,
     },
     semester: {
       type: DataTypes.ENUM,
@@ -63,12 +66,6 @@ const users = sequelize.define(
   },
   {
     timestamps: true,
-    indexes: [
-      {
-        unique: true,
-        fields: ["registration_number"],
-      },
-    ],
   }
 );
 

@@ -2,7 +2,7 @@ import { Client, ID, Account } from "appwrite";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
-
+import users from "../models/user.model.js"
 const client =
   new Client()
     .setProject(process.env.APPWRITE_PROJECT_ID || "679a6e2d0021917d3cba")
@@ -18,7 +18,13 @@ const signUpUser = asyncHandler(async (req, res) => {
         throw new ApiError(400, "All fields are required");
     }
 
-    const signedUp = await account.create(ID.unique(), email, password);
+    const appwriteUser = await account.create(ID.unique(), email, password);
+    const userId=appwriteUser.$id;
+
+    const signedUp = await users.create({
+        appwriteId: userId
+    });
+
     return res
         .status(201)
         .json(new ApiResponse(201, signedUp, "Account created successfully"));
@@ -44,7 +50,7 @@ const forgetPassword = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Email is required");
     }
     // createRecovery sends a secret key and email with the redirect url 
-    const recovery = await account.createRecovery(email, "http://localhost:5173/reset-password");
+    const recovery = await account.createRecovery(email, "http://localhost:5173/login");
     return res
         .status(200)
         .json(new ApiResponse(200, recovery, "Password recovery email sent"));
