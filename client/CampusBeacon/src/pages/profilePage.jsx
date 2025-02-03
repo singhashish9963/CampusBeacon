@@ -3,16 +3,19 @@ import { motion } from "framer-motion";
 import { Calendar, Book, Hash, Star, Pencil } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard"; //importing profile card
 import Achievements from "../components/ProfilePage/achievements"; //importing dummy achievements
+import { useProfile } from "../contexts/profileContext";
 
 const ProfilePage = () => {
-  {
-    /*Use state for checking whether the user is editing the form or not*/
-  }
-  const [isEditing, setIsEditing] = useState(false);
+  const {
+    user,
+    loading,
+    error,
+    isEditing,
+    setIsEditing,
+    editProfile
+  }=useProfile()
+  
 
-  {
-    /*Use state for handling change*/
-  }
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData((prevData) => ({
@@ -21,6 +24,30 @@ const ProfilePage = () => {
       [name]: value,
     }));
   };
+  const handleSubmit = async () => {
+    try {
+      await editProfile({
+       
+        name: userData.name,
+        branch: userData.branch,
+        graduation_year: userData.graduation_year, 
+        registration_number: userData.registration_number,
+        semester: userData.semester,
+        hostel:userData.hostel,
+      });
+    } catch (err) {
+      console.error("Error updating profile:", err);
+    }
+    const toggleEditMode = () => {
+      setIsEditing(!isEditing);
+    };
+  };
+  if(loading){
+    return <div>Loading...</div>
+  }
+  if(error){
+    return <div>Error: {error}</div>
+  }
 
   {
     /*Use state for storing dummy user data to display */
@@ -35,9 +62,7 @@ const ProfilePage = () => {
     semester: "2nd Semester",
   });
 
-  {
-    /*Use state for storing dummy user stats to display */
-  }
+ 
   const stats = [
     { label: "Attendance", value: "87%", icon: Calendar },
     { label: "Semester", value: userData.semester, icon: Book },
@@ -46,15 +71,15 @@ const ProfilePage = () => {
   ];
 
   return (
-    // Defining main div to return
+    
     <div className="relative min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 py-20 px-4 overflow-hidden">
       <motion.div
         className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-pulse"
         initial={{ scale: 0 }}
         animate={{ scale: 1 }}
-        transition={{ duration: 2, type: "spring" }} //adding delay and spring effect for displaying the main div
+        transition={{ duration: 2, type: "spring" }} 
       />
-      {/* Defining more motion */}
+
       <motion.div
         className="hidden md:block absolute left-0 top-1/3 w-48 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-50"
         initial={{ x: -200, opacity: 0 }}
@@ -67,7 +92,7 @@ const ProfilePage = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 1 }}
       >
-        {/* Profile Section */}
+
         <div className="flex flex-col md:flex-row items-center md:items-start gap-12">
           <div className="flex-1 w-full">
             <div className="flex justify-between items-start mb-8">
@@ -83,25 +108,24 @@ const ProfilePage = () => {
                 ) : (
                   <h1 className="text-5xl font-bold text-white mb-2">
                     {" "}
-                    {/*Displaying name*/}
+             
                     {userData.name}
                   </h1>
                 )}
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {" "}
-                {/*Defining grid on right of name */}
+     
                 <Profile vals={userData.branch} header="Branch" />
-                <Profile vals={userData.year} header="Year" />
-                <Profile vals={userData.email} header="Email ID" />
+                <Profile vals={userData.graduation_year} header="Graduation Year " />
               </div>
             </div>
 
-            {/* Stats Section */}
+      
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-12">
               {" "}
-              {/*Defining grid for stats section */}
+
               {stats.map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -124,7 +148,7 @@ const ProfilePage = () => {
               ))}
             </div>
 
-            {/* Achievements Sections */}
+
             <motion.div
               className="mt-12 border-t border-white/10 pt-8"
               initial={{ opacity: 0 }}
@@ -136,7 +160,7 @@ const ProfilePage = () => {
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {" "}
-                {/*Defining grid for achievements section */}
+   
                 {Achievements.map((achievement) => (
                   <motion.div
                     key={achievement.title}
