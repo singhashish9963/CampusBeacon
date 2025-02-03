@@ -25,22 +25,51 @@ const signUpUser = asyncHandler(async (req, res) => {
         appwriteId: userId
     });
 
+    await account.createEmailPasswordSession(email,password);
+      const jwt = await account.createJWT();
+
+      // Store JWT in HTTP-only cookie for security :))
+      res.cookie("token", jwt.jwt, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+
     return res
         .status(201)
         .json(new ApiResponse(201, signedUp, "Account created successfully"));
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+   const loginUser = asyncHandler(async (req, res) => {
+     const { email, password } = req.body;
 
-    if (!email?.trim() || !password?.trim()) {
-        throw new ApiError(400, "Email and password are required");
-    }
+     if (!email?.trim() || !password?.trim()) {
+       throw new ApiError(400, "Email and password are required");
+     }
 
-    const session = await account.createEmailPasswordSession(email, password);
-    return res
-        .status(200)
-        .json(new ApiResponse(200, session, "Login successful"));
+     const client = new Client()
+       .setEndpoint(process.env.APPWRITE_ENDPOINT)
+       .setProject(process.env.APPWRITE_PROJECT_ID);
+
+     const account = new Account(client);
+
+     await account.createEmailPasswordSession(email, password);
+
+     const jwt = await account.createJWT();
+
+     // Store JWT in HTTP-only cookie for security :))
+     res.cookie("token", jwt.jwt, {
+       httpOnly: true,
+       secure: process.env.NODE_ENV === "production",
+       sameSite: "strict",
+     });
+
+     return res
+       .status(200)
+       .json(new ApiResponse(200, { message: "Login successful" }));
+   });
+
 });
 
 const forgetPassword = asyncHandler(async (req, res) => {
@@ -66,8 +95,8 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const loginGoogle = asyncHandler(async (req, res) => {
     const session = await account.createOAuth2Session(
         "google",
-        "http://localhost:5173/",
-        "http://localhost:5173/auth/failed"
+        "http://localhost:5173/", // url if successfull
+        "http://localhost:5173/login" // url if failed
     );
     return res
         .status(200)
@@ -87,6 +116,7 @@ const resetPassword = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, result, "Password reset successful"));
 });
+
 const emailVerification = asyncHandler(async (req, res) => {
     const verification = await account.createVerification("http://localhost:5173/verify-email");
     return res
