@@ -29,6 +29,8 @@ export const ProfileProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(checkUser());
+  const [userData, setUserData] = useState(user);
+  
 
   const editProfile = useCallback(async (data) => {
     setLoading(true);

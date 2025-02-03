@@ -3,16 +3,19 @@ import { motion } from "framer-motion";
 import { Calendar, Book, Hash, Star, Pencil } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard"; //importing profile card
 import Achievements from "../components/ProfilePage/achievements"; //importing dummy achievements
+import { useProfile } from "../contexts/profileContext";
 
 const ProfilePage = () => {
-  {
-    /*Use state for checking whether the user is editing the form or not*/
-  }
-  const [isEditing, setIsEditing] = useState(false);
+  const {
+    user,
+    loading,
+    error,
+    isEditing,
+    setIsEditing,
+    editProfile
+  }=useProfile()
+  
 
-  {
-    /*Use state for handling change*/
-  }
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData((prevData) => ({
@@ -21,6 +24,30 @@ const ProfilePage = () => {
       [name]: value,
     }));
   };
+  const handleSubmit = async () => {
+    try {
+      await editProfile({
+       
+        name: userData.name,
+        branch: userData.branch,
+        graduation_year: userData.graduation_year, 
+        registration_number: userData.registration_number,
+        semester: userData.semester,
+        hostel:userData.hostel,
+      });
+    } catch (err) {
+      console.error("Error updating profile:", err);
+    }
+    const toggleEditMode = () => {
+      setIsEditing(!isEditing);
+    };
+  };
+  if(loading){
+    return <div>Loading...</div>
+  }
+  if(error){
+    return <div>Error: {error}</div>
+  }
 
   {
     /*Use state for storing dummy user data to display */
@@ -92,8 +119,7 @@ const ProfilePage = () => {
                 {" "}
                 {/*Defining grid on right of name */}
                 <Profile vals={userData.branch} header="Branch" />
-                <Profile vals={userData.year} header="Year" />
-                <Profile vals={userData.email} header="Email ID" />
+                <Profile vals={userData.year} header="Graduation Year " />
               </div>
             </div>
 
