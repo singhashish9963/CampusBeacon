@@ -6,7 +6,6 @@ import Eatries from "./pages/Eatries.jsx";
 
   createRoot(document.getElementById("root")).render(
     <StrictMode>
-    {/* <App/> */}
-    <Eatries />
+    <App/>
     </StrictMode>
   );

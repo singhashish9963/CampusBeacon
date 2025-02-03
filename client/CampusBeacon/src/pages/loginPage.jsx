@@ -237,7 +237,6 @@ const handleFormSubmit = async (e, type) => {
           )}
         </AnimatePresence>
       </div>
-      <Footer />
     </>
   );
 };
