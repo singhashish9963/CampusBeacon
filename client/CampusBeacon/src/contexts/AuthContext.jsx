@@ -6,22 +6,17 @@ import React, {
   useEffect,
 } from "react";
 import { handleApiCall } from "../services/userService.jsx";
-import LoadingScreen from "../components/LoadingScreen.jsx"
+import LoadingScreen from "../components/LoadingScreen.jsx";
+
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
-  // Initialize states with proper typing
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [lastLoginTime, setLastLoginTime] = useState(null);
-
-
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
 
 
   useEffect(() => {
@@ -38,29 +33,27 @@ export const AuthProvider = ({ children }) => {
     }
   }, [user]);
 
+  // Check auth status using stored user info (without token)
   const checkAuthStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem("authToken");
       const storedUser = localStorage.getItem("authUser");
-
-      if (token && storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          setUser(userData);
-          setIsAuthenticated(true);
-          setLastLoginTime(userData.lastLoginTime);
-        } catch (e) {
-          console.error("Error parsing stored user data:", e);
-          handleLogout();
-        }
+      if (storedUser) {
+        const userData = JSON.parse(storedUser);
+        setUser(userData);
+        setIsAuthenticated(true);
+        setLastLoginTime(userData.lastLoginTime);
       }
-    } catch (error) {
-      console.error("Auth status check failed:", error);
+    } catch (e) {
+      console.error("Error parsing stored user data:", e);
       handleLogout();
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   const handleAuth = useCallback(async (endpoint, data) => {
     setLoading(true);
@@ -75,8 +68,6 @@ export const AuthProvider = ({ children }) => {
           lastLoginTime: currentTime,
         };
 
-        localStorage.setItem("authToken", response.data.token);
-        localStorage.setItem("authUser", JSON.stringify(userData));
 
         setUser(userData);
         setIsAuthenticated(true);
@@ -124,11 +115,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleResetPassword = useCallback(
     async (userId, token, newPassword) => {
-      return handleAuth("/reset-password", {
-        userId,
-        token,
-        newPassword,
-      });
+      return handleAuth("/reset-password", { userId, token, newPassword });
     },
     [handleAuth]
   );
@@ -200,7 +187,6 @@ export const AuthProvider = ({ children }) => {
         if (!response.success) {
           throw new Error(response.message || "Action failed");
         }
-
         return response;
       } catch (error) {
         console.error("Form submission error:", error);
@@ -213,9 +199,6 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogout = useCallback(async () => {
     try {
-
-
-      localStorage.removeItem("authToken");
       localStorage.removeItem("authUser");
       setUser(null);
       setIsAuthenticated(false);
@@ -224,7 +207,6 @@ export const AuthProvider = ({ children }) => {
       setWelcomeMessage("");
     } catch (error) {
       console.error("Logout error:", error);
-
       localStorage.clear();
       setUser(null);
       setIsAuthenticated(false);
@@ -265,9 +247,7 @@ export const AuthProvider = ({ children }) => {
   );
 
   if (loading) {
-    return <>
-    <LoadingScreen/>
-    </>
+    return <LoadingScreen />;
   }
 
   return (
