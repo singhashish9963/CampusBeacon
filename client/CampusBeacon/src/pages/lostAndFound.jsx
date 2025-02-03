@@ -23,6 +23,14 @@ const LostAndFound = () => {
       contact: "9026695299",
       image: "src/assets/images/keyboard.png",
     },
+    {
+      id: 1,
+      name: "Keychain",
+      category: "Accessories",
+      location: "Found near SNath Canteen",
+      contact: "9784568798",
+      image: "src/assets/images/keychain.jpeg",
+    },
   ]);
 
   const handleInputChange = (e) => {
