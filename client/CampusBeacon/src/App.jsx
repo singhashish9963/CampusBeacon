@@ -10,12 +10,11 @@ import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
 import SVBH from "./pages/HostelPages/SVBH.jsx";
 import DJGH from "./pages/HostelPages/DJGH.jsx"
-import { ProfileProvider } from "./contexts/profileContext.jsx";
+
 import CommunityPage from "./pages/communityPage.jsx";
 function App() {
   return (
     <AuthProvider>
-      <ProfileProvider>
         <BrowserRouter>
           <div className="flex flex-col min-h-screen">
             <NavBar />
@@ -35,7 +34,7 @@ function App() {
             <Footer />
           </div>
         </BrowserRouter>
-      </ProfileProvider>
+     
     </AuthProvider>
   );
 }
