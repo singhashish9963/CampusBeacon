@@ -14,7 +14,7 @@ const ImageSlider = () => {
       title: "Robotics Club",
       description: "Build and program the future of automation",
       icon: "🤖",
-      image: "https://images.unsplash.com/photo-1581092921461-eab62e97a2aa",
+      image: "src/assets/images/robotics.png",
     },
     {
       title: "Core Dramatics",
