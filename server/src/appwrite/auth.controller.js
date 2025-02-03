@@ -26,14 +26,7 @@ const signUpUser = asyncHandler(async (req, res) => {
     });
 
     await account.createEmailPasswordSession(email,password);
-      const jwt = await account.createJWT();
-
-      // Store JWT in HTTP-only cookie for security :))
-      res.cookie("token", jwt.jwt, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      });
+ 
 
     return res
         .status(201)
