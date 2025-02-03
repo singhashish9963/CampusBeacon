@@ -21,7 +21,7 @@ const LostAndFound = () => {
       category: "Electronics",
       location: "Found in NLHC2",
       contact: "9026695299",
-      image: "/",
+      image: "src/assets/images/keyboard.png",
     },
   ]);
 
