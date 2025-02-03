@@ -59,7 +59,7 @@ const EventsSection = () => {
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          className="text-4xl font-bold text-center mb-20 bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
+          className="text-3xl md:text-4xl font-bold text-center mb-20 bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
         >
           Club Events
         </motion.h2>
@@ -95,7 +95,7 @@ const EventsSection = () => {
               whileHover={{ scale: 1.05 }}
               className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border-2 border-purple-500/20 hover:border-purple-500/50"
             >
-              <div className="text-4xl mb-4">{<event.icon />}</div>
+              <div className="text-2xl md:text-4xl mb-4">{<event.icon />}</div>
               <h3 className="text-xl font-bold text-white mb-2">
                 {event.title}
               </h3>
