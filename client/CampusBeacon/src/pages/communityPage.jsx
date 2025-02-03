@@ -168,7 +168,7 @@ const CommunityPage = () => {
             )}
           </div>
           {/* Message Input */}
-          <div className="p-4 border-t border-purple-500/20">
+          <div className="flex justify-center ml-20 ">
             <div className="flex items-center space-x-4">
               <motion.button
                 whileHover={{ scale: 1.1 }}
