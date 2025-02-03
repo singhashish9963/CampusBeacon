@@ -1,5 +1,4 @@
-const IconHoverStyle = () => (
-  <div className="transition-transform hover:scale-130 hover:text-blue-400"></div>
-);
+const IconHoverStyle =
+    "transition-transform hover:scale-120 hover:text-blue-400";
 
 export default IconHoverStyle;

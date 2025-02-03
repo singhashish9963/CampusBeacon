@@ -21,7 +21,15 @@ const LostAndFound = () => {
       category: "Electronics",
       location: "Found in NLHC2",
       contact: "9026695299",
-      image: "/",
+      image: "src/assets/images/keyboard.png",
+    },
+    {
+      id: 1,
+      name: "Keychain",
+      category: "Accessories",
+      location: "Found near SNath Canteen",
+      contact: "9784568798",
+      image: "src/assets/images/keychain.jpeg",
     },
   ]);
 
@@ -45,33 +53,35 @@ const LostAndFound = () => {
   };
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-black to-purple-900 text-white">
-      <div className="container mx-auto p-8">
+      <div className="container mx-auto p-4 md:p-8">
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="flex justify-between items-center mb-8"
+          className="flex flex-wrap justify-between items-center mb-4 md:mb-8"
         >
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 md:space-x-4">
             <Rocket className="text-yellow-400 animate-pulse" size={48} />
-            <h1 className="text-4xl font-bold tracking-wide">Lost & Found</h1>
+            <h1 className="text-2xl md:text-4xl font-bold tracking-wide">
+              Lost & Found
+              </h1>
           </div>
-          <div className="bg-gray-800 rounded-full">
+          <div className="bg-gray-800 rounded-full flex text-center">
             <button
               onClick={() => setActiveTab("browse")}
-              className={`px-4 py-2 rounded-full ${
+              className={`px-4 py-2 md:px-4 md:py-2 rounded-full ${
                 activeTab === "browse" ? "bg-blue-600" : ""
               }`}
             >
-              Upload Item
+              Browse Item
             </button>
             <button
               onClick={() => setActiveTab("sell")}
-              className={`px-4 py-2 rounded-full ${
+              className={`px-4 py-2 md:px-4 md:py-2 rounded-full ${
                 activeTab === "sell" ? "bg-blue-600" : ""
               }`}
             >
-              Browse Item
+              Found Item
             </button>
           </div>
         </motion.div>
@@ -83,7 +93,7 @@ const LostAndFound = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              <div className="flex space-x-4 mb-6">
+              <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4 mb-4 md:mb-6">
                 <div className="relative flex-grow">
                   <input
                     type="text"

@@ -24,27 +24,27 @@ const Footer = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h3 className="text-2xl font-bold text-blue-400 mb-4 font-mono">
+          <h3 className="text-xl md:text-2xl font-bold text-blue-400 mb-4 font-mono">
             Contanct Us
           </h3>
           <div className="space-y-3">
             <a
               href="mailto:campusbeacon0@gmail.com"
-              className="flex items-center hover:text-blue-600 transition-colors"
+              className="flex items-center hover:scale-105 hover:text-blue-400 transition-colors"
             >
               <HiMail className="mr-2" size={20} />
               <span>campusbeacon0@gmail.com</span>
             </a>
             <a
               href="tel:+919548999129"
-              className="flex items-center hover:text-blue-600 transition-colors"
+              className="flex items-center hover:scale-105 hover:text-blue-400 transition-colors"
             >
               <HiPhone className="mr-2" size={20} />
               <span>+91 9548999129</span>
             </a>
             <a
               href="https://maps.app.goo.gl/tMuCf5DjfXLF3YuDA"
-              className="flex items-center hover:text-blue-600 transition-colors"
+              className="flex items-center hover:scale-105 hover:text-blue-400 transition-colors"
             >
               <HiLocationMarker className="mr-2" size={20} />
               <span>Motilal Nehru National Institute of Technology</span>
@@ -58,7 +58,7 @@ const Footer = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h3 className="text-2xl font-bold text-blue-400 mb-4 font-mono">
+          <h3 className="text-xl md:text-2xl font-bold text-blue-400 mb-4 font-mono">
             Build With
           </h3>
           <div className="flex flex-wrap gap-4">
@@ -79,7 +79,7 @@ const Footer = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <h3 className="text-2xl font-bold mb-4 text-blue-400 font-mono">
+          <h3 className="text-xl md:text-2xl font-bold mb-4 text-blue-400 font-mono">
             Designed And Developed by
           </h3>
           <div className="space-y-4 mb-4">
@@ -87,7 +87,7 @@ const Footer = () => {
               Ayush Jadaun
               <div className="flex space-x-4 pl-6">
                 <a href="https://github.com/ayush-jadaun">
-                  <FaGithub className={IconHoverStyle} size={24} />
+                  <FaGithub className="transition-all hover:scale-130 hover:item-blue-400" size={24} />
                 </a>
                 <a href="https://www.linkedin.com/in/ayush-jadaun-677199311/">
                   <FaLinkedin className={IconHoverStyle} size={24} />
