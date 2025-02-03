@@ -6,6 +6,7 @@ import {
   getCurrentUser,
   resetPassword,
   emailVerification,
+  logoutUser
 } from "../appwrite/auth.controller.js";
 import { deleteUser, getAllUser, getUser, updateUser } from "../controllers/user.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
@@ -26,5 +27,6 @@ router.get("/get/all/user",getAllUser);
 // protected routes
 router.get("/current-user",authMiddleware,  getCurrentUser);
 router.post("/update-user",authMiddleware, updateUser);
+router.post("/logout", authMiddleware, logoutUser);
 
 export default router;

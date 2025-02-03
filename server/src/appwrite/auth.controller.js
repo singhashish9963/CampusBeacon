@@ -105,6 +105,16 @@ const emailVerification = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, verification, "Verification email sent"));
 });
 
+const logoutUser = asyncHandler(async (req, res) => {
+    await account.deleteSession('current');
+    
+    return res
+        .status(200)
+        .json(new ApiResponse(200, null, "Logged out successfully"));
+});
+
+
+
 export {
     signUpUser,
     loginUser,
@@ -112,5 +122,6 @@ export {
     getCurrentUser,
     loginGoogle,
     resetPassword,
-    emailVerification
+    emailVerification,
+    logoutUser
 };
