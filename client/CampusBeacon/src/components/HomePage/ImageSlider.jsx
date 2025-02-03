@@ -8,7 +8,7 @@ const ImageSlider = () => {
       title: "Computer Coding Club",
       description: "Explore the world of programming and development",
       icon: "💻",
-      image: "CampusBeacon\client\CampusBeacon\src\assets\images\ccImage.png",
+      image: "src/assets/images/ccImage.png",
     },
     {
       title: "Robotics Club",
