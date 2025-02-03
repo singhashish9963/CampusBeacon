@@ -1,11 +1,18 @@
-import React, {useCallback,useContext,useState,createContext} from "react";
+import React, {useCallback, useContext, useState, createContext} from "react";
 import { handleApiCall } from "../services/userService";
 
+const profileContext = createContext(null);
 
 
-const profileContext= createContext(null);
+export const useProfile = () => {
+  const context = useContext(profileContext);
+  if (!context) {
+    throw new Error('useProfile must be used within a ProfileProvider');
+  }
+  return context;
+};
 
-export const profileProvider= ({ children })=>{
+export const ProfileProvider = ({ children }) => {
   const checkUser = () => {
     const userStorage = localStorage.getItem("authUser");
     if (userStorage) {
@@ -17,17 +24,17 @@ export const profileProvider= ({ children })=>{
     }
     return null;
   };
+  
   const [isediting, setIsEditing] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(checkUser());
 
-
   const editProfile = useCallback(async (data) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await handleApiCall('/api/profile', 'PUT', data);
+      const response = await handleApiCall('/api/update-user', 'PUT', data);
       setUser(response);
       localStorage.setItem('authUser', JSON.stringify(response));
       setIsEditing(false);
@@ -43,6 +50,4 @@ export const profileProvider= ({ children })=>{
       {children}
     </profileContext.Provider>
   );
-
-
-}
+};
