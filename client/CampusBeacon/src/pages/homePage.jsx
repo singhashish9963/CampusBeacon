@@ -29,14 +29,11 @@ const HomePage = () => {
 
   return (
     <>
-
       <div className="fixed inset-0">
         <StarryBackground />
       </div>
 
-
       <div className="relative z-10 min-h-screen">
-
         <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
           {isLoggedIn ? (
             <ButtonColourfull
@@ -105,13 +102,13 @@ const HomePage = () => {
                 icon={HelpCircle}
                 title="Lost & Found"
                 description="Connect with campus community to find lost items"
-                href="/"
+                href="/lost-found"
               />
               <FeatureCard
                 icon={Globe}
                 title="Buy & Sell"
                 description="Campus marketplace for students to trade books and essentials"
-                href="/"
+                href="/marketplace"
               />
               <FeatureCard
                 icon={Calendar}
@@ -120,10 +117,10 @@ const HomePage = () => {
                 href="/"
               />
               <FeatureCard
-                icon={Database}
-                title="Marks Predictor"
+                icon={Globe}
+                title="Community"
                 description="Advanced analytics to predict and improve your academic performance"
-                href="/"
+                href="/Community"
               />
             </div>
           </div>
@@ -136,8 +133,13 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-5xl font-bold text-white mb-6"> Quick Links</h2>
-              <p className="text-xl text-gray-400 font-mono">Quick accessible links</p>
+              <h2 className="text-5xl font-bold text-white mb-6">
+                {" "}
+                Quick Links
+              </h2>
+              <p className="text-xl text-gray-400 font-mono">
+                Quick accessible links
+              </p>
             </motion.div>
 
             <QuickLinks />

@@ -11,6 +11,7 @@ import LostAndFound from "./pages/lostAndFound.jsx";
 import SVBH from "./pages/HostelPages/SVBH.jsx";
 import DJGH from "./pages/HostelPages/DJGH.jsx"
 import { ProfileProvider } from "./contexts/profileContext.jsx";
+import CommunityPage from "./pages/communityPage.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -26,6 +27,7 @@ function App() {
                 <Route path="/marketplace" element={<Marketplace />} />
                 <Route path="/SVBH" element={<SVBH />} />
                 <Route path="/DJGH" element={<DJGH />} />
+                <Route path ="/Community" element={<CommunityPage/>}/>
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
