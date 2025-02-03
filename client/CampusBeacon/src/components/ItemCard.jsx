@@ -20,10 +20,10 @@ function ItemCard({item, key}){
         />
         <div className="flex justify-between items-center grid md:grid-cols-2">
             <h2 className="text-xl font-bold mr-2">{item.name}</h2>
-            <h2 className="text-green-400 font-semibold"><FaRupeeSign />{item.price}</h2>
+            <h2 className="text-green-400 font-semibold mt-5 flex "><FaRupeeSign className="mt-1" />{item.price}</h2>
             <p className="text-gray-300 pt-3 pb-3 pr-3">{item.description}</p>
             <div className="flex justify-between items-center">
-                <span className="text-sm bg-blue-600 px-2 py-2 rounded-full">{item.condition}</span>
+                <span className="text-sm bg-blue-600 px-2 py-2 rounded-full mb-5  ">{item.condition}</span>
             </div>
             <button className="flex items-center bg-yellow-500 text-black px-4 py-2 rounded-lg hover:bg-yellow-600 transition-colors">
           <IoMdCall size={24} className="mr-2" /> Contact +91{item.contact}
