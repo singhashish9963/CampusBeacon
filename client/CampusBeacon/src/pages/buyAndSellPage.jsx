@@ -96,7 +96,7 @@ const Marketplace = () => {
                 <div className="relative flex-grow">
                   <input
                     type="text"
-                    placeholder="Search marketplace..."
+                    placeholder="     Search marketplace..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full p-2 md:p-3 pl-10 bg-gray-800 rounded-lg text-xl"
