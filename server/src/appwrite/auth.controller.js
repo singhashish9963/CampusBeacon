@@ -31,16 +31,35 @@ const signUpUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+   const loginUser = asyncHandler(async (req, res) => {
+     const { email, password } = req.body;
 
-    if (!email?.trim() || !password?.trim()) {
-        throw new ApiError(400, "Email and password are required");
-    }
+     if (!email?.trim() || !password?.trim()) {
+       throw new ApiError(400, "Email and password are required");
+     }
 
-    const session = await account.createEmailPasswordSession(email, password);
-    return res
-        .status(200)
-        .json(new ApiResponse(200, session, "Login successful"));
+     const client = new Client()
+       .setEndpoint(process.env.APPWRITE_ENDPOINT)
+       .setProject(process.env.APPWRITE_PROJECT_ID);
+
+     const account = new Account(client);
+
+     await account.createEmailPasswordSession(email, password);
+
+     const jwt = await account.createJWT();
+
+     // Store JWT in HTTP-only cookie for security :))
+     res.cookie("token", jwt.jwt, {
+       httpOnly: true,
+       secure: process.env.NODE_ENV === "production",
+       sameSite: "strict",
+     });
+
+     return res
+       .status(200)
+       .json(new ApiResponse(200, { message: "Login successful" }));
+   });
+
 });
 
 const forgetPassword = asyncHandler(async (req, res) => {
