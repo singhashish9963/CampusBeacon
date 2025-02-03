@@ -41,18 +41,13 @@ const signUpUser = asyncHandler(async (req, res) => {
 });
 
 const loginUser = asyncHandler(async (req, res) => {
-   const loginUser = asyncHandler(async (req, res) => {
      const { email, password } = req.body;
 
      if (!email?.trim() || !password?.trim()) {
        throw new ApiError(400, "Email and password are required");
      }
 
-     const client = new Client()
-       .setEndpoint(process.env.APPWRITE_ENDPOINT)
-       .setProject(process.env.APPWRITE_PROJECT_ID);
-
-     const account = new Account(client);
+   
 
      await account.createEmailPasswordSession(email, password);
 
@@ -70,7 +65,7 @@ const loginUser = asyncHandler(async (req, res) => {
        .json(new ApiResponse(200, { message: "Login successful" }));
    });
 
-});
+
 
 const forgetPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
