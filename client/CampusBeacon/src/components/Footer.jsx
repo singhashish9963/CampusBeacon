@@ -15,7 +15,7 @@ import IconHoverStyle from "./IconHoverStyle";
 
 const Footer = () => {
   return (
-    <div className="bg-gradient-to-b from-gray-900 to-black text-white py-8">
+    <div className="bg-gradient-to-b from-gray-900 to-black text-white py-8 z-10">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
         {/* Contact Us Section */}
 
