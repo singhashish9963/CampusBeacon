@@ -12,9 +12,11 @@ import SVBH from "./pages/HostelPages/SVBH.jsx";
 import DJGH from "./pages/HostelPages/DJGH.jsx"
 
 import CommunityPage from "./pages/communityPage.jsx";
+import { ProfileProvider } from "./contexts/profileContext.jsx";
 function App() {
   return (
     <AuthProvider>
+      <ProfileProvider>
         <BrowserRouter>
           <div className="flex flex-col min-h-screen">
             <NavBar />
@@ -26,7 +28,7 @@ function App() {
                 <Route path="/marketplace" element={<Marketplace />} />
                 <Route path="/SVBH" element={<SVBH />} />
                 <Route path="/DJGH" element={<DJGH />} />
-                <Route path ="/Community" element={<CommunityPage/>}/>
+                <Route path="/Community" element={<CommunityPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
@@ -34,7 +36,7 @@ function App() {
             <Footer />
           </div>
         </BrowserRouter>
-     
+      </ProfileProvider>
     </AuthProvider>
   );
 }
