@@ -202,8 +202,8 @@ const SVBH = () => {
 
   const getCurrentMeal = () => {
     const hour = currentTime.getHours();
-    if (hour >= 6 && hour < 10) return "Breakfast";
-    if (hour >= 12 && hour < 15) return "Lunch";
+    if (hour >= 6 && hour < 11) return "Breakfast";
+    if (hour >= 11 && hour < 16) return "Lunch";
     if (hour >= 16 && hour < 19) return "Snacks";
     return "Dinner";
   };

@@ -122,20 +122,20 @@ const DJGH = () => {
   const hostelOfficials = [
     {
       designation: "Hostel President",
-      name: "Miss Abhiaasha Pandey",
-      phone: "8888888888",
+      name: "Miss Abhilasha Pandey",
+      phone: "1234567890",
       email: "email@example.com",
     },
     {
       designation: "All Floor Representative (Electrical Maintenance)",
       name: "Miss Jhanvi Gupta",
-      phone: "2222222222",
+      phone: "1234567890",
       email: "email@example.com",
     },
     {
       designation: "All Floor Representative (Civil Maintenance)",
       name: "Miss Ifa Khatoon",
-      phone: "1111111111",
+      phone: "1234567890",
       email: "email@example.com",
     },
     {
@@ -149,8 +149,8 @@ const DJGH = () => {
 
   const getCurrentMeal = () => {
     const hour = currentTime.getHours();
-    if (hour >= 6 && hour < 10) return "Breakfast";
-    if (hour >= 12 && hour < 15) return "Lunch";
+    if (hour >= 6 && hour < 11) return "Breakfast";
+    if (hour >= 11 && hour < 16) return "Lunch";
     if (hour >= 16 && hour < 19) return "Snacks";
     return "Dinner";
   };
