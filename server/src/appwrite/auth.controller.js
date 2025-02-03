@@ -95,8 +95,8 @@ const getCurrentUser = asyncHandler(async (req, res) => {
 const loginGoogle = asyncHandler(async (req, res) => {
     const session = await account.createOAuth2Session(
         "google",
-        "http://localhost:5173/",
-        "http://localhost:5173/auth/failed"
+        "http://localhost:5173/", // url if successfull
+        "http://localhost:5173/login" // url if failed
     );
     return res
         .status(200)
@@ -116,6 +116,7 @@ const resetPassword = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, result, "Password reset successful"));
 });
+
 const emailVerification = asyncHandler(async (req, res) => {
     const verification = await account.createVerification("http://localhost:5173/verify-email");
     return res
