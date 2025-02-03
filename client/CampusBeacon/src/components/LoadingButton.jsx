@@ -19,7 +19,21 @@ const LoadingScreen=()=>{
             />
           ))}
         </div>
-        
+        <motion.div
+          initial={{ scale: 0.5, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+          className="text-center relative z-10"
+        >
+          <div className="w-20 h-20 mx-auto relative">
+            <div className="absolute inset-0">
+              <div className="absolute inset-0 animate-ping bg-gradient-to-r from-pink-500 to-purple-500 rounded-full opacity-75"></div>
+            </div>
+            <div className="absolute inset-0">
+              <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full"></div>
+            </div>
+          </div>
+        </motion.div>
       </div>
     );
 }
