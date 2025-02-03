@@ -6,7 +6,7 @@ import React, {
   useEffect,
 } from "react";
 import { handleApiCall } from "../services/userService.jsx";
-
+import LoadingScreen from "../components/LoadingScreen.jsx"
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
@@ -265,7 +265,9 @@ export const AuthProvider = ({ children }) => {
   );
 
   if (loading) {
-    return <div>Loading...</div>; // update it
+    return <>
+    <LoadingScreen/>
+    </>
   }
 
   return (
