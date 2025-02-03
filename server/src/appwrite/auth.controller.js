@@ -41,7 +41,7 @@ const loginUser = asyncHandler(async (req, res) => {
      }
 
    
-     const account = new Account(client);
+    
 
      await account.createEmailPasswordSession(email, password);
 

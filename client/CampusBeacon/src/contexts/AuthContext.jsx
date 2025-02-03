@@ -199,6 +199,7 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogout = useCallback(async () => {
     try {
+      handleAuth("/logout")
       localStorage.removeItem("authUser");
       setUser(null);
       setIsAuthenticated(false);
