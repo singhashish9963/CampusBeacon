@@ -16,7 +16,7 @@ import IconHoverStyle from "./IconHoverStyle";
 const Footer = () => {
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black text-white py-8">
-      <div className="container mx-auto grid grid-cols-1 grid-cols-3 gap-8 px-4">
+      <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
         {/* Contact Us Section */}
 
         <motion.div
@@ -82,41 +82,30 @@ const Footer = () => {
           <h3 className="text-2xl font-bold mb-4 text-blue-400 font-mono">
             Designed And Developed by
           </h3>
-          <div className="flex mb-4">
-            Ayush Jadaun
-            <div className="flex space-x-4 pl-6">
-              <div>
+          <div className="space-y-4 mb-4">
+            <div className="flex items-center">
+              Ayush Jadaun
+              <div className="flex space-x-4 pl-6">
                 <a href="https://github.com/ayush-jadaun">
                   <FaGithub className={IconHoverStyle} size={24} />
                 </a>
-              </div>
-              <div>
                 <a href="https://www.linkedin.com/in/ayush-jadaun-677199311/">
                   <FaLinkedin className={IconHoverStyle} size={24} />
                 </a>
-              </div>
-              <div>
                 <a href="mailto:ayushjadaun6@gmail.com">
                   <FaEnvelope className={IconHoverStyle} size={24} />
                 </a>
               </div>
             </div>
-          </div>
-          <div className="flex">
-            Ayush Agarwal
-            <div className="flex space-x-4 pl-4">
-              <div>
+            <div className="flex items-center">
+              Ayush Agarwal
+              <div className="flex space-x-4 pl-4">
                 <a href="https://github.com/ayushagr101">
                   <FaGithub className={IconHoverStyle} size={24} />
                 </a>
-              </div>
-
-              <div>
                 <a href="https://www.linkedin.com/in/ayush-agarwal-108127311/">
                   <FaLinkedin className={IconHoverStyle} size={24} />
                 </a>
-              </div>
-              <div>
                 <a href="mailto:ayush.agr160@gmail.com">
                   <FaEnvelope className={IconHoverStyle} size={24} />
                 </a>

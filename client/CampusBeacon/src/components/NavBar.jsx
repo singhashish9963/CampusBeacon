@@ -47,7 +47,7 @@ function NavBar() {
     <>
       {/* Hover detection area */}
       <div
-        className="fixed top-0 left-0 w-full h-8 z-50"
+        className="fixed top-0 left-0 w-full h-8 z-50 md:block hidden"
         onMouseEnter={() => setIsVisible(true)}
       />
 
@@ -59,7 +59,7 @@ function NavBar() {
             animate={{ y: 0 }}
             exit={{ y: -100 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50"
+            className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50 md:block hidden"
             onMouseLeave={() => {
               showTimeoutRef.current = setTimeout(() => {
                 setIsVisible(false);
