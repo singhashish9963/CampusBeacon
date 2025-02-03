@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
-import Footer from "../components/Footer.jsx";
+
 
 const LoginSignup = () => {
   const {
