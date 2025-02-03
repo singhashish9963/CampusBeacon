@@ -2,6 +2,11 @@ import { Client, Account } from "appwrite";
 import ApiError from "../utils/apiError.js";
 
 export const authMiddleware = async (req, res, next) => {
+
+    if (!process.env.APPWRITE_ENDPOINT || !process.env.APPWRITE_PROJECT_ID) {
+      return next(new ApiError(500, "Appwrite configuration missing"));
+    }
+
   const client = new Client()
     .setEndpoint(process.env.APPWRITE_ENDPOINT)
     .setProject(process.env.APPWRITE_PROJECT_ID);
