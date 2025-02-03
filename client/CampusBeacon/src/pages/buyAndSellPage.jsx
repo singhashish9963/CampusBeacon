@@ -26,7 +26,7 @@ const Marketplace = () => {
       description: "Portonics bluetooth backlit rgb mechanical keyboard",
       condition: "Like New",
       contact: "9026695299",
-      image: "/",
+      image: "src/assets/images/keyboard.png",
     },
   ]);
 
@@ -65,7 +65,7 @@ const Marketplace = () => {
               College Marketplace
             </h1>
           </div>
-          <div className="bg-gray-800 rounded-full flex space-x-2">
+          <div className="bg-gray-800 rounded-full flex text-center">
             <button
               onClick={() => setActiveTab("browse")}
               className={`px-2 py-2 md:px-4 md:py-2 rounded-full ${
@@ -99,14 +99,14 @@ const Marketplace = () => {
                     placeholder="Search marketplace..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full p-2 md:p-3 pl-10 bg-gray-800 rounded-lg text-xl"
+                    className="w-full p-3 pl-10 bg-gray-800 rounded-lg text-xl"
                   />
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="p-2 md:p-3 bg-gray-800 rounded-lg"
+                  className="p-2 md:p-3 bg-gray-800 rounded-lg text-l md:text-xl"
                 >
                   <option value="">All Categories</option>
                   <option value="Electronics">Electronics</option>
@@ -184,8 +184,8 @@ const Marketplace = () => {
                         <option value="">Item Condition</option>
                         <option value="New">New</option>
                         <option value="Like New">Like New</option>
-                        <option value="Good">Used/Fair</option>
-                        <option value="Fair">Little Damaged</option>
+                        <option value="Fair">Used/Fair</option>
+                        <option value="Damaged">Little Damaged</option>
                       </select>
                     </div>
                     <textarea
