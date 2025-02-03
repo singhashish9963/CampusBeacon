@@ -122,20 +122,20 @@ const DJGH = () => {
   const hostelOfficials = [
     {
       designation: "Hostel President",
-      name: "Miss Abhiaasha Pandey",
-      phone: "8888888888",
+      name: "Miss Abhilasha Pandey",
+      phone: "1234567890",
       email: "email@example.com",
     },
     {
       designation: "All Floor Representative (Electrical Maintenance)",
       name: "Miss Jhanvi Gupta",
-      phone: "2222222222",
+      phone: "1234567890",
       email: "email@example.com",
     },
     {
       designation: "All Floor Representative (Civil Maintenance)",
       name: "Miss Ifa Khatoon",
-      phone: "1111111111",
+      phone: "1234567890",
       email: "email@example.com",
     },
     {
