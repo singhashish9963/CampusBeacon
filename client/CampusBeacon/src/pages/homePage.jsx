@@ -58,7 +58,7 @@ const HomePage = () => {
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-6xl md:text-8xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
+              className="text-5xl md:text-6xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
             >
               Welcome to CampusBeacon
             </motion.h1>
@@ -66,7 +66,7 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="font-mono text-2xl text-gray-300 max-w-2xl mx-auto"
+              className="font-mono text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto"
             >
               A beacon that connects...
             </motion.p>
@@ -80,12 +80,12 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-4xl font-bold text-white mb-6"> Features</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6"> Features</h2>
               <p className="text-xl text-gray-400 font-mono">
                 We offer various services
               </p>
             </motion.div>
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12 ">
               <FeatureCard
                 icon={Mail}
                 title="Eatries"
@@ -133,7 +133,7 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-5xl font-bold text-white mb-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
                 {" "}
                 Quick Links
               </h2>
@@ -153,7 +153,7 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-15"
             >
-              <h2 className="text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-8">
                 Clubs and Activities
               </h2>
               <p className="text-xl text-gray-400 font-mono">Be a Moti</p>

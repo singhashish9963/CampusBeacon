@@ -12,8 +12,8 @@ const FeatureCard = ({ icon: Icon, title, description, href = "/" }) => {
       >
         <div className="flex flex-col items-center text-center space-y-4 pb-10 pt-10">
           <Icon className="h-14 w-25 text-pink-500" />
-          <h3 className="text-2xl font-bold text-white">{title}</h3>
-          <p className="text-gray-400 font-mono">{description}</p>
+          <h3 className="text-xl md:text-2xl font-bold text-white">{title}</h3>
+          <p className="text-m md:text-xl text-gray-400 font-mono">{description}</p>
         </div>
       </motion.div>
     </a>

@@ -32,7 +32,7 @@ const QuickLinks = () => {
                 className="flex flex-col items-center justify-center p-7 rounded-xl bg-gray-900/50 backdrop-blur-sm border border-pink-500/20 hover:border-pink-500/50 transition-all group"
               >
                 <link.icon className="h-8 w-8 text-pink-500 mb-3 group-hover:text-pink-400" />
-                <span className="text-base font-medium text-gray-300 group-hover:text-white">
+                <span className="text-base font-medium md:font-large text-gray-300 group-hover:text-white">
                   {link.label}
                 </span>
               </motion.div>
