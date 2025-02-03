@@ -119,7 +119,7 @@ const ProfilePage = () => {
                 {" "}
                 {/*Defining grid on right of name */}
                 <Profile vals={userData.branch} header="Branch" />
-                <Profile vals={userData.year} header="Graduation Year " />
+                <Profile vals={userData.graduation_year} header="Graduation Year " />
               </div>
             </div>
 
