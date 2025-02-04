@@ -8,9 +8,9 @@ import React, {
 import axios from "axios";
 import LoadingScreen from "../components/LoadingScreen.jsx";
 
-// Create an axios instance with default configuration
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api", // Changed port to 8000
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
-  // Check authentication status
+
   const checkAuthStatus = useCallback(async () => {
     try {
       const response = await api.get("/users/current");
@@ -36,7 +36,7 @@ export const AuthProvider = ({ children }) => {
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      // Only logout if not a 401 error (unauthorized)
+
       if (error.response?.status !== 401) {
         handleLogout();
       }
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post(`/users${endpoint}`, data);
 
       if (response.data.success) {
-        // Set user data for both login and signup
+   
         setUser(response.data.data.user);
         setIsAuthenticated(true);
         setWelcomeMessage(
