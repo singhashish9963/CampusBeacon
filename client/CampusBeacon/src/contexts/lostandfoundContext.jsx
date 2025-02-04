@@ -74,6 +74,28 @@ export const LostAndFoundProvider = ({ children }) => {
           throw error;
         }
       };
+      
+      const deleteItem = async (id) => {
+        try {
+          await api.delete(`/lost-items/${id}`);
+          setItems((prev) => prev.filter((item) => item.id !== id));
+        } catch (error) {
+          console.error("Error deleting item:", error);
+          throw error;
+        }
+      };
+
+      const getItem = async (id) => {
+        try {
+          const response = await api.get(`/lost-items/${id}`);
+          return response.data.data;
+        } catch (error) {
+          console.error("Error getting item:", error);
+          throw error;
+        }
+      };
+
+
 
   
 
