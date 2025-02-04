@@ -13,7 +13,9 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     date_bought,
     owner_contact,
     item_condition,
+    price,
   } = req.body;
+  if(price<0) throw new ApiError("price must be positive",405)
 
   if (!item_name?.trim()) {
     throw new ApiError("Item name is required", 400);
@@ -46,6 +48,7 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     image_url,
     userId, 
     item_condition,
+    price,
   });
 
   return res
@@ -64,6 +67,7 @@ export const updateBuyAndSellItem = asyncHandler(async (req, res) => {
     date_bought,
     owner_contact,
     item_condition,
+    price,
   } = req.body;
 
   const item = await BuyAndSell.findByPk(id);
@@ -95,6 +99,7 @@ export const updateBuyAndSellItem = asyncHandler(async (req, res) => {
   item.owner_contact = owner_contact || item.owner_contact;
   item.item_condition = item_condition || item.item_condition;
   item.image_url = image_url;
+  item.price=price
 
   await item.save();
 
