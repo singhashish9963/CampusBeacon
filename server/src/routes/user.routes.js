@@ -9,11 +9,11 @@ import {
   registerUser,
   loginUser,
 } from "../controllers/user.controller.js";
-
+import emailMiddleware from "../middlewares/email.middleware.js"
 
 const router=express.Router();
-router.post("/signup",registerUser)
-router.post("/login",loginUser)
+router.post("/signup",emailMiddleware,registerUser)
+router.post("/login",emailMiddleware,loginUser)
 router.get("/current", authMiddleware, getCurrentUser);
 router.put("/update", authMiddleware, updateUser);
 router.post("/logout", authMiddleware, logoutUser);
