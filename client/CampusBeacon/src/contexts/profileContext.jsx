@@ -1,54 +1,62 @@
-import React, {useCallback, useContext, useState, createContext} from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
+import axios from "axios";
+import LoadingScreen from "../components/LoadingScreen";
+import { useAuth } from "./AuthContext";
 
-const profileContext = createContext(null);
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 
-export const useProfile = () => {
-  const context = useContext(profileContext);
-  if (!context) {
-    throw new Error('useProfile must be used within a ProfileProvider');
-  }
-  return context;
-};
+const ProfileContext = createContext(null);
+
 
 export const ProfileProvider = ({ children }) => {
-  const checkUser = () => {
-    const userStorage = localStorage.getItem("authUser");
-    if (userStorage) {
-      try {
-        return JSON.parse(userStorage);
-      } catch (e) {
-        console.error("Error parsing stored user:", e);
-      }
-    }
-    return null;
-  };
-  
-  const [isediting, setIsEditing] = useState(null);
+  const { setIsAuthenticated } = useAuth();
+  const [user, setUser] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState(checkUser());
-  const [userData, setUserData] = useState(user);
-  
 
-  const editProfile = useCallback(async (data) => {
+
+  const updateUser = useCallback(async (userData) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await handleApiCall('/api/update-user', 'PUT', data);
-      setUser(response);
-      localStorage.setItem('authUser', JSON.stringify(response));
-      setIsEditing(false);
+
+      const response = await api.put("/users/update", userData);
+      if (response.data.success) {
+        setUser(response.data.data.user);
+      } else {
+        setError(response.data.message || "Update failed");
+      }
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Failed to update user");
     } finally {
       setLoading(false);
     }
   }, []);
 
+
   return (
-    <profileContext.Provider value={{ user, editProfile, isediting, setIsEditing, error, loading }}>
-      {children}
-    </profileContext.Provider>
+    <ProfileContext.Provider
+      value={{ user, updateUser, isEditing, setIsEditing, error, loading }}
+    >
+      {loading ? <LoadingScreen /> : children}
+    </ProfileContext.Provider>
   );
+};
+
+
+export const useProfile = () => {
+  const context = useContext(ProfileContext);
+  if (context === null) {
+    throw new Error("useProfile must be used within a ProfileProvider");
+  }
+  return context;
 };
