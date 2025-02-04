@@ -10,11 +10,15 @@ import messageRoutes from "./src/routes/message.routes.js"
 import ChatController from "./socket/chat.controller.js";
 import { createServer } from "http";
 import { Server } from "socket.io";
+import cookieParser from "cookie-parser";
 dotenv.config({ path: "./.env" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
+
+
+app.use(cookieParser())
 
 app.use(cors({
   origin: "http://localhost:5173",
