@@ -11,12 +11,11 @@ const ProfilePage = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
-    name: user?.name || "Ayush Agarwal",
-    email: user?.email || "ayush@mnnit.ac.in",
-    phone: user?.phone || "+91 777 777 7777",
-    branch: user?.branch || "Electronics and Communication",
-    registration_number: user?.registration_number || "20244047",
-    semester: user?.semester || "2nd Semester",
+    name: user?.name || "Name",
+    email: user?.email || "Email",
+    branch: user?.branch || "Branch",
+    registration_number: user?.registration_number || "Registration Number",
+    semester: user?.semester || "Semester",
     graduation_year: user?.graduation_year || "2025",
   });
 
@@ -62,7 +61,7 @@ const ProfilePage = () => {
     { label: "Attendance", value: "87%", icon: Calendar },
     { label: "Semester", value: userData.semester, icon: Book },
     { label: "Semester Credits", value: "21", icon: Star },
-    { label: "Registration", value: userData.registrationNumber, icon: Hash },
+    { label: "Registration", value: userData.registration_number, icon: Hash },
   ];
 
   return (
@@ -107,7 +106,7 @@ const ProfilePage = () => {
                   </h1>
                 )}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {isEditing ? (
                   <>
                     <input
@@ -145,6 +144,7 @@ const ProfilePage = () => {
                   whileHover={{ scale: 1.05 }}
                   className="bg-white/5 rounded-xl p-6 text-center relative group w-60"
                 >
+                  <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-3" />
                   {stat.label !== "Semester Credits" &&
                   stat.label !== "Attendance" &&
                   isEditing ? (
@@ -170,7 +170,7 @@ const ProfilePage = () => {
                       {stat.value}
                     </p>
                   )}
-                  <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-3" />
+
                   <p className="text-gray-400">{stat.label}</p>
                 </motion.div>
               ))}
