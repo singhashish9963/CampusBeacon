@@ -3,6 +3,7 @@ import asyncHandler from "../src/utils/asyncHandler.js";
 import ApiError from "../src/utils/apiError.js";
 import ApiResponse from "../src/utils/apiResponse.js";
 
+// change this to remove registration number and add authMiddleware instad 
 class ChatController {
   constructor(io) {
     this.io = io;

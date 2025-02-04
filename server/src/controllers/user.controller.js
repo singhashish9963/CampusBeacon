@@ -6,14 +6,26 @@ import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { sendEmail } from "../utils/emailService.js";
 
+
+/*
+=============================
+        Time and Date  
+=============================
+*/
+
 const getCurrentUTCDateTime = () => {
   const now = new Date();
   return now.toISOString().slice(0, 19).replace("T", " ");
 };
 
+/*
+=============================
+        Register User 
+=============================
+*/
 export const registerUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-
+// we cannot have same email as registration number are different 
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) return next(new ApiError("User already exists", 400));
 
@@ -37,6 +49,12 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     );
 });
 
+/*
+=============================
+        Login User 
+=============================
+*/
+
 export const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -49,14 +67,14 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   if (!isMatch) {
     return next(new ApiError("Invalid email or password", 400));
   }
-
+// for safety expiry in 1h, user will be logged out if he doesnt generate a token again
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-
+// save as http cookie for better security 
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production", 
@@ -77,11 +95,17 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     );
 });
 
+/*
+==============================
+       Get current user 
+==============================
+*/
+
 export const getCurrentUser = asyncHandler(async (req, res, next) => {
   if (!req.user) {
     return next(new ApiError("Not authenticated", 401));
   }
-
+// get everything except password for safety 
   const user = await User.findByPk(req.user.id, {
     attributes: { exclude: ["password"] },
   });
@@ -95,6 +119,12 @@ export const getCurrentUser = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, { user }, "User retrieved successfully"));
 });
 
+/*
+==============================
+       Update User 
+==============================
+*/
+
 export const updateUser = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
   const {
@@ -105,12 +135,12 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     hostel,
     graduation_year,
   } = req.body;
-
+// find user by id to update that info only
   const user = await User.findByPk(userId);
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-
+// update only the fields that is given 
   if (name !== undefined) user.name = name;
   if (registration_number !== undefined)
     user.registration_number = registration_number;
@@ -129,6 +159,12 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(200, { user }, "User updated successfully"));
 });
 
+/*
+==============================
+       forget Password 
+==============================
+*/
+
 export const forgotPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
 
@@ -136,7 +172,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-
+// given inside url for verification
   const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
@@ -171,13 +207,19 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+/*
+==============================
+       reset Password 
+==============================
+*/
+
 export const resetPassword = asyncHandler(async (req, res, next) => {
   const { token, newPassword } = req.body;
 
   if (!token) {
     return next(new ApiError("Reset token is required", 400));
   }
-
+// contains payload after jwt is verified 
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -189,7 +231,7 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-
+// method to compare hashed password 
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.password = hashedPassword;
   await user.save();
@@ -215,6 +257,12 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 
   res.status(200).json(new ApiResponse(200, null, "Password reset successful"));
 });
+
+/*
+==============================
+       logout User 
+==============================
+*/
 
 export const logoutUser = asyncHandler(async (req, res, next) => {
 

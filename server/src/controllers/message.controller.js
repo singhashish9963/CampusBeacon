@@ -4,7 +4,7 @@ import apiError from "../utils/apiError.js"
 import apiResponse from "../utils/apiResponse.js"
 
 
-
+// change this to remove registration_number 
 
 export const createMessage = asyncHandler(async (req, res) => {
   const { channelId, registration_number, messages } = req.body;
