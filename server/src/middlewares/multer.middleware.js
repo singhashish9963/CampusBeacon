@@ -1,27 +1,29 @@
-import multer, { diskStorage } from "multer";
+import multer from "multer";
+import { diskStorage } from "multer";
 import { extname as _extname } from "path";
 
 const storage = diskStorage({
   destination: function (_req, _file, cb) {
-    cb(null, "./public/temp"); 
+    cb(null, "public/temp"); 
   },
-
   filename: function (_req, file, cb) {
-    cb(null, file.originalname);
+    cb(null, Date.now() + "-" + file.originalname); 
   },
 });
 
-export const upload = multer({
-  storage: storage,
-  fileFilter: function (_req, file, cb) {
-    const filetypes = /jpeg|jpg|png|gif/;
-    const extname = filetypes.test(_extname(file.originalname).toLowerCase());
-    const mimetype = filetypes.test(file.mimetype);
+const fileFilter = (_req, file, cb) => {
+  const filetypes = /jpeg|jpg|png|gif/;
+  const extname = filetypes.test(_extname(file.originalname).toLowerCase());
+  const mimetype = filetypes.test(file.mimetype);
 
-    if (extname && mimetype) {
-      cb(null, true);
-    } else {
-      cb(new ApiError("File type not supported", 400), false);
-    }
-  },
+  if (extname && mimetype) {
+    cb(null, true);
+  } else {
+    cb(new Error("File type not supported"), false);
+  }
+};
+
+export const upload = multer({
+  storage,
+  fileFilter,
 });
