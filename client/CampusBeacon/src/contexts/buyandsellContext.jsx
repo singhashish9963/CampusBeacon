@@ -104,10 +104,51 @@ export const BuyAndSellProvider = ({ children }) => {
     }
   }, []);
 
+  const getItemById = async (id) => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`/api/v1/buy-sell/items/${id}`);
+      setCurrentItem(response.data.data);
+      return response.data.data;
+    } catch (err) {
+      setError(err.response?.data?.message || "Error fetching item");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+  const clearError = () => setError(null);
+  const value = {
+    items,
+    userItems,
+    loading,
+    error,
+    currentItem,
+    createItem,
+    updateItem,
+    deleteItem,
+    getAllItems,
+    getUserItems,
+    getItemById,
+    clearError,
+  };
 
-  
+  return (
+    <BuyAndSellContext.Provider value={value}>
+      {children}
+    </BuyAndSellContext.Provider>
+  );
+};
 
-  
+
+export const useBuyAndSell = () => {
+  const context = useContext(BuyAndSellContext);
+  if (context === undefined) {
+    throw new Error("useBuyAndSell must be used within a BuyAndSellProvider");
+  }
+  return context;
+};
+
+export default BuyAndSellProvider;
 
 
-}
