@@ -95,10 +95,6 @@ export const LostAndFoundProvider = ({ children }) => {
         }
       };
 
-
-
-  
-
     useEffect(() => {
         fetchItems();
     }, [fetchItems]);
