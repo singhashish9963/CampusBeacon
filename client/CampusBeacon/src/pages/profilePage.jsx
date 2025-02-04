@@ -33,7 +33,7 @@ const ProfilePage = () => {
         name: userData.name.trim() === "" ? user?.name : userData.name,
         branch: userData.branch.trim() === "" ? user?.branch : userData.branch,
         graduation_year:
-          userData.graduation_year && userData.graduation_year.trim() === ""
+          userData.graduation_year  === ""
             ? user?.graduation_year
             : userData.graduation_year,
         registration_number:
@@ -44,6 +44,7 @@ const ProfilePage = () => {
         semester:
           userData.semester.trim() === "" ? user?.semester : userData.semester,
       });
+      await getUser();
       setIsEditing(false);
     } catch (err) {
       console.error("Error updating profile:", err);

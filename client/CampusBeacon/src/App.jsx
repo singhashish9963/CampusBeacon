@@ -14,36 +14,38 @@ import CommunityPage from "./pages/communityPage.jsx";
 import { ProfileProvider } from "./contexts/profileContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { LostAndFoundProvider } from "./contexts/lostandfoundContext.jsx";
+import BuyAndSellProvider from "./contexts/buyAndSellContext.jsx";
 
 function App() {
   return (
     <AuthProvider>
-      <LostAndFoundProvider>
-        
-        <ProfileProvider>
-          <BrowserRouter>
-            <div className="flex flex-col min-h-screen">
-              <NavBar />
-              <main className="flex-grow">
-                <Routes>
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<LoginSignup />} />
-                  <Route element={<ProtectedRoute />}>
-                    <Route path="/profile" element={<ProfilePage />} />
-                    <Route path="/marketplace" element={<Marketplace />} />
-                    <Route path="/lost-found" element={<LostAndFound />} />
-                    <Route path="/SVBH" element={<SVBH />} />
-                    <Route path="/DJGH" element={<DJGH />} />
-                    <Route path="/Community" element={<CommunityPage />} />
-                  </Route>
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </main>
-              <Footer />
-            </div>
-          </BrowserRouter>
-        </ProfileProvider>
-      </LostAndFoundProvider>
+      <BuyAndSellProvider>
+        <LostAndFoundProvider>
+          <ProfileProvider>
+            <BrowserRouter>
+              <div className="flex flex-col min-h-screen">
+                <NavBar />
+                <main className="flex-grow">
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/login" element={<LoginSignup />} />
+                    <Route element={<ProtectedRoute />}>
+                      <Route path="/profile" element={<ProfilePage />} />
+                      <Route path="/marketplace" element={<Marketplace />} />
+                      <Route path="/lost-found" element={<LostAndFound />} />
+                      <Route path="/SVBH" element={<SVBH />} />
+                      <Route path="/DJGH" element={<DJGH />} />
+                      <Route path="/Community" element={<CommunityPage />} />
+                    </Route>
+                    <Route path="*" element={<Navigate to="/" replace />} />
+                  </Routes>
+                </main>
+                <Footer />
+              </div>
+            </BrowserRouter>
+          </ProfileProvider>
+        </LostAndFoundProvider>
+      </BuyAndSellProvider>
     </AuthProvider>
   );
 }

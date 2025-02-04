@@ -27,18 +27,18 @@ const BuyAndSell = sequelize.define("BuyAndSell", {
     type: DataTypes.STRING(50),
     allowNull: true,
   },
+  price:{
+    type:DataTypes.INTEGER,
+    allowNull:false
+  },
   image_url: {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  registration_number: {
-    type: DataTypes.STRING(50),
-    allowNull: false,
-    references: {
-      model: "users",
-      key: "registration_number",
-    },
-    onDelete: "CASCADE",
+  userId:{
+    type:DataTypes.INTEGER,
+    allowNull:false,
+
   },
   item_condition: {
     type: DataTypes.ENUM("Good", "Fair", "Poor"),
