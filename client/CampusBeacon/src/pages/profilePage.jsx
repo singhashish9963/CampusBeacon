@@ -38,10 +38,10 @@ const ProfilePage = () => {
             ? user?.graduation_year
             : userData.graduation_year,
         registration_number:
-          userData.registrationNumber &&
-          userData.registrationNumber.trim() === ""
-            ? user?.registrationNumber
-            : userData.registrationNumber,
+          userData.registration_number &&
+          userData.registration_number.trim() === ""
+            ? user?.registration_number
+            : userData.registration_number,
         semester:
           userData.semester.trim() === "" ? user?.semester : userData.semester,
       });
