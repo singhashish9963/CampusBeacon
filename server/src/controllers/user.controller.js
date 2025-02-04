@@ -79,6 +79,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
 });
 
 export const getCurrentUser = asyncHandler((req, res, next) => {
+  
   if (!req.user) {
     return next(new ApiError("Not authenticated", 401));
   }
