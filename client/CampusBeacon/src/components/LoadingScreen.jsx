@@ -39,7 +39,7 @@ const LoadingScreen=()=>{
             transition={{ delay: 0.2, duration: 0.5 }}
             className="mt-4 text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
           >
-            Loading CamousBeacon
+            Launching Beacon
           </motion.h2>
           <motion.div
             initial={{ opacity: 0 }}
