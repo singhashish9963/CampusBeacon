@@ -149,7 +149,7 @@ const LoginSignup = () => {
             </motion.div>
 
             {/* Sign Up Form */}
-            <div className="w-full md:w-1/2 h-1/2 md:h-full p-12">
+            <div className="w-1/2 p-12">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Create Account
               </h2>
@@ -166,7 +166,7 @@ const LoginSignup = () => {
             </div>
 
             {/* Sign In Form */}
-            <div className="w-full md:w-1/2 h-1/2 md:h-full md:h-1/2 p-12">
+            <div className="w-1/2 p-12">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Welcome Back
               </h2>
