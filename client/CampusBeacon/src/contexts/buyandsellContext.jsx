@@ -60,6 +60,22 @@ export const BuyAndSellProvider = ({ children }) => {
     }
   };
 
+  const deleteItem = async (id) => {
+    try {
+      setLoading(true);
+      await axios.delete(`/api/buy-and-sell/items/${id}`);
+      setItems((prev) => prev.filter((item) => item.id !== id));
+      setUserItems((prev) => prev.filter((item) => item.id !== id));
+    } catch (err) {
+      setError(err.response?.data?.message || "Error deleting item");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+
   
 
 
