@@ -66,7 +66,6 @@ const Footer = () => {
 
             <SiJavascript className={IconHoverStyle} size={24} />
             <SiNodedotjs className={IconHoverStyle} size={24} />
-            <SiAppwrite className={IconHoverStyle} size={24} />
             <SiSocketdotio className={IconHoverStyle} size={24} />
             <SiReact className={IconHoverStyle} size={24} />
             <BiLogoPostgresql className={IconHoverStyle} size={24} />
@@ -87,7 +86,7 @@ const Footer = () => {
               Ayush Jadaun
               <div className="flex space-x-4 pl-6">
                 <a href="https://github.com/ayush-jadaun">
-                  <FaGithub className="transition-all hover:scale-130 hover:item-blue-400" size={24} />
+                  <FaGithub className={IconHoverStyle} size={24} />
                 </a>
                 <a href="https://www.linkedin.com/in/ayush-jadaun-677199311/">
                   <FaLinkedin className={IconHoverStyle} size={24} />

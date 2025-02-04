@@ -121,7 +121,7 @@ const LoginSignup = () => {
             <motion.div
               animate={{ x: isSignUp ? "100%" : "0%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10"
+              className="absolute top-0 left-0 w-1/2 h-full bg-cover bg-center z-10 hidden md:block"
               style={{
                 boxShadow: "0 0 50px rgba(139, 92, 246, 0.5)",
                 backgroundColor: "rgba(139, 92, 246, 0.7)",
