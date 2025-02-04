@@ -74,6 +74,37 @@ export const BuyAndSellProvider = ({ children }) => {
     }
   };
 
+  const getAllItems = useCallback(async (filters = {}) => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams(filters);
+      const response = await axios.get(`/api/buy-and-sell/items?${params}`);
+      setItems(response.data.data);
+      return response.data.data;
+    } catch (err) {
+      setError(err.response?.data?.message || "Error fetching items");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+
+  const getUserItems = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get("/api/buy-and-sell/user/items");
+      setUserItems(response.data.data);
+      return response.data.data;
+    } catch (err) {
+      setError(err.response?.data?.message || "Error fetching user items");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+
   
 
   
