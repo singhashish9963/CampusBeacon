@@ -149,7 +149,7 @@ const LoginSignup = () => {
             </motion.div>
 
             {/* Sign Up Form */}
-            <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg">
+            <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg md:border-hidden ">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Create New Account
               </h2>
@@ -166,7 +166,7 @@ const LoginSignup = () => {
             </div>
 
             {/* Sign In Form */}
-            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg">
+            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden ">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Welcome Back!
               </h2>
