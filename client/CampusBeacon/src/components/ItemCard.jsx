@@ -3,10 +3,16 @@ import { FaRupeeSign } from "react-icons/fa";
 import { IoMdCall } from "react-icons/io";
 import { motion } from "framer-motion";
 
+
+{/* 
+  =========================================
+  Re-useable Item Card for Buy & Sell Page 
+  =========================================
+*/}
 function ItemCard({item, key}){
 
     return(
-        <div className="grid md:grid-cols-2 lg:grid-cols-1">
+        <div className="grid md:grid-cols-3 lg:grid-cols-1">
         <motion.div 
         key={item.id}
         initial={{ opacity: 0, scale: 0.9 }}

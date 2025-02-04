@@ -13,7 +13,7 @@ const LostAndFound = () => {
     contact: "",
     image: null,
   });
-
+  
   const [marketItems, setMarketItems] = useState([
     {
       id: 1,
@@ -117,7 +117,7 @@ const LostAndFound = () => {
                   <option value="Cycle">Cycle</option>
                 </select>
               </div>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {marketItems.map((item, id) => (
                   <LostItemCard key={item.id} item={item} />
                 ))}
@@ -141,7 +141,7 @@ const LostAndFound = () => {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <div className="grid gir-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <input
                       type="text"
                       name="name"

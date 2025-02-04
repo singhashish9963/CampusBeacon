@@ -3,6 +3,14 @@ import { FaRupeeSign } from "react-icons/fa";
 import { IoMdCall } from "react-icons/io";
 import { motion } from "framer-motion";
 
+
+{/* 
+  ===========================================
+  Re-useable Item Card for Lost & Found Page 
+  ===========================================
+*/}
+
+
 function LostItemCard({ item, key }) {
   return (
     <div className="grid md:grid-cols-2 lg:grid-cols-1">

@@ -1,6 +1,11 @@
 import React from "react";
 import { Mail, Phone } from "lucide-react";
 
+{/* 
+  ================================================  
+      Re-useable Contact Card for Hostel Page
+  ================================================
+*/}
 function ContactCard({ name, phone, email, designation }) {
   return (
     <div
