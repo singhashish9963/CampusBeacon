@@ -53,7 +53,27 @@ export const LostAndFoundProvider = ({ children }) => {
           throw error;
         }
       };
-
+      
+      const updateItem = async (id, formData) => {
+        try {
+          const response = await api.put(
+            `/lost-and-found/lost-items/${id}`,
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+          setItems((prev) =>
+            prev.map((item) => (item.id === id ? response.data.data : item))
+          );
+          return response.data.data;
+        } catch (error) {
+          console.error("Error updating item:", error);
+          throw error;
+        }
+      };
 
   
 
