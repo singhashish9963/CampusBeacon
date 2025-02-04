@@ -14,7 +14,7 @@ import authMiddleware from "../middlewares/auth.middleware.js"
 const router = express.Router();
 
 
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ dest: "./public/temp" });
 
 
 
