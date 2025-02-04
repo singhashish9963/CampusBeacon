@@ -13,7 +13,7 @@ const LostAndFound = () => {
     contact: "",
     image: null,
   });
-
+  
   const [marketItems, setMarketItems] = useState([
     {
       id: 1,
@@ -141,7 +141,7 @@ const LostAndFound = () => {
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
                 >
-                  <div className="grid gir-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <input
                       type="text"
                       name="name"
