@@ -2,7 +2,7 @@ import {Sequelize} from 'sequelize';
 import asyncHandler from '../utils/asyncHandler.js';
 
 // initialise db variables 
-const DB_NAME = process.env.DB_NAME || "CampusBeacon";
+const DB_NAME =  "CampusBeacon";
 const DB_USER = process.env.DB_USER || "postgres";
 const DB_PASSWORD = process.env.DB_PASSWORD || "superman";
 const DB_HOST = process.env.DB_HOST || "localhost";

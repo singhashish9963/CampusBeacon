@@ -8,10 +8,11 @@ import { motion } from "framer-motion";
 import { Mail,Users,Globe,HelpCircle,Database,Calendar } from "lucide-react";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
-
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isAuthenticated, handleLogout, user, lastLoginTime } = useAuth();
   const navigate = useNavigate();
 
   useEffect(()=>{
@@ -20,11 +21,13 @@ const HomePage = () => {
       setIsLoggedIn(true);
     }
   },[]);
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
+  
+  const handleLogoutClick = async () => {
+    await handleLogout();
     navigate("/login");
   };
+
+
 
 
   return (
@@ -35,14 +38,24 @@ const HomePage = () => {
 
       <div className="relative z-10 min-h-screen">
         <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
-          {isLoggedIn ? (
-            <ButtonColourfull
-              text="Logout"
-              type="button"
-              buttonsize="px-6 py-2.5"
-              textsize="text-base"
-              onClick={handleLogout}
-            />
+          {isAuthenticated ? (
+            <div className="flex items-center gap-4">
+              <span className="text-white">
+                {user?.email}
+                {lastLoginTime && (
+                  <small className="block text-gray-400">
+                    Last login: {new Date(lastLoginTime).toLocaleString()}
+                  </small>
+                )}
+              </span>
+              <ButtonColourfull
+                text="Logout"
+                type="button"
+                buttonsize="px-6 py-2.5"
+                textsize="text-base"
+                onClick={handleLogoutClick}
+              />
+            </div>
           ) : (
             <ButtonColourfull
               text="Login / Sign Up"
@@ -80,7 +93,10 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6"> Features</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+                {" "}
+                Features
+              </h2>
               <p className="text-xl text-gray-400 font-mono">
                 We offer various services
               </p>
