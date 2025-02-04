@@ -2,6 +2,12 @@ import jwt from "jsonwebtoken";
 import ApiError from "../utils/apiError.js";
 import asyncHandler from "../utils/asyncHandler.js";
 
+/*
+=======================================================================
+        Auth Middleware for checking and storing user auth info
+=======================================================================
+*/
+
 export const authMiddleware = asyncHandler(async (req, res, next) => {
   const token = req.cookies.token;
 
