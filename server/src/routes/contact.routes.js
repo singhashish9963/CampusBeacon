@@ -2,7 +2,7 @@ import express from "express";
 import { createContacts, editContact, deleteContact, getContact, getAllContacts } from "../controllers/contact.controller.js";
 import multer from "multer";
 
-const upload = multer({ dest: 'temp/' }); // Define the upload middleware
+const upload = multer({ dest: 'temp/' }); 
 
 const router = express.Router();
 

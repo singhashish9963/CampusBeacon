@@ -15,7 +15,6 @@ export const createContacts = asyncHandler(async (req, res) => {
     throw new ApiError("Designation is required", 400);
   }
 
-
   let image_url;
   if (req.file) {
     image_url = await uploadImageToCloudinary(req.file.path, "contacts");
@@ -43,7 +42,6 @@ export const editContact = asyncHandler(async (req, res) => {
     throw new ApiError("Contact was missing", 400);
   }
 
-
   let image_url = contacts.image_url;
   if (req.file) {
     image_url = await uploadImageToCloudinary(req.file.path, "contacts");
@@ -62,7 +60,6 @@ export const editContact = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, contacts, "Contact updated successfully"));
 });
 
-// Other controllers remain unchanged
 export const deleteContact = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
