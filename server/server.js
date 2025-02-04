@@ -17,8 +17,18 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
 
-
+/*
+===================================
+        Cookie to be parsed   
+===================================
+*/
 app.use(cookieParser())
+
+/*
+============================================================
+        Applying cors for cross origin data exchange 
+============================================================
+*/
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
@@ -28,21 +38,45 @@ app.use(
   })
 );;
 
+
 const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:5173",
     credentials: true,
   },
 });
+
+/*
+=============================
+        Time and Date  
+=============================
+*/
+
 app.use(express.json());
+
+/*
+=============================
+        Connect database  
+=============================
+*/
 
 connectDb()
 
+/*
+=======================================
+        Testing route for backend  
+=======================================
+*/
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
+/*
+=========================================
+        using routes as middleware   
+=========================================
+*/
 
 app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
@@ -55,7 +89,11 @@ io.on("connection", (socket) => {
   chatController.init(socket);
 });
 
-
+/*
+=================================
+        Starting server :}  
+=================================
+*/
 httpServer.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
