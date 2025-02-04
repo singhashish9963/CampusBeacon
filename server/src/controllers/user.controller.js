@@ -43,3 +43,19 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     res.status(200).json(new ApiResponse(200, { token }, "Login successful"));
 });
 
+export const getCurrentUser = asyncHandler((req, res, next) => {
+ 
+  if (!req.user) {
+    return next(new ApiError("Not authenticated", 401));
+  }
+
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(200, { user: req.user }, "User retrieved successfully")
+    );
+});
+
+
+
