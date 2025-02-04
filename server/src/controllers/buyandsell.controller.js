@@ -1,4 +1,4 @@
-import BuyAndSell from "..//models/buyandsell.model.js";
+import BuyAndSell from "../models/buyandsell.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
@@ -12,7 +12,6 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     location_found,
     date_bought,
     owner_contact,
-    registration_number,
     item_condition,
   } = req.body;
 
@@ -20,15 +19,17 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item name is required", 400);
   }
 
-  if (!registration_number?.trim()) {
-    throw new ApiError("Registration number is required", 400);
-  }
-
   if (!item_condition || !["Good", "Fair", "Poor"].includes(item_condition)) {
     throw new ApiError(
       "Valid item condition is required (Good, Fair, or Poor)",
       400
     );
+  }
+
+ 
+  const userId = req.user?.id;
+  if (!userId) {
+    throw new ApiError("Authentication required", 401);
   }
 
   let image_url;
@@ -43,7 +44,7 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     date_bought: date_bought || new Date(),
     owner_contact,
     image_url,
-    registration_number,
+    userId, 
     item_condition,
   });
 
@@ -71,7 +72,7 @@ export const updateBuyAndSellItem = asyncHandler(async (req, res) => {
   }
 
 
-  if (item.registration_number !== req.user?.registration_number) {
+  if (item.userId !== req.user?.id) {
     throw new ApiError("Unauthorized to update this item", 403);
   }
 
@@ -82,13 +83,11 @@ export const updateBuyAndSellItem = asyncHandler(async (req, res) => {
     );
   }
 
-
-  let image_url = item.image_url; 
+  let image_url = item.image_url;
   if (req.file) {
     image_url = await uploadImageToCloudinary(req.file.path, "buy-and-sell");
   }
 
- 
   item.item_name = item_name || item.item_name;
   item.description = description || item.description;
   item.location_found = location_found || item.location_found;
@@ -112,7 +111,8 @@ export const deleteBuyAndSellItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item not found", 404);
   }
 
-  if (item.registration_number !== req.user?.registration_number) {
+  
+  if (item.userId !== req.user?.id) {
     throw new ApiError("Unauthorized to delete this item", 403);
   }
 
@@ -123,11 +123,13 @@ export const deleteBuyAndSellItem = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Buy and sell item deleted successfully"));
 });
 
-
 export const getBuyAndSellItem = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const item = await BuyAndSell.findByPk(id);
+  const item = await BuyAndSell.findByPk(id, {
+    include: ["User"], 
+  });
+
   if (!item) {
     throw new ApiError("Item not found", 404);
   }
@@ -139,12 +141,11 @@ export const getBuyAndSellItem = asyncHandler(async (req, res) => {
     );
 });
 
-
 export const getAllBuyAndSellItems = asyncHandler(async (req, res) => {
   const { condition, sort } = req.query;
 
   let whereClause = {};
-  let orderClause = [["created_at", "DESC"]]; 
+  let orderClause = [["createdAt", "DESC"]];
 
   if (condition && ["Good", "Fair", "Poor"].includes(condition)) {
     whereClause.item_condition = condition;
@@ -153,10 +154,10 @@ export const getAllBuyAndSellItems = asyncHandler(async (req, res) => {
   if (sort) {
     switch (sort) {
       case "newest":
-        orderClause = [["created_at", "DESC"]];
+        orderClause = [["createdAt", "DESC"]];
         break;
       case "oldest":
-        orderClause = [["created_at", "ASC"]];
+        orderClause = [["createdAt", "ASC"]];
         break;
       case "name_asc":
         orderClause = [["item_name", "ASC"]];
@@ -170,6 +171,7 @@ export const getAllBuyAndSellItems = asyncHandler(async (req, res) => {
   const items = await BuyAndSell.findAll({
     where: whereClause,
     order: orderClause,
+    include: ["User"],
   });
 
   return res
@@ -183,13 +185,13 @@ export const getAllBuyAndSellItems = asyncHandler(async (req, res) => {
     );
 });
 
-
 export const getUserItems = asyncHandler(async (req, res) => {
-  const { registration_number } = req.params;
+  const userId = req.params.userId || req.user?.id;
 
   const items = await BuyAndSell.findAll({
-    where: { registration_number },
-    order: [["created_at", "DESC"]],
+    where: { userId },
+    order: [["createdAt", "DESC"]],
+    include: ["User"], 
   });
 
   return res
@@ -201,24 +203,4 @@ export const getUserItems = asyncHandler(async (req, res) => {
         "User's buy and sell items retrieved successfully"
       )
     );
-});
-
-
-export const searchBuyAndSellItems = asyncHandler(async (req, res) => {
-  const { query } = req.query;
-
-  const items = await BuyAndSell.findAll({
-    where: {
-      [Op.or]: [
-        { item_name: { [Op.iLike]: `%${query}%` } },
-        { description: { [Op.iLike]: `%${query}%` } },
-        { location_found: { [Op.iLike]: `%${query}%` } },
-      ],
-    },
-    order: [["created_at", "DESC"]],
-  });
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, items, "Search results retrieved successfully"));
 });
