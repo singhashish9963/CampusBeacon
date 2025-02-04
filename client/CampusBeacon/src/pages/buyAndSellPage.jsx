@@ -28,6 +28,16 @@ const Marketplace = () => {
       contact: "9026695299",
       image: "src/assets/images/keyboard.png",
     },
+    {
+      id: 2,
+      name: "Abhishek Developer",
+      price: 150,
+      category: "Cycle",
+      description: "MNNIT Web Developver on sale",
+      condition: "Damaged",
+      contact: "9026695299",
+      image: "src/assets/images/Abhishek.jpeg",
+    },
   ]);
 
   const handleInputChange = (e) => {
@@ -101,7 +111,7 @@ const Marketplace = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full p-3 pl-10 bg-gray-800 rounded-lg text-xl"
                   />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform-translate-y-1/2 text-gray-400" />
                 </div>
                 <select
                   value={category}
@@ -116,7 +126,7 @@ const Marketplace = () => {
                   <option value="Cycle">Cycle</option>
                 </select>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {marketItems.map((item, id) => (
                   <ItemCard key={item.id} item={item} />
                 ))}

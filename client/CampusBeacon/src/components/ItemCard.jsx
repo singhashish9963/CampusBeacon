@@ -12,7 +12,7 @@ import { motion } from "framer-motion";
 function ItemCard({item, key}){
 
     return(
-        <div className="grid md:grid-cols-2 lg:grid-cols-1">
+        <div className="grid md:grid-cols-3 lg:grid-cols-1">
         <motion.div 
         key={item.id}
         initial={{ opacity: 0, scale: 0.9 }}
