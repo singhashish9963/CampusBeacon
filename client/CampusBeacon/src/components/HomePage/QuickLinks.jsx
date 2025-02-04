@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 
 const QuickLinks = () => {
   const links = [
-    { icon: Calendar, label: "Academic Calendar", href: "/" },
+    { icon: Calendar, label: "Academic Calendar", href: "https://drive.google.com/file/d/1yYKlN_WktRy2SQYdSaAr-8R42w3wGnTs/view?usp=sharing" },
     { icon: User, label: "Academic Portal", href: "https://www.academics.mnnit.ac.in/new" },
     { icon: FileText, label: "LAN Information", href: "/" },
     { icon: Phone, label: "Resource Hub", href: "/" },
