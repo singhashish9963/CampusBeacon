@@ -19,7 +19,6 @@ const ProfilePage = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setUserData((prevData) => ({
-      //If the user did not change the data return the previous data
       ...prevData,
       [name]: value,
     }));
@@ -47,10 +46,6 @@ const ProfilePage = () => {
   }
   if(error){
     return <div>Error: {error}</div>
-  }
-
-  {
-    /*Use state for storing dummy user data to display */
   }
   const [userData, setUserData] = useState({
     name: "Ayush Agarwal",

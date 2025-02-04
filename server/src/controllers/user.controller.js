@@ -6,7 +6,6 @@ import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { sendEmail } from "../utils/emailService.js";
 
-// Utility function to get current UTC datetime
 const getCurrentUTCDateTime = () => {
   const now = new Date();
   return now.toISOString().slice(0, 19).replace("T", " ");
