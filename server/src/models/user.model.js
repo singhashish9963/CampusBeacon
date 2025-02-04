@@ -20,10 +20,15 @@ const users = sequelize.define(
       allowNull: true,
       unique: true,
     },
-    appwriteId:{
+    email:{
+      type:DataTypes.STRING,
+      unique:true,
+      allowNull:false,
+    },
+    password:{
       type:DataTypes.STRING,
       allowNull:false,
-      unique:true,
+
     },
     semester: {
       type: DataTypes.ENUM,
