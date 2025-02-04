@@ -35,6 +35,25 @@ export const LostAndFoundProvider = ({ children }) => {
             setLoading(false);
         }
     }, []);
+      const addItem = async (formData) => {
+        try {
+          const response = await api.post(
+            "/lost-and-found/lost-items",
+            formData,
+            {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            }
+          );
+          setItems((prev) => [...prev, response.data.data]);
+          return response.data.data;
+        } catch (error) {
+          console.error("Error adding item:", error);
+          throw error;
+        }
+      };
+
 
   
 
