@@ -51,15 +51,31 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Invalid email or password", 400));
   }
 
-  console.log(`User ${email} logged in at ${getCurrentUTCDateTime()}`);
-
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-  res.status(200).json(new ApiResponse(200, { token }, "Login successful"));
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production", 
+    sameSite: "strict", 
+    maxAge: 60 * 60 * 1000, 
+  });
+
+  console.log(`User ${email} logged in at ${getCurrentUTCDateTime()}`);
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { user: { id: user.id, email: user.email } },
+        "Login successful"
+      )
+    );
 });
 
 export const getCurrentUser = asyncHandler((req, res, next) => {
@@ -193,4 +209,19 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   }
 
   res.status(200).json(new ApiResponse(200, null, "Password reset successful"));
+});
+
+export const logoutUser = asyncHandler(async (req, res, next) => {
+
+  res.clearCookie("token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+  });
+
+  console.log(
+    `User ${req.user.email} logged out at ${getCurrentUTCDateTime()}`
+  );
+
+  res.status(200).json(new ApiResponse(200, null, "Logged out successfully"));
 });
