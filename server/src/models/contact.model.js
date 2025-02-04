@@ -1,7 +1,7 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
 
-export const Contact = sequelize.define("Contact", {
+export const Contacts = sequelize.define("Contact", {
     id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
@@ -24,7 +24,7 @@ export const Contact = sequelize.define("Contact", {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    imageUrl: {
+    image_url: {
         type: DataTypes.STRING,
         allowNull: true,
     }

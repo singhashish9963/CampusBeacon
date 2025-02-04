@@ -1,8 +1,8 @@
-import { DataTypes } from 'sequelize';
-import  sequelize  from "../db/db.js";
+import { DataTypes } from "sequelize";
+import sequelize from "../db/db.js";
 
 const LostAndFound = sequelize.define(
-  'LostAndFound',
+  "LostAndFound",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -33,11 +33,10 @@ const LostAndFound = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    registration_number: {
-      type: DataTypes.STRING(50),
+    userId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
- 
   },
   {
     timestamps: true,
@@ -45,6 +44,3 @@ const LostAndFound = sequelize.define(
 );
 
 export default LostAndFound;
-
-
-

@@ -1,41 +1,34 @@
-import cloudinary from "cloudinary"
-import asyncHandler from "./asyncHandler.js"
-import ApiError from "./apiError.js"
-import ApiResponse from "./apiResponse.js"
+import { v2 as cloudinary } from "cloudinary";
+import asyncHandler from "./asyncHandler.js";
+import fs from "fs"
+import dotenv from "dotenv"
+
+dotenv.config()
 
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "CampusBeacon",
-  api_key: process.env.CLOUDINARY_API_KEY || "356661483266385",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ,
+  api_key: process.env.CLOUDINARY_API_KEY,
   api_secret:
-    process.env.CLOUDINARY_API_SECRET || "RwHLc5V-C6mM51D2tHACEdA50fA",
+    process.env.CLOUDINARY_API_SECRET,
 });
 
-export const uploadImageToCloudinary = asyncHandler(async (req, res) => {
-  if (!req.file || !req.file.path) {
-    throw new ApiError("No file provided", 400);
+export const uploadImageToCloudinary = asyncHandler(async (localFilePath) => {
+  if (!localFilePath) {
+    console.log("No file path provided");
+    return null;
   }
-  const folderName = req.body.folder || "default_folder";
-  const result = await cloudinary.v2.uploader.upload(req.file.path, {
-    folder: folderName,
-    use_filename: true,
-    unique_filename: true,
+
+  console.log("Attempting to upload file:", localFilePath);
+
+  const result = await cloudinary.uploader.upload(localFilePath, {
+    resource_type: "auto",
   });
-  if (!result?.secure_url) {
-    throw new ApiError(
-      "Upload failed",
-      500,
-      null,
-      false,
-      "No URL returned from Cloudinary"
-    );
-  }
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { url: result.secure_url },
-        "Image uploaded successfully"
-      )
-    );
+
+  console.log("Cloudinary upload successful:", result.secure_url);
+
+  fs.unlink(localFilePath, (err) => {
+    if (err) console.error("Error deleting file:", err);
+  });
+
+  return result.secure_url;
 });
