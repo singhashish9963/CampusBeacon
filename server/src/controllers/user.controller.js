@@ -77,17 +77,22 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     );
 });
 
-export const getCurrentUser = asyncHandler((req, res, next) => {
-  
+export const getCurrentUser = asyncHandler(async (req, res, next) => {
   if (!req.user) {
     return next(new ApiError("Not authenticated", 401));
   }
 
+  const user = await User.findByPk(req.user.id, {
+    attributes: { exclude: ["password"] },
+  });
+
+  if (!user) {
+    return next(new ApiError("User not found", 404));
+  }
+
   res
     .status(200)
-    .json(
-      new ApiResponse(200, { user: req.user }, "User retrieved successfully")
-    );
+    .json(new ApiResponse(200, { user }, "User retrieved successfully"));
 });
 
 export const updateUser = asyncHandler(async (req, res, next) => {
