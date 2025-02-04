@@ -1,43 +1,36 @@
 import { v2 as cloudinary } from "cloudinary";
 import asyncHandler from "./asyncHandler.js";
-import ApiError from "./apiError.js";
-import ApiResponse from "./apiResponse.js";
-
+import fs from "fs"
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "CampusBeacon",
-  api_key: process.env.CLOUDINARY_API_KEY || "356661483266385",
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "dmvsj5vla",
+  api_key: process.env.CLOUDINARY_API_KEY || "957488376714669",
   api_secret:
-    process.env.CLOUDINARY_API_SECRET || "RwHLc5V-C6mM51D2tHACEdA50fA",
+    process.env.CLOUDINARY_API_SECRET || "3_3dj13Z4ecrKUAD14y3FLVOVR0",
 });
 
-export const uploadImageToCloudinary = asyncHandler(async (req, res) => {
-  if (!req.file || !req.file.path) {
-    throw new ApiError("No file provided", 400);
-  }
-
-  const folderName = req.body.folder || "default_folder";
-
+export const uploadImageToCloudinary = async (localFilePath) => {
   try {
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: folderName,
-      use_filename: true,
-      unique_filename: true,
-    });
-
-    if (!result?.secure_url) {
-      throw new ApiError(
-        "Upload failed",
-        500,
-        null,
-        false,
-        "No URL returned from Cloudinary"
-      );
+    if (!localFilePath) {
+      console.log("No file path provided");
+      return null;
     }
 
-    return res.status(200).json(
-      new ApiResponse(200, { url: result.secure_url }, "Image uploaded successfully")
-    );
+    console.log("Attempting to upload file:", localFilePath);
+
+    const result = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "auto",
+    });
+
+    console.log("Cloudinary upload successful:", result);
+    fs.unlinkSync(localFilePath);
+
+    return result;
   } catch (error) {
-    throw new ApiError("Cloudinary upload failed", 500, error);
+    console.error("Cloudinary upload error:", error);
+
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
+    throw error;
   }
-});
+};

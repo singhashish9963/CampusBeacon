@@ -1,8 +1,9 @@
-import { Contact } from "../models/contact.model.js";
+import { Contacts } from "../models/contact.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
+import fs from "fs"
 
 export const createContacts = asyncHandler(async (req, res) => {
   const { name, email, phone, designation } = req.body;
@@ -16,15 +17,32 @@ export const createContacts = asyncHandler(async (req, res) => {
   }
 
   let image_url = null;
-  if (req.file) {
-    const uploadResult = await uploadImageToCloudinary(
-      req.file.path,
-      "contacts"
-    );
-    image_url = uploadResult?.url;
+
+
+  console.log("Received file:", req.file);
+
+  try {
+    if (req.file) {
+
+      if (!fs.existsSync(req.file.path)) {
+        throw new Error("Uploaded file not found at path: " + req.file.path);
+      }
+
+      const uploadResult = await uploadImageToCloudinary(req.file.path);
+
+      if (!uploadResult) {
+        throw new Error("Upload returned null");
+      }
+
+      image_url = uploadResult.url;
+      console.log("Image uploaded successfully:", image_url);
+    }
+  } catch (error) {
+    console.error("Image upload error:", error);
+    throw new ApiError(`Error uploading image: ${error.message}`, 400);
   }
 
-  const newContact = await Contact.create({
+  const newContact = await Contacts.create({
     name,
     email,
     phone,
@@ -36,12 +54,11 @@ export const createContacts = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, newContact, "Contact created successfully"));
 });
-
 export const editContact = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, email, phone, designation } = req.body;
 
-  const contact = await Contact.findByPk(id);
+  const contact = await Contacts.findByPk(id);
   if (!contact) {
     throw new ApiError("Contact not found", 404);
   }
@@ -71,7 +88,7 @@ export const editContact = asyncHandler(async (req, res) => {
 export const deleteContact = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const contact = await Contact.findByPk(id);
+  const contact = await Contacts.findByPk(id);
   if (!contact) {
     throw new ApiError("Contact not found", 404);
   }
@@ -86,7 +103,7 @@ export const deleteContact = asyncHandler(async (req, res) => {
 export const getContact = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const contact = await Contact.findByPk(id);
+  const contact = await Contacts.findByPk(id);
   if (!contact) {
     throw new ApiError("Contact not found", 404);
   }
@@ -96,8 +113,8 @@ export const getContact = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, contact, "Contact retrieved successfully"));
 });
 
-export const getAllContacts = asyncHandler(async (req, res) => {
-  const allContacts = await Contact.findAll();
+export const getAllContacts = asyncHandler(async (_, res) => {
+  const allContacts = await Contacts.findAll();
 
   return res
     .status(200)
