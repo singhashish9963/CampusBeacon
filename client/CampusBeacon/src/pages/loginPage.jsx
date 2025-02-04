@@ -111,7 +111,7 @@ const LoginSignup = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="relative w-full max-w-[900px] h-[600px] rounded-2xl overflow-hidden flex shadow-2xl"
+            className="mt-30 mb-30 relative w-full max-w-[900px] md:h-[600px] h-[1000px] rounded-2xl overflow-hidden md:flex shadow-2xl"
             style={{
               background: "rgba(0, 0, 0, 0.7)",
               backdropFilter: "blur(10px)",
@@ -149,15 +149,15 @@ const LoginSignup = () => {
             </motion.div>
 
             {/* Sign Up Form */}
-            <div className="w-1/2 p-12">
+            <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg">
               <h2 className="text-3xl font-bold text-white mb-8">
-                Create Account
+                Create New Account
               </h2>
               {error && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-lg"
+                  className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-[100px]"
                 >
                   {error}
                 </motion.div>
@@ -166,9 +166,9 @@ const LoginSignup = () => {
             </div>
 
             {/* Sign In Form */}
-            <div className="w-1/2 p-12">
+            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg">
               <h2 className="text-3xl font-bold text-white mb-8">
-                Welcome Back
+                Welcome Back!
               </h2>
               {error && (
                 <motion.div
