@@ -15,9 +15,13 @@ export const createContacts = asyncHandler(async (req, res) => {
     throw new ApiError("Designation is required", 400);
   }
 
-  let image_url;
+  let image_url = null;
   if (req.file) {
-    image_url = await uploadImageToCloudinary(req.file.path, "contacts");
+    const uploadResult = await uploadImageToCloudinary(
+      req.file.path,
+      "contacts"
+    );
+    image_url = uploadResult?.url;
   }
 
   const newContact = await Contact.create({
@@ -37,37 +41,43 @@ export const editContact = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, email, phone, designation } = req.body;
 
-  const contacts = await Contact.findByPk(id);
-  if (!contacts) {
-    throw new ApiError("Contact was missing", 400);
+  const contact = await Contact.findByPk(id);
+  if (!contact) {
+    throw new ApiError("Contact not found", 404);
   }
 
-  let image_url = contacts.image_url;
+  let image_url = contact.image_url;
   if (req.file) {
-    image_url = await uploadImageToCloudinary(req.file.path, "contacts");
+    const uploadResult = await uploadImageToCloudinary(
+      req.file.path,
+      "contacts"
+    );
+    image_url = uploadResult?.url;
   }
 
-  contacts.name = name || contacts.name;
-  contacts.email = email || contacts.email;
-  contacts.designation = designation || contacts.designation;
-  contacts.phone = phone || contacts.phone;
-  contacts.image_url = image_url;
+  contact.name = name || contact.name;
+  contact.email = email || contact.email;
+  contact.phone = phone || contact.phone;
+  contact.designation = designation || contact.designation;
+  contact.image_url = image_url;
 
-  await contacts.save();
+  await contact.save();
 
   return res
     .status(200)
-    .json(new ApiResponse(200, contacts, "Contact updated successfully"));
+    .json(new ApiResponse(200, contact, "Contact updated successfully"));
 });
 
 export const deleteContact = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const contacts = await Contact.findByPk(id);
-  if (!contacts) {
-    throw new ApiError("Contact was not found", 404);
+  const contact = await Contact.findByPk(id);
+  if (!contact) {
+    throw new ApiError("Contact not found", 404);
   }
-  await contacts.destroy();
+
+  await contact.destroy();
+
   return res
     .status(200)
     .json(new ApiResponse(200, null, "Contact deleted successfully"));
@@ -76,18 +86,19 @@ export const deleteContact = asyncHandler(async (req, res) => {
 export const getContact = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const contacts = await Contact.findByPk(id);
-  if (!contacts) {
-    throw new ApiError("Contact was not found", 404);
+  const contact = await Contact.findByPk(id);
+  if (!contact) {
+    throw new ApiError("Contact not found", 404);
   }
 
   return res
     .status(200)
-    .json(new ApiResponse(200, contacts, "Contact retrieved successfully"));
+    .json(new ApiResponse(200, contact, "Contact retrieved successfully"));
 });
 
 export const getAllContacts = asyncHandler(async (req, res) => {
   const allContacts = await Contact.findAll();
+
   return res
     .status(200)
     .json(
