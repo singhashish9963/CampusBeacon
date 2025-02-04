@@ -17,6 +17,14 @@ const Marketplace = () => {
     image: null,
   });
 
+  {
+    /* 
+  =========================================  
+        Dummy Items for Display
+  =========================================
+*/
+  }
+
   const [marketItems, setMarketItems] = useState([
     {
       id: 1,
@@ -28,8 +36,25 @@ const Marketplace = () => {
       contact: "9026695299",
       image: "src/assets/images/keyboard.png",
     },
+    {
+      id: 2,
+      name: "Abhishek Developer",
+      price: 150,
+      category: "Cycle",
+      description: "MNNIT Web Developver on sale",
+      condition: "Damaged",
+      contact: "9026695299",
+      image: "src/assets/images/Abhishek.jpeg",
+    },
   ]);
 
+  {
+    /* 
+  ================================  
+      Backend for Buy and Sell
+  ================================
+*/
+  }
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setListingItem((prev) => ({ ...prev, [name]: value }));
@@ -50,15 +75,31 @@ const Marketplace = () => {
     setActiveTab("browse");
   };
 
+  {
+    /* 
+  =========================================  
+     Main Div of Buy and Sell
+  =========================================
+*/
+  }
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-black to-purple-900 text-white">
       <div className="container mx-auto p-4 md:p-8">
+
+
+
+        {/* Adding Motion to main Div */}
+
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="flex flex-wrap justify-between items-center mb-4 md:mb-8"
         >
+
+          {/* Header for Marketpalce  */}
+
+
           <div className="flex items-center space-x-2 md:space-x-4">
             <Rocket className="text-yellow-400 animate-pulse" size={48} />
             <h1 className="text-2xl md:text-4xl font-bold tracking-wide">
@@ -101,7 +142,7 @@ const Marketplace = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full p-3 pl-10 bg-gray-800 rounded-lg text-xl"
                   />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform-translate-y-1/2 text-gray-400" />
                 </div>
                 <select
                   value={category}
@@ -116,7 +157,10 @@ const Marketplace = () => {
                   <option value="Cycle">Cycle</option>
                 </select>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+              {/* Div of Listing Item */}
+              
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
                 {marketItems.map((item, id) => (
                   <ItemCard key={item.id} item={item} />
                 ))}
@@ -131,6 +175,10 @@ const Marketplace = () => {
               exit={{ opacity: 0 }}
               className="flex justify-center items-center"
             >
+
+              {/* Form for Selling Items */}
+
+
               <form
                 onSubmit={submitListing}
                 className="bg-gray-800 p-4 md:p-8 rounded-lg space-y-4 md:space-y-6 w-full max-w-lg shadow-2xl"

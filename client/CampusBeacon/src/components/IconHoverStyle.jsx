@@ -1,3 +1,9 @@
+
+{/* 
+  =========================================  
+        Icon Hover Style for Footer
+  =========================================
+*/}
 const IconHoverStyle =
     "transition-transform hover:scale-120 hover:text-blue-400";
 

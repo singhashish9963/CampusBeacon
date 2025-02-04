@@ -1,6 +1,14 @@
 import React from "react";
 import { IoMdCall } from "react-icons/io";
 import { motion } from "framer-motion";
+
+
+{/* 
+  ===========================================
+  Re-useable Item Card for Lost & Found Page 
+  ===========================================
+*/}
+
 import { FaTrash } from "react-icons/fa";
 import { useLostAndFound } from "../contexts/lostandfoundContext";
 import { useAuth } from "../contexts/AuthContext";

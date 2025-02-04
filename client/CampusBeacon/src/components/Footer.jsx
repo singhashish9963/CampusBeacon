@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { HiLocationMarker, HiMail, HiPhone } from "react-icons/hi";
 import {
   SiReact,
-  SiAppwrite,
   SiJavascript,
   SiNodedotjs,
   SiSocketdotio,
@@ -17,7 +16,11 @@ const Footer = () => {
   return (
     <div className="bg-gradient-to-b from-gray-900 to-black text-white py-8 z-10">
       <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
-        {/* Contact Us Section */}
+        {/* 
+        ============================  
+            Contact Us Section 
+        =============================
+          */}
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -52,7 +55,11 @@ const Footer = () => {
           </div>
         </motion.div>
 
-        {/* Tech Stack Section */}
+        {/*
+        ==========================
+          Tech Stack Section 
+        ===========================
+        */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -72,7 +79,11 @@ const Footer = () => {
           </div>
         </motion.div>
 
-        {/* Social Links Section */}
+        {/* 
+        ===============================
+            Social Links Section 
+        ===============================
+        */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -114,7 +125,11 @@ const Footer = () => {
         </motion.div>
       </div>
 
-      {/* Copyright Section */}
+      {/* 
+      =================================
+            Copyright Section 
+      =================================      
+      */}
 
       <motion.div
         className="text-center mt-10 pt-4 border-t border-gray-900"
