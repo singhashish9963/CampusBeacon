@@ -1,8 +1,8 @@
+
 import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 import LoadingScreen from "../components/LoadingScreen";
 import { useAuth } from "./AuthContext";
-
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
@@ -12,23 +12,22 @@ const api = axios.create({
   },
 });
 
-
 const ProfileContext = createContext(null);
 
-
 export const ProfileProvider = ({ children }) => {
-  const { setIsAuthenticated } = useAuth();
   const [user, setUser] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const getUser= useCallback(async(userData)=>{
+    setLoading(true)
+  })
 
   const updateUser = useCallback(async (userData) => {
     setLoading(true);
     setError(null);
     try {
-
       const response = await api.put("/users/update", userData);
       if (response.data.success) {
         setUser(response.data.data.user);
@@ -42,7 +41,6 @@ export const ProfileProvider = ({ children }) => {
     }
   }, []);
 
-
   return (
     <ProfileContext.Provider
       value={{ user, updateUser, isEditing, setIsEditing, error, loading }}
@@ -51,7 +49,6 @@ export const ProfileProvider = ({ children }) => {
     </ProfileContext.Provider>
   );
 };
-
 
 export const useProfile = () => {
   const context = useContext(ProfileContext);
