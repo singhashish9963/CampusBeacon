@@ -31,5 +31,36 @@ export const BuyAndSellProvider = ({ children }) => {
     }
   };
 
+  const updateItem = async (id, formData) => {
+    try {
+      setLoading(true);
+      const response = await axios.put(
+        `/api/v1/buy-abd-sell/items/${id}`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? response.data.data : item))
+      );
+      setUserItems((prev) =>
+        prev.map((item) => (item.id === id ? response.data.data : item))
+      );
+
+      return response.data.data;
+    } catch (err) {
+      setError(err.response?.data?.message || "Error updating item");
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
+
 
 }
