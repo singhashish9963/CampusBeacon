@@ -5,27 +5,24 @@ import ApiResponse from "../utils/apiResponse.js";
 import { uploadImageToCloudinary } from "../utils/cloudinary.js";
 
 export const createLostItem = asyncHandler(async (req, res) => {
-  const {
-    item_name,
-    description,
-    location_found,
-    date_found,
-    owner_contact,
-    registration_number,
-  } = req.body;
+  const { item_name, description, location_found, date_found, owner_contact } =
+    req.body;
 
   if (!item_name?.trim()) {
     throw new ApiError("Item name is required", 400);
   }
 
-  if (!registration_number?.trim()) {
-    throw new ApiError("Registration number is required", 400);
+
+  if (!req.user || !req.user.id) {
+    throw new ApiError("User not authenticated", 401);
   }
 
-  let image_url;
+  let image_url = null;
   if (req.file) {
-    image_url = uploadImageToCloudinary(req.file.path, "lost-and-found");
+
+    image_url = await uploadImageToCloudinary(req.file.path, "lost-and-found");
   }
+
 
   const newItem = await LostAndFound.create({
     item_name,
@@ -34,7 +31,7 @@ export const createLostItem = asyncHandler(async (req, res) => {
     date_found: date_found || new Date(),
     owner_contact,
     image_url,
-    registration_number,
+    userId: req.user.id, 
   });
 
   return res
@@ -46,18 +43,17 @@ export const createLostItem = asyncHandler(async (req, res) => {
 
 export const updateLostItem = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const {
-    item_name,
-    description,
-    location_found,
-    date_found,
-    owner_contact,
-    registration_number,
-  } = req.body;
+  const { item_name, description, location_found, date_found, owner_contact } =
+    req.body;
 
   const item = await LostAndFound.findByPk(id);
   if (!item) {
     throw new ApiError("Item not found", 404);
+  }
+
+
+  if (req.user && item.userId !== req.user.id) {
+    throw new ApiError("User is not authorized to update this item", 403);
   }
 
   let image_url = item.image_url;
@@ -71,7 +67,6 @@ export const updateLostItem = asyncHandler(async (req, res) => {
   item.location_found = location_found || item.location_found;
   item.date_found = date_found || item.date_found;
   item.owner_contact = owner_contact || item.owner_contact;
-  item.registration_number = registration_number || item.registration_number;
   item.image_url = image_url;
 
   await item.save();
@@ -89,6 +84,11 @@ export const deleteLostItem = asyncHandler(async (req, res) => {
   const item = await LostAndFound.findByPk(id);
   if (!item) {
     throw new ApiError("Item not found", 404);
+  }
+
+
+  if (req.user && item.userId !== req.user.id) {
+    throw new ApiError("User is not authorized to delete this item", 403);
   }
 
   await item.destroy();
@@ -117,25 +117,6 @@ export const getLostItem = asyncHandler(async (req, res) => {
 
 export const getAllLostItems = asyncHandler(async (req, res) => {
   const items = await LostAndFound.findAll({
-    order: [["createdAt", "DESC"]], 
-  });
-
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        items,
-        "All lost and found items retrieved successfully"
-      )
-    );
-});
-
-export const getLostItemsByRegistration = asyncHandler(async (req, res) => {
-  const { registration_number } = req.params;
-
-  const items = await LostAndFound.findAll({
-    where: { registration_number },
     order: [["createdAt", "DESC"]],
   });
 
@@ -145,7 +126,7 @@ export const getLostItemsByRegistration = asyncHandler(async (req, res) => {
       new ApiResponse(
         200,
         items,
-        "Lost and found items for registration number retrieved successfully"
+        "All lost and found items retrieved successfully"
       )
     );
 });
