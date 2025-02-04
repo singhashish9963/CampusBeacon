@@ -77,7 +77,7 @@ export const LostAndFoundProvider = ({ children }) => {
       
       const deleteItem = async (id) => {
         try {
-          await api.delete(`/lost-items/${id}`);
+          await api.delete(`/lost-and-found/lost-items/${id}`);
           setItems((prev) => prev.filter((item) => item.id !== id));
         } catch (error) {
           console.error("Error deleting item:", error);

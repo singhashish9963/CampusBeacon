@@ -1,9 +1,9 @@
 import React from "react";
 import { IoMdCall } from "react-icons/io";
 import { motion } from "framer-motion";
-import { FaTrash } from "react-icons/fa"; // For delete icon
-import { useLostAndFound } from "../context/LostAndFoundContext";
-import { useAuth } from "../context/AuthContext";
+import { FaTrash } from "react-icons/fa";
+import { useLostAndFound } from "../contexts/lostandfoundContext";
+import { useAuth } from "../contexts/AuthContext";
 
 function LostItemCard({ item }) {
   const { deleteItem } = useLostAndFound();
@@ -11,12 +11,17 @@ function LostItemCard({ item }) {
 
   const handleDelete = async () => {
     try {
-      await deleteItem(item.id);
+      // Add confirmation before deletion
+      if (window.confirm("Are you sure you want to delete this item?")) {
+        await deleteItem(item.id);
+        // No need for toast here since we removed it, but you might want to add feedback later
+      }
     } catch (error) {
       console.error("Error deleting item:", error);
     }
   };
 
+  // Make sure we're comparing the correct user ID format
   const isOwner = user?.id === item.userId;
 
   return (
@@ -28,11 +33,17 @@ function LostItemCard({ item }) {
         transition={{ delay: 0.2 }}
         className="bg-gray-900 rounded-lg p-5 space-y-4 hover:scale-105 transition-all"
       >
-        <img
-          src={item.image_url}
-          alt={item.item_name}
-          className="w-full h-48 object-cover rounded-lg"
-        />
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt={item.item_name}
+            className="w-full h-48 object-cover rounded-lg"
+          />
+        ) : (
+          <div className="w-full h-48 bg-gray-800 flex items-center justify-center rounded-lg">
+            <p className="text-gray-500">No image available</p>
+          </div>
+        )}
         <div className="flex flex-col space-y-3">
           <div className="flex justify-between items-start">
             <h2 className="text-xl font-bold">{item.item_name}</h2>
