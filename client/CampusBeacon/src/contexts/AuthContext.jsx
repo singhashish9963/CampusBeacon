@@ -5,8 +5,13 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import { handleApiCall } from "../services/userService.jsx";
+import axios from "axios"; 
 import LoadingScreen from "../components/LoadingScreen.jsx";
+
+
+axios.defaults.withCredentials = true;
+axios.defaults.baseURL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api"; 
 
 const AuthContext = createContext(null);
 
@@ -16,35 +21,17 @@ export const AuthProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
-  const [lastLoginTime, setLastLoginTime] = useState(null);
 
 
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(
-        "authUser",
-        JSON.stringify({
-          ...user,
-          lastLoginTime: new Date().toISOString(),
-        })
-      );
-    } else {
-      localStorage.removeItem("authUser");
-    }
-  }, [user]);
-
-  // Check auth status using stored user info (without token)
   const checkAuthStatus = useCallback(async () => {
     try {
-      const storedUser = localStorage.getItem("authUser");
-      if (storedUser) {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
+      const response = await axios.get("/users/current");
+      if (response.data.success) {
+        setUser(response.data.data.user);
         setIsAuthenticated(true);
-        setLastLoginTime(userData.lastLoginTime);
       }
-    } catch (e) {
-      console.error("Error parsing stored user data:", e);
+    } catch (error) {
+      console.error("Auth check failed:", error);
       handleLogout();
     } finally {
       setLoading(false);
@@ -59,32 +46,26 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await handleApiCall(endpoint, data);
+      const response = await axios.post(`/users${endpoint}`, data);
 
-      if (response.success) {
-        const currentTime = new Date().toISOString();
-        const userData = {
-          ...response.data.user,
-          lastLoginTime: currentTime,
-        };
+      if (response.data.success) {
+        if (endpoint === "/login") {
 
-
-        setUser(userData);
-        setIsAuthenticated(true);
-        setLastLoginTime(currentTime);
-        setWelcomeMessage(`Welcome back, ${userData.email || "user"}!`);
+          setUser(response.data.data.user);
+          setIsAuthenticated(true);
+          setWelcomeMessage(`Welcome back, ${response.data.data.user.email}!`);
+        }
 
         return {
           success: true,
-          user: userData,
-          message: "Authentication successful",
+          user: response.data.data.user,
+          message: response.data.message,
         };
       }
 
-      setError(response.message);
-      return { success: false, message: response.message };
+      throw new Error(response.data.message);
     } catch (error) {
-      const errorMessage = error.message || "Authentication failed";
+      const errorMessage = error.response?.data?.message || error.message;
       setError(errorMessage);
       return { success: false, message: errorMessage };
     } finally {
@@ -108,50 +89,16 @@ export const AuthProvider = ({ children }) => {
 
   const handleForgetPassword = useCallback(
     async (email) => {
-      return handleAuth("/forget-password", { email });
+      return handleAuth("/forgot-password", { email });
     },
     [handleAuth]
   );
 
   const handleResetPassword = useCallback(
-    async (userId, token, newPassword) => {
-      return handleAuth("/reset-password", { userId, token, newPassword });
+    async (token, newPassword) => {
+      return handleAuth("/reset-password", { token, newPassword });
     },
     [handleAuth]
-  );
-
-  const handlePasswordAction = useCallback(
-    async (e, actionType) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-
-      try {
-        let response;
-
-        if (actionType === "forgotPassword") {
-          response = await handleForgetPassword(formData.get("email"));
-        } else if (actionType === "resetPassword") {
-          response = await handleResetPassword(
-            formData.get("userId"),
-            formData.get("token"),
-            formData.get("password")
-          );
-        }
-
-        if (response?.success) {
-          setWelcomeMessage(
-            response.message || "Action completed successfully!"
-          );
-          return response;
-        } else {
-          throw new Error(response?.message || "Action failed");
-        }
-      } catch (error) {
-        setError(error.message);
-        throw error;
-      }
-    },
-    [handleForgetPassword, handleResetPassword]
   );
 
   const handleSubmit = useCallback(
@@ -175,7 +122,6 @@ export const AuthProvider = ({ children }) => {
             break;
           case "resetPassword":
             response = await handleResetPassword(
-              formData.get("userId"),
               formData.get("token"),
               password
             );
@@ -185,7 +131,7 @@ export const AuthProvider = ({ children }) => {
         }
 
         if (!response.success) {
-          throw new Error(response.message || "Action failed");
+          throw new Error(response.message);
         }
         return response;
       } catch (error) {
@@ -199,53 +145,33 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogout = useCallback(async () => {
     try {
-      handleAuth("/logout")
-      localStorage.removeItem("authUser");
+      await axios.post("/users/logout");
       setUser(null);
       setIsAuthenticated(false);
       setError(null);
-      setLastLoginTime(null);
       setWelcomeMessage("");
     } catch (error) {
       console.error("Logout error:", error);
-      localStorage.clear();
+    } finally {
+
       setUser(null);
       setIsAuthenticated(false);
     }
   }, []);
 
-  const contextValue = React.useMemo(
-    () => ({
-      user,
-      isAuthenticated,
-      error,
-      loading,
-      welcomeMessage,
-      lastLoginTime,
-      handleSubmit,
-      handleSignIn,
-      handleSignUp,
-      handleLogout,
-      handlePasswordAction,
-      handleForgetPassword,
-      handleResetPassword,
-    }),
-    [
-      user,
-      isAuthenticated,
-      error,
-      loading,
-      welcomeMessage,
-      lastLoginTime,
-      handleSubmit,
-      handleSignIn,
-      handleSignUp,
-      handleLogout,
-      handlePasswordAction,
-      handleForgetPassword,
-      handleResetPassword,
-    ]
-  );
+  const contextValue = {
+    user,
+    isAuthenticated,
+    error,
+    loading,
+    welcomeMessage,
+    handleSubmit,
+    handleSignIn,
+    handleSignUp,
+    handleLogout,
+    handleForgetPassword,
+    handleResetPassword,
+  };
 
   if (loading) {
     return <LoadingScreen />;
