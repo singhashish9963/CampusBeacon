@@ -19,17 +19,17 @@ function LostItemCard({ item }) {
 
   const handleDelete = async () => {
     try {
-      // Add confirmation before deletion
+
       if (window.confirm("Are you sure you want to delete this item?")) {
         await deleteItem(item.id);
-        // No need for toast here since we removed it, but you might want to add feedback later
+
       }
     } catch (error) {
       console.error("Error deleting item:", error);
     }
   };
 
-  // Make sure we're comparing the correct user ID format
+
   const isOwner = user?.id === item.userId;
 
   return (
