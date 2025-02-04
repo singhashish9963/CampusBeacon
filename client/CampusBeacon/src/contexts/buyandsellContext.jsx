@@ -10,12 +10,13 @@ export const BuyAndSellProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentItem, setCurrentItem] = useState(null);
+  const BaseUrl="http://localhost:5000"
 
 
   const createItem = async (formData) => {
     try {
       setLoading(true);
-      const response = await axios.post("/api/buy-and-sell/items", formData, {
+      const response = await axios.post(`${BaseUrl}/api/buy-and-sell/items`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -35,7 +36,7 @@ export const BuyAndSellProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await axios.put(
-        `/api/v1/buy-abd-sell/items/${id}`,
+        `${BaseUrl}/api/buy-and-sell/items/${id}`,
         formData,
         {
           headers: {
@@ -63,7 +64,7 @@ export const BuyAndSellProvider = ({ children }) => {
   const deleteItem = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`/api/buy-and-sell/items/${id}`);
+      await axios.delete(`${BaseUrl}/api/buy-and-sell/items/${id}`);
       setItems((prev) => prev.filter((item) => item.id !== id));
       setUserItems((prev) => prev.filter((item) => item.id !== id));
     } catch (err) {
@@ -78,7 +79,7 @@ export const BuyAndSellProvider = ({ children }) => {
     try {
       setLoading(true);
       const params = new URLSearchParams(filters);
-      const response = await axios.get(`/api/buy-and-sell/items?${params}`);
+      const response = await axios.get(`${BaseUrl}/api/buy-and-sell/items?${params}`);
       setItems(response.data.data);
       return response.data.data;
     } catch (err) {
@@ -93,7 +94,7 @@ export const BuyAndSellProvider = ({ children }) => {
   const getUserItems = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get("/api/buy-and-sell/user/items");
+      const response = await axios.get(`${BaseUrl}/api/buy-and-sell/items`);
       setUserItems(response.data.data);
       return response.data.data;
     } catch (err) {
@@ -107,7 +108,7 @@ export const BuyAndSellProvider = ({ children }) => {
   const getItemById = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.get(`/api/v1/buy-sell/items/${id}`);
+      const response = await axios.get(`${BaseUrl}/api/buy-and-sell/items/${id}`);
       setCurrentItem(response.data.data);
       return response.data.data;
     } catch (err) {

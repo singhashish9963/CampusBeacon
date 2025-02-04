@@ -18,21 +18,21 @@ const upload = multer({ dest: "./public/temp" });
 
 
 
-router.use(authMiddleware)
-router.get("/items", getAllBuyAndSellItems);
-router.get("/items/:id", getBuyAndSellItem);
+
+router.get("/items",authMiddleware, getAllBuyAndSellItems);
+router.get("/items/:id",authMiddleware, getBuyAndSellItem);
 
 
 
 router.route("/items")
-  .post(upload.single("image"), createBuyAndSellItem);
+  .post(upload.single("image"),authMiddleware, createBuyAndSellItem);
 
 router.route("/items/:id")
-  .put(upload.single("image"), updateBuyAndSellItem)
+  .put(upload.single("image"),authMiddleware, updateBuyAndSellItem)
   .delete(deleteBuyAndSellItem);
 
-router.get("/user/items", getUserItems); 
-router.get("/user/:userId/items", getUserItems); 
+router.get("/user/items",authMiddleware, getUserItems); 
+router.get("/user/:userId/items",authMiddleware, getUserItems); 
 
 export default router;
 
