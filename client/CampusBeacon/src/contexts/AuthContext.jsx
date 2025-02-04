@@ -5,13 +5,17 @@ import React, {
   useCallback,
   useEffect,
 } from "react";
-import axios from "axios"; 
+import axios from "axios";
 import LoadingScreen from "../components/LoadingScreen.jsx";
 
-
-axios.defaults.withCredentials = true;
-axios.defaults.baseURL =
-  import.meta.env.VITE_API_URL || "http://localhost:5000/api"; 
+// Create an axios instance with default configuration
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api", // Changed port to 8000
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 const AuthContext = createContext(null);
 
@@ -22,17 +26,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
-
+  // Check authentication status
   const checkAuthStatus = useCallback(async () => {
     try {
-      const response = await axios.get("/users/current");
+      const response = await api.get("/users/current");
       if (response.data.success) {
         setUser(response.data.data.user);
         setIsAuthenticated(true);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-      handleLogout();
+      // Only logout if not a 401 error (unauthorized)
+      if (error.response?.status !== 401) {
+        handleLogout();
+      }
     } finally {
       setLoading(false);
     }
@@ -46,15 +53,18 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.post(`/users${endpoint}`, data);
+      console.log(`Making ${endpoint} request with:`, data);
+      const response = await api.post(`/users${endpoint}`, data);
 
       if (response.data.success) {
-        if (endpoint === "/login") {
-
-          setUser(response.data.data.user);
-          setIsAuthenticated(true);
-          setWelcomeMessage(`Welcome back, ${response.data.data.user.email}!`);
-        }
+        // Set user data for both login and signup
+        setUser(response.data.data.user);
+        setIsAuthenticated(true);
+        setWelcomeMessage(
+          `Welcome${endpoint === "/login" ? " back" : ""}, ${
+            response.data.data.user.email
+          }!`
+        );
 
         return {
           success: true,
@@ -65,6 +75,7 @@ export const AuthProvider = ({ children }) => {
 
       throw new Error(response.data.message);
     } catch (error) {
+      console.error(`Auth error (${endpoint}):`, error);
       const errorMessage = error.response?.data?.message || error.message;
       setError(errorMessage);
       return { success: false, message: errorMessage };
@@ -145,17 +156,15 @@ export const AuthProvider = ({ children }) => {
 
   const handleLogout = useCallback(async () => {
     try {
-      await axios.post("/users/logout");
+      await api.post("/users/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      // Always clear state
       setUser(null);
       setIsAuthenticated(false);
       setError(null);
       setWelcomeMessage("");
-    } catch (error) {
-      console.error("Logout error:", error);
-    } finally {
-
-      setUser(null);
-      setIsAuthenticated(false);
     }
   }, []);
 

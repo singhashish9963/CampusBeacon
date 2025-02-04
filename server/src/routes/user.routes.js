@@ -6,11 +6,14 @@ import {
   forgotPassword,
   resetPassword,
   logoutUser,
+  registerUser,
+  loginUser,
 } from "../controllers/user.controller.js";
 
 
 const router=express.Router();
-
+router.post("/signup",registerUser)
+router.post("/login",loginUser)
 router.get("/current", authMiddleware, getCurrentUser);
 router.put("/update", authMiddleware, updateUser);
 router.post("/logout", authMiddleware, logoutUser);
