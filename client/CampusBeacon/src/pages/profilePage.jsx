@@ -7,7 +7,7 @@ import { useProfile } from "../contexts/profileContext";
 import LoadingScreen from "../components/LoadingScreen";
 
 const ProfilePage = () => {
-  const { user, loading, error, updateUser } = useProfile();
+  const { user, loading, error, updateUser,getUser } = useProfile();
 
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
@@ -15,7 +15,7 @@ const ProfilePage = () => {
     email: user?.email || "ayush@mnnit.ac.in",
     phone: user?.phone || "+91 777 777 7777",
     branch: user?.branch || "Electronics and Communication",
-    registrationNumber: user?.registrationNumber || "20244047",
+    registration_number: user?.registration_number || "20244047",
     semester: user?.semester || "2nd Semester",
     graduation_year: user?.graduation_year || "2025",
   });

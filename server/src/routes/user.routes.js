@@ -17,7 +17,6 @@ router.post("/login",emailMiddleware,loginUser)
 router.get("/current", authMiddleware, getCurrentUser);
 router.put("/update", authMiddleware, updateUser);
 router.post("/logout", authMiddleware, logoutUser);
-
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 

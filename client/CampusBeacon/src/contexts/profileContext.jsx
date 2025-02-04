@@ -1,5 +1,10 @@
-
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import axios from "axios";
 import LoadingScreen from "../components/LoadingScreen";
 import { useAuth } from "./AuthContext";
@@ -25,23 +30,31 @@ export const ProfileProvider = ({ children }) => {
     setError(null);
     try {
       const response = await api.get("/users/current");
+      console.log("API response:", response.data);
       if (response.data.success) {
+        console.log("Fetched user:", response.data.data.user);
         setUser(response.data.data.user);
       } else {
         setError(response.data.message || "Failed to load user");
       }
     } catch (err) {
       setError(err.message || "Failed to load user");
+      console.error("Error in getUser:", err);
     } finally {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    getUser();
+  }, [getUser]);
 
   const updateUser = useCallback(async (userData) => {
     setLoading(true);
     setError(null);
     try {
       const response = await api.put("/users/update", userData);
+      console.log("updateUser response:", response.data);
       if (response.data.success) {
         setUser(response.data.data.user);
       } else {
@@ -49,6 +62,7 @@ export const ProfileProvider = ({ children }) => {
       }
     } catch (err) {
       setError(err.message || "Failed to update user");
+      console.error("Error in updateUser:", err);
     } finally {
       setLoading(false);
     }
@@ -56,7 +70,15 @@ export const ProfileProvider = ({ children }) => {
 
   return (
     <ProfileContext.Provider
-      value={{ user, updateUser, isEditing, setIsEditing, error, loading }}
+      value={{
+        user,
+        updateUser,
+        isEditing,
+        setIsEditing,
+        error,
+        loading,
+        getUser,
+      }}
     >
       {loading ? <LoadingScreen /> : children}
     </ProfileContext.Provider>
