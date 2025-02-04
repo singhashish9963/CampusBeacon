@@ -3,6 +3,12 @@ import { FaRupeeSign } from "react-icons/fa";
 import { IoMdCall } from "react-icons/io";
 import { motion } from "framer-motion";
 
+
+{/* 
+  =========================================
+  Re-useable Item Card for Buy & Sell Page 
+  =========================================
+*/}
 function ItemCard({item, key}){
 
     return(
