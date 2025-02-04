@@ -28,7 +28,7 @@ export const createContacts = asyncHandler(async (req, res) => {
         throw new Error("Uploaded file not found at path: " + req.file.path);
       }
 
-      const uploadResult = await uploadImageToCloudinary(req.file.path);
+      const uploadResult = await uploadImageToCloudinary(req.file.path,"contacts");
 
       if (!uploadResult) {
         throw new Error("Upload returned null");
