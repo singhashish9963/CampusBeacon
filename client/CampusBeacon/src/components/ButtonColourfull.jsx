@@ -1,6 +1,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 
+{/* 
+  ================================================  
+  Re-useable Button for Home page and Login Page
+  ================================================
+*/}
 const ButtonColourfull = ({
   text = "Error",
   type = "submit",
