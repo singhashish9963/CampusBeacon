@@ -59,3 +59,37 @@ export const getCurrentUser = asyncHandler((req, res, next) => {
 
 
 
+import users from "../models/users.model.js";
+import ApiError from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
+import asyncHandler from "../utils/asyncHandler.js";
+
+export const updateUser = asyncHandler(async (req, res, next) => {
+  const userId = req.user.id;
+  const {
+    name,
+    registration_number,
+    semester,
+    branch,
+    hostel,
+    graduation_year,
+  } = req.body;
+
+  const user = await users.findByPk(userId);
+  if (!user) {
+    return next(new ApiError("User not found", 404));
+  }
+
+  if (name !== undefined) user.name = name;
+  if (registration_number !== undefined)
+    user.registration_number = registration_number;
+  if (semester !== undefined) user.semester = semester;
+  if (branch !== undefined) user.branch = branch;
+  if (hostel !== undefined) user.hostel = hostel;
+  if (graduation_year !== undefined) user.graduation_year = graduation_year;
+
+  await user.save();
+  res
+    .status(200)
+    .json(new ApiResponse(200, { user }, "User updated successfully"));
+});
