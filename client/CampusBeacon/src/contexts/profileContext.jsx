@@ -20,9 +20,22 @@ export const ProfileProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const getUser= useCallback(async(userData)=>{
-    setLoading(true)
-  })
+  const getUser = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.get("/users/current");
+      if (response.data.success) {
+        setUser(response.data.data.user);
+      } else {
+        setError(response.data.message || "Failed to load user");
+      }
+    } catch (err) {
+      setError(err.message || "Failed to load user");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const updateUser = useCallback(async (userData) => {
     setLoading(true);
