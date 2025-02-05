@@ -7,7 +7,7 @@ const AboutUs = () => {
   const teamMembers = useMemo(() => [
     {
       name: "Ayush Jaudan",
-      role: "Co-Founder & Lead Developer",
+      role: "Founder & Lead Developer",
       image: "src/assets/images/jadaun.jpeg"
     },
     {
