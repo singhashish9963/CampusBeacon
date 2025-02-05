@@ -17,9 +17,9 @@ const ContactsDisplay = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
-    <div className="min-h-screen bg-slate-900 text-white p-8">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-800 to-fuchsia-700 text-white p-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
+        <h1 className="text-5xl font-bold mb-8 text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
           MNNIT Contacts Directory
         </h1>
 
@@ -40,7 +40,7 @@ const ContactsDisplay = () => {
           {contacts.map(contact => (
             <div
               key={contact.id}
-              className="bg-slate-800/50 backdrop-blur-lg rounded-lg p-10 border border-slate-700 hover:border-purple-500 transition-all"
+              className="bg-slate-800/50 backdrop-blur-lg rounded-lg p-7 border border-slate-700 hover:border-purple-500 transition-all"
             >
               <div className="flex flex-col items-center gap-4 mb-6">
                 <img
