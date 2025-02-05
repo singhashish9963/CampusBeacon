@@ -68,6 +68,22 @@ export const chatContextProvider=({children})=>{
       };
     }, [socket]);
 
+    const fetchChannels = async () => {
+      try {
+        const response = await fetch("/api/chat/channels", {
+          credentials: "include", // Important for cookies
+        });
+
+        if (!response.ok) throw new Error("Failed to fetch channels");
+
+        const data = await response.json();
+        setChannels(data.data);
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+
 
 
 
