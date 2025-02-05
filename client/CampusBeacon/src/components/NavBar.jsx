@@ -16,6 +16,7 @@ function NavBar() {
         { name: "Lost & Found", path: "/lost-found" },
         { name: "Buy & Sell", path: "/marketplace" },
         { name: "Profile", path: "/profile" },
+        {name:"About us",path:"/about"}
       ]
     : [{ name: "Home", path: "/" }];
 

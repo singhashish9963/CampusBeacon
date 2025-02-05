@@ -15,7 +15,7 @@ import { ProfileProvider } from "./contexts/profileContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { LostAndFoundProvider } from "./contexts/lostandfoundContext.jsx";
 import BuyAndSellProvider from "./contexts/buyandsellContext.jsx";
-
+import AboutUs from "./pages/AboutUs.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -33,6 +33,7 @@ function App() {
                       <Route path="/profile" element={<ProfilePage />} />
                       <Route path="/marketplace" element={<Marketplace />} />
                       <Route path="/lost-found" element={<LostAndFound />} />
+                      <Route path="/about" element={<AboutUs/>}/>
                       <Route path="/SVBH" element={<SVBH />} />
                       <Route path="/DJGH" element={<DJGH />} />
                       <Route path="/Community" element={<CommunityPage />} />
