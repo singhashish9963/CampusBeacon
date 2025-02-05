@@ -83,6 +83,27 @@ export const chatContextProvider=({children})=>{
       }
     };
 
+    const fetchMessages = async (channelId) => {
+      try {
+        setLoading(true);
+        const response = await fetch(
+          `/api/chat/channels/${channelId}/messages`,
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to fetch messages");
+
+        const data = await response.json();
+        setMessages(data.data);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
 
 
 
