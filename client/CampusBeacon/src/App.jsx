@@ -14,7 +14,7 @@ import CommunityPage from "./pages/communityPage.jsx";
 import { ProfileProvider } from "./contexts/profileContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { LostAndFoundProvider } from "./contexts/lostandfoundContext.jsx";
-import BuyAndSellProvider from "./contexts/buyAndSellContext.jsx";
+import BuyAndSellProvider from "./contexts/buyandsellContext.jsx";
 
 function App() {
   return (

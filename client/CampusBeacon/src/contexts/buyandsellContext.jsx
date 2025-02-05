@@ -1,8 +1,16 @@
-// contexts/buyAndSellContext.jsx
 import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 
 const BuyAndSellContext = createContext(undefined);
+
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
 
 export const BuyAndSellProvider = ({ children }) => {
   const [items, setItems] = useState([]);
@@ -10,23 +18,26 @@ export const BuyAndSellProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentItem, setCurrentItem] = useState(null);
-  const BaseUrl="http://localhost:5000"
-
 
   const createItem = async (formData) => {
     try {
       setLoading(true);
-      const response = await axios.post(`${BaseUrl}/api/buy-and-sell/items`, formData, {
+      const response = await api.post("/buy-and-sell/items", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
-      setItems((prev) => [...prev, response.data.data]);
-      setUserItems((prev) => [...prev, response.data.data]);
-      return response.data.data;
+
+      if (response.data.success) {
+        setItems((prev) => [...prev, response.data.data]);
+        setUserItems((prev) => [...prev, response.data.data]);
+        return response.data.data;
+      }
+      throw new Error(response.data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Error creating item");
-      throw err;
+      const errorMessage = err.response?.data?.message || "Error creating item";
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -35,27 +46,26 @@ export const BuyAndSellProvider = ({ children }) => {
   const updateItem = async (id, formData) => {
     try {
       setLoading(true);
-      const response = await axios.put(
-        `${BaseUrl}/api/buy-and-sell/items/${id}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await api.put(`/buy-and-sell/items/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-      setItems((prev) =>
-        prev.map((item) => (item.id === id ? response.data.data : item))
-      );
-      setUserItems((prev) =>
-        prev.map((item) => (item.id === id ? response.data.data : item))
-      );
-
-      return response.data.data;
+      if (response.data.success) {
+        setItems((prev) =>
+          prev.map((item) => (item.id === id ? response.data.data : item))
+        );
+        setUserItems((prev) =>
+          prev.map((item) => (item.id === id ? response.data.data : item))
+        );
+        return response.data.data;
+      }
+      throw new Error(response.data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Error updating item");
-      throw err;
+      const errorMessage = err.response?.data?.message || "Error updating item";
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -64,12 +74,18 @@ export const BuyAndSellProvider = ({ children }) => {
   const deleteItem = async (id) => {
     try {
       setLoading(true);
-      await axios.delete(`${BaseUrl}/api/buy-and-sell/items/${id}`);
-      setItems((prev) => prev.filter((item) => item.id !== id));
-      setUserItems((prev) => prev.filter((item) => item.id !== id));
+      const response = await api.delete(`/buy-and-sell/items/${id}`);
+
+      if (response.data.success) {
+        setItems((prev) => prev.filter((item) => item.id !== id));
+        setUserItems((prev) => prev.filter((item) => item.id !== id));
+      } else {
+        throw new Error(response.data.message);
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Error deleting item");
-      throw err;
+      const errorMessage = err.response?.data?.message || "Error deleting item";
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -79,27 +95,38 @@ export const BuyAndSellProvider = ({ children }) => {
     try {
       setLoading(true);
       const params = new URLSearchParams(filters);
-      const response = await axios.get(`${BaseUrl}/api/buy-and-sell/items?${params}`);
-      setItems(response.data.data);
-      return response.data.data;
+      const response = await api.get(`/buy-and-sell/items?${params}`);
+
+      if (response.data.success) {
+        setItems(response.data.data);
+        return response.data.data;
+      }
+      throw new Error(response.data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Error fetching items");
-      throw err;
+      const errorMessage =
+        err.response?.data?.message || "Error fetching items";
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
   }, []);
 
-
   const getUserItems = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BaseUrl}/api/buy-and-sell/items`);
-      setUserItems(response.data.data);
-      return response.data.data;
+      const response = await api.get("/buy-and-sell/user-items");
+
+      if (response.data.success) {
+        setUserItems(response.data.data);
+        return response.data.data;
+      }
+      throw new Error(response.data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Error fetching user items");
-      throw err;
+      const errorMessage =
+        err.response?.data?.message || "Error fetching user items";
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -108,17 +135,24 @@ export const BuyAndSellProvider = ({ children }) => {
   const getItemById = async (id) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${BaseUrl}/api/buy-and-sell/items/${id}`);
-      setCurrentItem(response.data.data);
-      return response.data.data;
+      const response = await api.get(`/buy-and-sell/items/${id}`);
+
+      if (response.data.success) {
+        setCurrentItem(response.data.data);
+        return response.data.data;
+      }
+      throw new Error(response.data.message);
     } catch (err) {
-      setError(err.response?.data?.message || "Error fetching item");
-      throw err;
+      const errorMessage = err.response?.data?.message || "Error fetching item";
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
   const clearError = () => setError(null);
+
   const value = {
     items,
     userItems,
@@ -141,7 +175,6 @@ export const BuyAndSellProvider = ({ children }) => {
   );
 };
 
-
 export const useBuyAndSell = () => {
   const context = useContext(BuyAndSellContext);
   if (context === undefined) {
@@ -151,5 +184,3 @@ export const useBuyAndSell = () => {
 };
 
 export default BuyAndSellProvider;
-
-

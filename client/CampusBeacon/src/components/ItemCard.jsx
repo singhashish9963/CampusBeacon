@@ -2,7 +2,7 @@ import React from "react";
 import { FaRupeeSign, FaTrash } from "react-icons/fa";
 import { IoMdCall } from "react-icons/io";
 import { motion } from "framer-motion";
-import { useBuyAndSell } from "../contexts/buyAndSellContext";
+import { useBuyAndSell } from "../contexts/buyandsellContext";
 import { useAuth } from "../contexts/AuthContext"; 
 
 
