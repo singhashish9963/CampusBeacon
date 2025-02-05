@@ -9,7 +9,7 @@ const QuickLinks = () => {
     { icon: User, label: "Academic Portal", href: "https://www.academics.mnnit.ac.in/new" },
     { icon: FileText, label: "LAN Information", href: "/" },
     { icon: Phone, label: "Resource Hub", href: "/" },
-    { icon: User, label: "Contacts", href: "/about" },
+    { icon: User, label: "Contacts", href: "/contact" },
   ];
 
   return (
