@@ -3,8 +3,8 @@ import { Hash, Search, Send, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { FaCode } from "react-icons/fa";
 import { TiMessages } from "react-icons/ti";
-import { useChat } from "../context/ChatContext"; 
-import { useAuth } from "../context/AuthContext"; 
+import { useChat } from "../contexts/chatContext"; 
+import { useAuth } from "../contexts/AuthContext"; 
 
 const MessageBubble = ({ message }) => (
   <div className="flex items-start space-x-3 p-2 hover:bg-purple-500/10 rounded-lg">

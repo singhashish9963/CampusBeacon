@@ -1,38 +1,49 @@
-import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
-import  Channel  from "./channel.model.js";
+import sequelize from "../db/db.js";
 
-const Message = sequelize.define("Message", {
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    allowNull: false,
-    primaryKey: true,
+const Message = sequelize.define(
+  "Messages",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "users",
+        key: "id",
+      },
+    },
+    channelId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Channels",
+        key: "id",
+      },
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
   },
- content: {
-    type: DataTypes.TEXT,
-    allowNull: false,
-    validate: {
-      notEmpty: true,
-      len: [1, 1000] 
-    }
-  },
-  userId: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    validate: {
-      notEmpty: true
-    }
-  },
-  channelId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-  timestamp: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
-});
-
+  {
+    tableName: "Messages",
+    timestamps: true,
+  }
+);
 
 export default Message;
