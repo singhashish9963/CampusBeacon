@@ -35,7 +35,4 @@ const Message = sequelize.define("Message", {
 });
 
 
-Channel.hasMany(Message);
-Message.belongsTo(Channel);
-
 export default Message;
