@@ -1,60 +1,54 @@
-import React, { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Rocket, Search, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
+import { useBuyAndSell } from "../contexts/buyandsellContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const Marketplace = () => {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuth();
+  const { items, loading, error, createItem, getAllItems, clearError } =
+    useBuyAndSell();
+
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
   const [listingItem, setListingItem] = useState({
-    name: "",
+    item_name: "",
     price: "",
     category: "",
     description: "",
-    condition: "",
-    contact: "",
+    item_condition: "",
+    owner_contact: "",
     image: null,
   });
+   useEffect(() => {
+     const fetchItems = async () => {
+       try {
+         if (!isAuthenticated) {
+           navigate("/login", { state: { from: "/marketplace" } });
+           return;
+         }
+         await getAllItems();
+       } catch (err) {
+         if (
+           err.message.includes("unauthorized") ||
+           err.message.includes("login")
+         ) {
+           navigate("/login", { state: { from: "/marketplace" } });
+         }
+       }
+     };
 
-  {
-    /* 
-  =========================================  
-        Dummy Items for Display
-  =========================================
-*/
-  }
+     fetchItems();
+     return () => {
+       clearError(); 
+     };
+   }, [getAllItems, isAuthenticated, navigate]);
 
-  const [marketItems, setMarketItems] = useState([
-    {
-      id: 1,
-      name: "RGB Keyboard",
-      price: 2000,
-      category: "Electronics",
-      description: "Portonics bluetooth backlit rgb mechanical keyboard",
-      condition: "Like New",
-      contact: "9026695299",
-      image: "src/assets/images/keyboard.png",
-    },
-    {
-      id: 2,
-      name: "Abhishek Developer",
-      price: 150,
-      category: "Cycle",
-      description: "MNNIT Web Developver on sale",
-      condition: "Damaged",
-      contact: "9026695299",
-      image: "src/assets/images/Abhishek.jpeg",
-    },
-  ]);
 
-  {
-    /* 
-  ================================  
-      Backend for Buy and Sell
-  ================================
-*/
-  }
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setListingItem((prev) => ({ ...prev, [name]: value }));
@@ -62,44 +56,54 @@ const Marketplace = () => {
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setListingItem((prev) => ({ ...prev, image: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    if (file) {
+      const formData = new FormData();
+      formData.append("image", file);
+      setListingItem((prev) => ({ ...prev, image: file }));
+    }
   };
 
-  const submitListing = (e) => {
+  const submitListing = async (e) => {
     e.preventDefault();
-    setMarketItems([...marketItems, { ...listingItem, id: Date.now() }]);
-    setActiveTab("browse");
+    try {
+      const formData = new FormData();
+      Object.keys(listingItem).forEach((key) => {
+        formData.append(key, listingItem[key]);
+      });
+
+      await createItem(formData);
+      setActiveTab("browse");
+      setListingItem({
+        item_name: "",
+        price: "",
+        category: "",
+        description: "",
+        item_condition: "",
+        owner_contact: "",
+        image: null,
+      });
+    } catch (err) {
+      console.error("Error creating item:", err);
+    }
   };
 
-  {
-    /* 
-  =========================================  
-     Main Div of Buy and Sell
-  =========================================
-*/
-  }
+  const filteredItems = items.filter((item) => {
+    const matchesSearch =
+      item.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = !category || item.category === category;
+    return matchesSearch && matchesCategory;
+  });
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-black to-purple-900 text-white">
       <div className="container mx-auto p-4 md:p-8">
-
-
-
-        {/* Adding Motion to main Div */}
-
         <motion.div
           initial={{ opacity: 0, y: -50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="flex flex-wrap justify-between items-center mb-4 md:mb-8"
         >
-
-          {/* Header for Marketpalce  */}
-
-
           <div className="flex items-center space-x-2 md:space-x-4">
             <Rocket className="text-yellow-400 animate-pulse" size={48} />
             <h1 className="text-2xl md:text-4xl font-bold tracking-wide">
@@ -125,6 +129,7 @@ const Marketplace = () => {
             </button>
           </div>
         </motion.div>
+
         <AnimatePresence mode="wait">
           {activeTab === "browse" && (
             <motion.div
@@ -142,7 +147,7 @@ const Marketplace = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full p-3 pl-10 bg-gray-800 rounded-lg text-xl"
                   />
-                  <Search className="absolute left-3 top-1/2 transform-translate-y-1/2 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 </div>
                 <select
                   value={category}
@@ -158,15 +163,20 @@ const Marketplace = () => {
                 </select>
               </div>
 
-              {/* Div of Listing Item */}
-              
-              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
-                {marketItems.map((item, id) => (
-                  <ItemCard key={item.id} item={item} />
-                ))}
-              </div>
+              {loading ? (
+                <div className="text-center py-8">Loading...</div>
+              ) : error ? (
+                <div className="text-center py-8 text-red-500">{error}</div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {filteredItems.map((item) => (
+                    <ItemCard key={item.id} item={item} />
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
+
           {activeTab === "sell" && (
             <motion.div
               key="sell"
@@ -175,10 +185,6 @@ const Marketplace = () => {
               exit={{ opacity: 0 }}
               className="flex justify-center items-center"
             >
-
-              {/* Form for Selling Items */}
-
-
               <form
                 onSubmit={submitListing}
                 className="bg-gray-800 p-4 md:p-8 rounded-lg space-y-4 md:space-y-6 w-full max-w-lg shadow-2xl"
@@ -191,8 +197,8 @@ const Marketplace = () => {
                   <div className="grid grid-cols-1 gap-4">
                     <input
                       type="text"
-                      name="name"
-                      value={listingItem.name}
+                      name="item_name"
+                      value={listingItem.item_name}
                       onChange={handleInputChange}
                       placeholder="Item Name"
                       className="bg-gray-700 p-2 md:p-3 rounded-lg"
@@ -207,7 +213,7 @@ const Marketplace = () => {
                       className="bg-gray-700 p-2 md:p-3 rounded-lg"
                       required
                     />
-                    <div className="grid grid-cols-2 gap-4 mt-4 md:mt-0">
+                    <div className="grid grid-cols-2 gap-4">
                       <select
                         name="category"
                         value={listingItem.category}
@@ -215,7 +221,7 @@ const Marketplace = () => {
                         className="bg-gray-700 p-2 md:p-3 rounded-lg"
                         required
                       >
-                        <option value="">All Categories</option>
+                        <option value="">Select Category</option>
                         <option value="Electronics">Electronics</option>
                         <option value="Furniture">Furniture</option>
                         <option value="Clothing">Clothing</option>
@@ -223,17 +229,16 @@ const Marketplace = () => {
                         <option value="Cycle">Cycle</option>
                       </select>
                       <select
-                        name="condition"
-                        value={listingItem.condition}
+                        name="item_condition"
+                        value={listingItem.item_condition}
                         onChange={handleInputChange}
                         className="bg-gray-700 p-2 md:p-3 rounded-lg"
                         required
                       >
                         <option value="">Item Condition</option>
-                        <option value="New">New</option>
-                        <option value="Like New">Like New</option>
-                        <option value="Fair">Used/Fair</option>
-                        <option value="Damaged">Little Damaged</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
                       </select>
                     </div>
                     <textarea
@@ -241,26 +246,27 @@ const Marketplace = () => {
                       value={listingItem.description}
                       onChange={handleInputChange}
                       placeholder="Item Description"
-                      className="w-full bg-gray-700 p-2 md:p-3 rounded-lg mt-4"
+                      className="bg-gray-700 p-2 md:p-3 rounded-lg"
                       rows="4"
                       required
                     />
                     <input
                       type="tel"
-                      name="contact"
-                      value={listingItem.contactNumber}
+                      name="owner_contact"
+                      value={listingItem.owner_contact}
                       onChange={handleInputChange}
                       placeholder="Contact Number"
-                      className="w-full bg-gray-700 p-2 md:p-3 rounded-lg mt-4"
+                      className="bg-gray-700 p-2 md:p-3 rounded-lg"
                       required
                     />
-                    <div className="flex items-center space-x-4 mt-4">
+                    <div className="flex items-center space-x-4">
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
                         className="hidden"
                         id="imageUpload"
+                        required
                       />
                       <label
                         htmlFor="imageUpload"
@@ -269,19 +275,16 @@ const Marketplace = () => {
                         <Plus className="mr-2" /> Upload Image
                       </label>
                       {listingItem.image && (
-                        <img
-                          src={listingItem.image}
-                          alt="Preview"
-                          className="h-24 w-24 object-cover rounded-lg"
-                        />
+                        <span className="text-green-400">Image selected</span>
                       )}
                     </div>
                   </div>
                   <button
                     type="submit"
                     className="w-full bg-yellow-500 text-black p-2 md:p-4 rounded-lg hover:bg-yellow-400 mt-4 md:mt-6 transition-colors"
+                    disabled={loading}
                   >
-                    List Item
+                    {loading ? "Listing..." : "List Item"}
                   </button>
                 </motion.div>
               </form>

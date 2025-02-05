@@ -15,10 +15,6 @@ const BuyAndSell = sequelize.define("BuyAndSell", {
     type: DataTypes.TEXT,
     allowNull: true,
   },
-  location_found: {
-    type: DataTypes.STRING(255),
-    allowNull: true,
-  },
   date_bought: {
     type: DataTypes.DATE,
     allowNull: true,
@@ -38,7 +34,6 @@ const BuyAndSell = sequelize.define("BuyAndSell", {
   userId:{
     type:DataTypes.INTEGER,
     allowNull:false,
-
   },
   item_condition: {
     type: DataTypes.ENUM("Good", "Fair", "Poor"),

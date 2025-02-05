@@ -1,27 +1,19 @@
-import User from "./user.model.js"
-import LostAndFound from "./lostandfound.model.js";
+import User from "./user.model.js";
 import BuyAndSell from "./buyandsell.model.js";
+import LostAndFound from "./lostandfound.model.js";
+
 User.hasMany(LostAndFound, {
   foreignKey: "userId",
   onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
-
-LostAndFound.belongsTo(User, {
-  foreignKey: "userId",
-});
-
-BuyAndSell.belongsTo(User, {
-  foreignKey: {
-    name: "userId",
-    allowNull: false,
-  },
-  onDelete: "CASCADE",
-});
+LostAndFound.belongsTo(User, { foreignKey: "userId" });
 
 User.hasMany(BuyAndSell, {
   foreignKey: "userId",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
 });
+BuyAndSell.belongsTo(User, { foreignKey: "userId", as: "users" });
 
-
-export { User, LostAndFound,BuyAndSell };
+export { User, LostAndFound, BuyAndSell };

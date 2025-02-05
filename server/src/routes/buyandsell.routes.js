@@ -29,7 +29,7 @@ router.route("/items")
 
 router.route("/items/:id")
   .put(upload.single("image"),authMiddleware, updateBuyAndSellItem)
-  .delete(deleteBuyAndSellItem);
+  .delete(authMiddleware,deleteBuyAndSellItem);
 
 router.get("/user/items",authMiddleware, getUserItems); 
 router.get("/user/:userId/items",authMiddleware, getUserItems); 
