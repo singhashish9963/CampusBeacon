@@ -104,6 +104,35 @@ export const chatContextProvider=({children})=>{
       }
     };
 
+    const sendMessage = async (content) => {
+      if (!currentChannel || !content.trim()) return;
+
+      try {
+        const response = await fetch(
+          `/api/chat/channels/${currentChannel}/messages`,
+          {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              content,
+              timestamp: new Date()
+                .toISOString()
+                .slice(0, 19)
+                .replace("T", " "),
+            }),
+          }
+        );
+
+        if (!response.ok) throw new Error("Failed to send message");
+      } catch (error) {
+        setError(error.message);
+      }
+    };
+
+
 
 
 
