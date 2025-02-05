@@ -19,7 +19,7 @@ const ContactsDisplay = () => {
       phone: '5322271312(O) 5322271701(R) 9936415588(M)',
       email: 'lkm@mnnit.ac.in',
       department: 'Department of Civil Engineering',
-      avatar: 'src/assets/images/Dr.LKMishra.jpg'
+      avatar: '/'
     },
   ];
 
