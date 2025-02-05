@@ -9,13 +9,20 @@ const Message = sequelize.define("Message", {
     allowNull: false,
     primaryKey: true,
   },
-  content: {
+ content: {
     type: DataTypes.TEXT,
     allowNull: false,
+    validate: {
+      notEmpty: true,
+      len: [1, 1000] 
+    }
   },
   userId: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: false,
+    validate: {
+      notEmpty: true
+    }
   },
   channelId: {
     type: DataTypes.INTEGER,
