@@ -3,6 +3,7 @@ import BuyAndSell from "./buyandsell.model.js";
 import LostAndFound from "./lostandfound.model.js";
 import { Channel } from "./channel.model.js";
 import Message from "./message.model.js";
+
 User.hasMany(LostAndFound, {
   foreignKey: "userId",
   onDelete: "CASCADE",
@@ -27,4 +28,13 @@ Message.belongsTo(Channel, {
 });
 
 
-export { User, LostAndFound, BuyAndSell,Channel,Message };
+User.hasMany(Message, {
+  foreignKey: "userId",
+  onDelete: "CASCADE",
+});
+
+Message.belongsTo(User, {
+  foreignKey: "userId",
+});
+
+export { User, LostAndFound, BuyAndSell, Channel, Message };
