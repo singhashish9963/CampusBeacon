@@ -9,15 +9,15 @@ const ContactsDisplay = () => {
   useEffect(() => {
     fetchContact();
   }, [fetchContact]);
-
-
+  
   const filteredContacts = items.filter((contact) => {
     const searchString = searchTerm.toLowerCase();
     return (
-      contact.name.toLowerCase().includes(searchString) ||
-      contact.designation.toLowerCase().includes(searchString) ||
-      contact.email.toLowerCase().includes(searchString) ||
-      contact.phone.toString().includes(searchString)
+      (contact.name && contact.name.toLowerCase().includes(searchString)) ||
+      (contact.designation &&
+        contact.designation.toLowerCase().includes(searchString)) ||
+      (contact.email && contact.email.toLowerCase().includes(searchString)) ||
+      (contact.phone && contact.phone.toString().includes(searchString))
     );
   });
 
