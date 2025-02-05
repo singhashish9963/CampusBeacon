@@ -38,6 +38,36 @@ export const chatContextProvider=({children})=>{
      }
    }, [user?.id]);
 
+    useEffect(() => {
+      if (!socket) return;
+
+      socket.on("new-message", (message) => {
+        setMessages((prev) => [message, ...prev]);
+      });
+
+      socket.on("message-deleted", (messageId) => {
+        setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+      });
+
+      socket.on("user-typing", ({ userId }) => {
+        setTypingUsers((prev) => new Set([...prev, userId]));
+      });
+
+      socket.on("user-stop-typing", ({ userId }) => {
+        setTypingUsers((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(userId);
+          return newSet;
+        });
+      });
+      return () => {
+        socket.off("new-message");
+        socket.off("message-deleted");
+        socket.off("user-typing");
+        socket.off("user-stop-typing");
+      };
+    }, [socket]);
+
 
 
 
