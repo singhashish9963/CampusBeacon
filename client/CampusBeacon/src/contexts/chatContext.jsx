@@ -2,9 +2,9 @@ import React,{ createContext,useContext,useState,useEffect } from "react";
 import io from "socket.io-client";
 import {useAuth} from "./AuthContext"
 
-const chatContext= createContext(null);
+const ChatContext = createContext(null); 
 
-export const chatContextProvider=({children})=>{
+export const ChatContextProvider=({children})=>{
     const {user}= useAuth();
     const [socket, setSocket] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -12,7 +12,7 @@ export const chatContextProvider=({children})=>{
     const [channels, setChannels] = useState([])
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [typingUser, setTypingUser] = useState(new Set());
+     const [typingUsers, setTypingUsers] = useState(new Set());
 
    useEffect(() => {
      if (user?.id) {
@@ -132,9 +132,63 @@ export const chatContextProvider=({children})=>{
       }
     };
 
+     const deleteMessage = async (messageId) => {
+    try {
+      const response = await fetch(`/api/chat/messages/${messageId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) throw new Error('Failed to delete message');
+    } catch (error) {
+      setError(error.message);
+    }
+  };
+
+  const joinChannel = (channelId) => {
+    if (socket && channelId) {
+      socket.emit('join-channel', channelId);
+      setCurrentChannel(channelId);
+      fetchMessages(channelId);
+    }
+  };
+
+  const handleTyping = (isTyping) => {
+    if (socket && currentChannel) {
+      socket.emit(isTyping ? 'typing-start' : 'typing-stop', currentChannel);
+    }
+  };
+
+  const value = {
+    socket,
+    messages,
+    channels,
+    currentChannel,
+    loading,
+    error,
+    typingUsers,
+    sendMessage,
+    deleteMessage,
+    joinChannel,
+    handleTyping,
+    fetchChannels,
+    user 
+  };
+
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+};
+
+
+export const useChat = () => {
+  const context = useContext(ChatContext);
+  if (!context) {
+    throw new Error('useChat must be used within a ChatProvider');
+  }
+  return context;
+};
 
 
 
 
 
-}
+

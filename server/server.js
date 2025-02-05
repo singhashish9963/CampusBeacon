@@ -8,6 +8,8 @@ import lostAndFoundRoutes from "./src/routes/lostandfound.routes.js";
 import buyAndSellRoutes from "./src/routes/buyandsell.routes.js";
 import ChatRoutes from "./src/routes/chat.routes.js";
 import initializeSocket from "./src/config/socket.js";
+import { createServer } from "http";
+
 import cookieParser from "cookie-parser";
 dotenv.config({ path: "./.env" });
 

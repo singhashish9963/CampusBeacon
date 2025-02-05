@@ -1,7 +1,7 @@
 import User from "./user.model.js";
 import BuyAndSell from "./buyandsell.model.js";
 import LostAndFound from "./lostandfound.model.js";
-import { Channel } from "./channel.model.js";
+import Channel from "./channel.model.js";
 import Message from "./message.model.js";
 
 User.hasMany(LostAndFound, {

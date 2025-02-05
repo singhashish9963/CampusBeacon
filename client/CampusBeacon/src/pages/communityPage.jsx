@@ -3,58 +3,69 @@ import { Hash, Search, Send, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { FaCode } from "react-icons/fa";
 import { TiMessages } from "react-icons/ti";
-import { useNavigate } from "react-router-dom";
+import { useChat } from "../context/ChatContext"; 
+import { useAuth } from "../context/AuthContext"; 
 
 const MessageBubble = ({ message }) => (
   <div className="flex items-start space-x-3 p-2 hover:bg-purple-500/10 rounded-lg">
     <img
-      src={message.user.avatar}
-      alt={message.user.name}
+      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`}
+      alt={message.userId}
       className="w-10 h-10 rounded-full"
     />
     <div className="flex-1">
       <div className="flex items-center space-x-2">
-        <span className="font-semibold text-white">{message.user.name}</span>
+        <span className="font-semibold text-white">{message.userId}</span>
         <span className="text-xs text-gray-400">
           {new Date(message.timestamp).toLocaleTimeString()}
         </span>
       </div>
       <p className="text-gray-300">{message.content}</p>
-      {message.reactions.length > 0 && (
-        <div className="flex space-x-1 mt-1">
-          {message.reactions.map((reaction, index) => (
-            <span
-              key={index}
-              className="bg-purple-500/20 px-2 py-1 rounded-full text-sm"
-            >
-              {reaction}
-            </span>
-          ))}
-        </div>
-      )}
     </div>
   </div>
 );
 
 const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeChannel, setActiveChannel] = useState("general");
-  const [messages, setMessages] = useState({
-    general: [],
-    coding: [],
-  });
-  const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const { user } = useAuth();
 
-  const currentUser = {
-    id: "1",
-    name: "Ayush Jadaun",
-    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=ayush",
-    role: "Student",
+  const {
+    messages,
+    channels,
+    currentChannel,
+    loading: isLoading,
+    sendMessage,
+    joinChannel,
+    fetchChannels,
+    handleTyping,
+    typingUsers,
+  } = useChat();
+
+  const [newMessage, setNewMessage] = useState("");
+
+
+  useEffect(() => {
+    fetchChannels();
+  }, []);
+
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      sendMessage(newMessage);
+      setNewMessage("");
+    }
   };
 
-  const channels = [
+  const handleChannelClick = (channelId) => {
+    joinChannel(channelId);
+  };
+
+  const channelList = [
     {
       id: "general",
       name: "General Chat",
@@ -70,59 +81,6 @@ const CommunityPage = () => {
       color: "text-pink-700",
     },
   ];
-
-  const mockMessages = {
-    general: [
-      {
-        id: 1,
-        user: {
-          name: "Devansh",
-          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=alex",
-        },
-        content: "Hey everyone! Tomorrow maths class mass bunk?",
-        timestamp: new Date(Date.now() - 3600000).toISOString(),
-        reactions: ["👋", "😊"],
-      },
-    ],
-    coding: [
-      {
-        id: 1,
-        user: {
-          name: "Manya",
-          avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=sarah",
-        },
-        content: "Can anyone help with bit manipulation?",
-        timestamp: new Date(Date.now() - 7200000).toISOString(),
-        reactions: ["👨‍💻"],
-      },
-    ],
-  };
-
-  useEffect(() => {
-    setMessages(mockMessages);
-  }, []);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const newMsg = {
-        id: Date.now(),
-        user: currentUser,
-        content: newMessage,
-        timestamp: new Date().toISOString(),
-        reactions: [],
-      };
-
-      setMessages((prev) => ({
-        ...prev,
-        [activeChannel]: [...prev[activeChannel], newMsg],
-      }));
-      setNewMessage("");
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800">
@@ -149,14 +107,14 @@ const CommunityPage = () => {
 
               {/* Channel List */}
               <div className="space-y-2">
-                {channels.map((channel) => (
+                {channelList.map((channel) => (
                   <motion.div
                     key={channel.id}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setActiveChannel(channel.id)}
+                    onClick={() => handleChannelClick(channel.id)}
                     className={`cursor-pointer p-4 rounded-lg flex items-center space-x-3 ${
-                      activeChannel === channel.id
+                      currentChannel === channel.id
                         ? "bg-purple-600/30 border border-purple-500/50"
                         : "hover:bg-purple-600/10"
                     }`}
@@ -182,17 +140,21 @@ const CommunityPage = () => {
                 <Hash className="w-6 h-6 text-purple-500" />
                 <div>
                   <h3 className="text-xl font-bold text-white">
-                    {channels.find((c) => c.id === activeChannel)?.name}
+                    {channelList.find((c) => c.id === currentChannel)?.name}
                   </h3>
                   <p className="text-gray-400 text-sm">
-                    {channels.find((c) => c.id === activeChannel)?.description}
+                    {
+                      channelList.find((c) => c.id === currentChannel)
+                        ?.description
+                    }
                   </p>
                 </div>
               </div>
-              <div className="flex items-center space-x-2 mt-2">
-                <Users className="w-5 h-5 text-purple-500" />
-                <span className="text-green-400">19 online</span>
-              </div>
+              {typingUsers.size > 0 && (
+                <div className="text-sm text-purple-400 mt-1">
+                  {Array.from(typingUsers).join(", ")} is typing...
+                </div>
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto p-4">
@@ -210,7 +172,7 @@ const CommunityPage = () => {
                 </div>
               ) : (
                 <>
-                  {messages[activeChannel]?.map((message) => (
+                  {messages.map((message) => (
                     <MessageBubble key={message.id} message={message} />
                   ))}
                   <div ref={messagesEndRef} />
@@ -222,10 +184,14 @@ const CommunityPage = () => {
               <div className="flex items-center space-x-4">
                 <input
                   type="text"
-                  placeholder={`Message #${activeChannel}`}
+                  placeholder={`Message #${currentChannel}`}
                   className="flex-1 bg-purple-500/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    handleTyping(true);
+                  }}
+                  onBlur={() => handleTyping(false)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
                       handleSendMessage();

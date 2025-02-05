@@ -1,6 +1,6 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
-import { Channel } from "./channel.model.js";
+import  Channel  from "./channel.model.js";
 
 const Message = sequelize.define("Message", {
   id: {

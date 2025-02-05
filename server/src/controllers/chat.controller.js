@@ -1,9 +1,8 @@
-
-import { asyncHandler } from "../utils/asyncHandler.js";
+import  asyncHandler  from "../utils/asyncHandler.js";
 import  ApiError  from "../utils/apiError.js";
 import  ApiResponse from "../utils/apiResponse.js"
-import Channel from "../models/Channel.js";
-import Message from "../models/Message.js";
+import Channel from "../models/channel.model.js";
+import Message from "../models/message.model.js";
 
 const getChannels = asyncHandler(async (req, res) => {
   const channels = await Channel.findAll({

@@ -1,7 +1,7 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
 
-export const Channel = sequelize.define(
+const Channel = sequelize.define(
   "Channel",
   {
     id: {
@@ -24,3 +24,5 @@ export const Channel = sequelize.define(
     timestamps: true,
   }
 );
+
+export default Channel
