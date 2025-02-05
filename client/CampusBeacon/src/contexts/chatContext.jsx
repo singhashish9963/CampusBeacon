@@ -11,16 +11,32 @@ export const chatContextProvider=({children})=>{
     const [currentChannel, setCurrentChannel] = useState(null);
     const [channels, setChannels] = useState([])
     const [loading, setLoading] = useState(true);
-    const [error, seterror] = useState(null);
+    const [error, setError] = useState(null);
     const [typingUser, setTypingUser] = useState(new Set());
 
-    useEffect(()=>{
-        if(user?.id){
-            const newSocket= io("http://localhostL5000", {
-                withCredentials: true
-            })
-        }
-    })
+   useEffect(() => {
+     if (user?.id) {
+       const newSocket = io(
+          "http://localhost:5000",
+         {
+           withCredentials: true, 
+         }
+       );
+
+       newSocket.on("connect", () => {
+         console.log("Socket connected");
+       });
+
+       newSocket.on("connect_error", (error) => {
+         console.error("Socket connection error:", error);
+         setError("Failed to connect to chat server");
+       });
+
+       setSocket(newSocket);
+
+       return () => newSocket.close();
+     }
+   }, [user?.id]);
 
 
 
