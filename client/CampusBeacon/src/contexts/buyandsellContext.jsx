@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback,useEffect } from "react";
 import axios from "axios";
 
 const BuyAndSellContext = createContext(undefined);
@@ -111,6 +111,9 @@ export const BuyAndSellProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+  useEffect(() => {
+    getAllItems();
+  }, [getAllItems]);
 
   const getUserItems = useCallback(async () => {
     try {

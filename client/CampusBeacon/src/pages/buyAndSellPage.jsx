@@ -46,7 +46,7 @@ const Marketplace = () => {
      return () => {
        clearError(); 
      };
-   }, [getAllItems, isAuthenticated, navigate, clearError]);
+   }, [getAllItems, isAuthenticated, navigate]);
 
 
   const handleInputChange = (e) => {
@@ -236,10 +236,9 @@ const Marketplace = () => {
                         required
                       >
                         <option value="">Item Condition</option>
-                        <option value="New">New</option>
-                        <option value="Like New">Like New</option>
-                        <option value="Fair">Used/Fair</option>
-                        <option value="Damaged">Little Damaged</option>
+                        <option value="Good">Good</option>
+                        <option value="Fair">Fair</option>
+                        <option value="Poor">Poor</option>
                       </select>
                     </div>
                     <textarea

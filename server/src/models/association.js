@@ -14,6 +14,6 @@ User.hasMany(BuyAndSell, {
   onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
-BuyAndSell.belongsTo(User, { foreignKey: "userId", as: "user" });
+BuyAndSell.belongsTo(User, { foreignKey: "userId", as: "users" });
 
 export { User, LostAndFound, BuyAndSell };

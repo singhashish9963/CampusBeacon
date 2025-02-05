@@ -119,15 +119,8 @@ export const deleteBuyAndSellItem = asyncHandler(async (req, res) => {
 export const getBuyAndSellItem = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const item = await BuyAndSell.findByPk(id, {
-    include: [
-      {
-        model: User,
-        as: "users",
-        attributes: ["id", "name", "email"],
-      },
-    ],
-  });
+  const item = await BuyAndSell.findByPk(id)
+ 
 
   if (!item) throw new ApiError("Item not found", 404);
 
@@ -137,40 +130,13 @@ export const getBuyAndSellItem = asyncHandler(async (req, res) => {
 });
 
 export const getAllBuyAndSellItems = asyncHandler(async (req, res) => {
-  const { condition, sort } = req.query;
-
-  let whereClause = {};
-  let orderClause = [["createdAt", "DESC"]];
-
-  if (condition && ["Good", "Fair", "Poor"].includes(condition)) {
-    whereClause.item_condition = condition;
-  }
-
-  if (sort) {
-    const sortingOptions = {
-      newest: [["createdAt", "DESC"]],
-      oldest: [["createdAt", "ASC"]],
-      name_asc: [["item_name", "ASC"]],
-      name_desc: [["item_name", "DESC"]],
-    };
-    orderClause = sortingOptions[sort] || orderClause;
-  }
-
   const items = await BuyAndSell.findAll({
-    where: whereClause,
-    order: orderClause,
-    include: [
-      {
-        model: User,
-        as: "users",
-        attributes: ["id", "name", "email"],
-      },
-    ],
+    order: [["createdAt", "DESC"]]
   });
 
   return res
     .status(200)
-    .json(new ApiResponse(200, items, "Items retrieved successfully"));
+    .json(new ApiResponse(200, items, "All items retrieved successfully"));
 });
 
 export const getUserItems = asyncHandler(async (req, res) => {
