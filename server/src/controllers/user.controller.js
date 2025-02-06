@@ -435,19 +435,14 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Invalid or expired verification token", 400));
   }
 
-
   const user = await User.findByPk(decoded.id);
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
 
 
-  if (!user.isVerified) {
-
-    user.isVerified = true;
-    await user.save();
-    console.log(`User ${user.email} verified their email address successfully`);
-  }
+  user.isVerified = true;
+  await user.save();
 
 
   const authToken = jwt.sign(
@@ -463,13 +458,19 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     maxAge: 60 * 60 * 1000,
   });
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { user: { id: user.id, email: user.email, name: user.name } },
-        "Email verified successfully. You are now logged in."
-      )
-    );
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          isVerified: true, 
+        },
+      },
+      "Email verified successfully. You are now logged in."
+    )
+  );
 });

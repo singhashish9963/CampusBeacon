@@ -1,6 +1,7 @@
 import express from "express";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import emailMiddleware from "../middlewares/email.middleware.js";
+import User from "../models/user.model.js"
 import {
   getCurrentUser,
   updateUser,
@@ -22,18 +23,36 @@ const router = express.Router();
 =======================================================================
 */
 
+
 router.post("/signup", emailMiddleware, registerUser);
 router.post("/login", emailMiddleware, loginUser);
-
-
 router.post("/google-auth", googleAuth);
 
 
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
+
 router.post("/send-verification-email", sendVerificationEmail);
-router.get("/verify-email", verifyEmail);
+router.get("/verify-email", verifyEmail); 
+
+
+router.get("/verify-status", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
+    res.json({
+      success: true,
+      data: {
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to check verification status",
+    });
+  }
+});
 
 /*
 =======================================================================

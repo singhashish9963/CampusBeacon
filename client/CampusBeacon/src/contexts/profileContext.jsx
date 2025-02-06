@@ -27,16 +27,12 @@ export const ProfileProvider = ({ children }) => {
 
   const { user: authUser } = useAuth();
 
-
   const getUser = useCallback(async () => {
-    if (!authUser) return;
     setLoading(true);
     setError(null);
     try {
       const response = await api.get("/users/current");
-      console.log("API response:", response.data);
       if (response.data.success) {
-        console.log("Fetched user:", response.data.data.user);
         setUserProfile(response.data.data.user);
       } else {
         setError(response.data.message || "Failed to load user");
@@ -47,13 +43,14 @@ export const ProfileProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [authUser]);
+  }, []);
 
   useEffect(() => {
-    if (authUser) {
+
+    if (authUser && !userProfile) {
       getUser();
     }
-  }, [getUser, authUser]);
+  }, [authUser, userProfile, getUser]);
 
   const updateUser = useCallback(
     async (userData) => {
@@ -62,7 +59,6 @@ export const ProfileProvider = ({ children }) => {
       setError(null);
       try {
         const response = await api.put("/users/update", userData);
-        console.log("updateUser response:", response.data);
         if (response.data.success) {
           setUserProfile(response.data.data.user);
         } else {
