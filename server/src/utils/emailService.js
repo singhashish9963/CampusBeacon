@@ -1,5 +1,6 @@
 
 import nodemailer from "nodemailer";
+import asyncHandler from "express-async-handler";
 
 
 const transporter = nodemailer.createTransport({
@@ -17,8 +18,9 @@ const transporter = nodemailer.createTransport({
  * @param {string} options.subject - Email subject
  * @param {string} options.text - Plain text body of the email
  * @param {string} options.html - HTML body of the email (optional)
- */
-export const sendEmail = async ({ to, subject, text, html }) => {
+ **/
+
+export const sendEmail = asyncHandler(async ({ to, subject, text, html }) => {
   const mailOptions = {
     from: process.env.EMAIL_FROM, 
     to,
@@ -27,11 +29,7 @@ export const sendEmail = async ({ to, subject, text, html }) => {
     html,
   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log("Email sent successfully to", to);
-  } catch (error) {
-    console.error("Error sending email:", error);
-    throw error;
-  }
-};
+  await transporter.sendMail(mailOptions);
+  console.log("Email sent successfully to", to);
+});
+
