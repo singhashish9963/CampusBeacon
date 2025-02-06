@@ -1,6 +1,6 @@
 
 import nodemailer from "nodemailer";
-import asyncHandler from "express-async-handler";
+import asyncHandler from "../utils/asyncHandler";
 
 
 const transporter = nodemailer.createTransport({
