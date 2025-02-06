@@ -8,7 +8,6 @@ import React, {
 import axios from "axios";
 import LoadingScreen from "../components/LoadingScreen.jsx";
 
-
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
@@ -26,17 +25,25 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
+  // Automatically clear any welcome message after 5 seconds
+  useEffect(() => {
+    if (welcomeMessage) {
+      const timer = setTimeout(() => {
+        setWelcomeMessage("");
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [welcomeMessage]);
 
   const checkAuthStatus = useCallback(async () => {
     try {
       const response = await api.get("/users/current");
-      if (response.data.success) {
+      if (response.data.success && response.data.data.user) {
         setUser(response.data.data.user);
         setIsAuthenticated(true);
       }
     } catch (error) {
       console.error("Auth check failed:", error);
-
       if (error.response?.status !== 401) {
         handleLogout();
       }
@@ -57,22 +64,29 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post(`/users${endpoint}`, data);
 
       if (response.data.success) {
-   
-        setUser(response.data.data.user);
-        setIsAuthenticated(true);
-        setWelcomeMessage(
-          `Welcome${endpoint === "/login" ? " back" : ""}, ${
-            response.data.data.user.email
-          }!`
-        );
-
+        // Only set user and authentication state if a user object exists in response
+        if (response.data.data && response.data.data.user) {
+          setUser(response.data.data.user);
+          setIsAuthenticated(true);
+          if (endpoint === "/login") {
+            setWelcomeMessage(
+              `Welcome back, ${response.data.data.user.email}!`
+            );
+          } else if (endpoint === "/signup") {
+            setWelcomeMessage(`Welcome, ${response.data.data.user.email}!`);
+          }
+        } else {
+          // For endpoints like forgot-password or reset-password that don't return a user
+          setUser(null);
+          setIsAuthenticated(false);
+          setWelcomeMessage(response.data.message || "");
+        }
         return {
           success: true,
-          user: response.data.data.user,
+          user: (response.data.data && response.data.data.user) || null,
           message: response.data.message,
         };
       }
-
       throw new Error(response.data.message);
     } catch (error) {
       console.error(`Auth error (${endpoint}):`, error);
@@ -85,30 +99,23 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const handleSignUp = useCallback(
-    async (email, password) => {
-      return handleAuth("/signup", { email, password });
-    },
+    async (email, password) => handleAuth("/signup", { email, password }),
     [handleAuth]
   );
 
   const handleSignIn = useCallback(
-    async (email, password) => {
-      return handleAuth("/login", { email, password });
-    },
+    async (email, password) => handleAuth("/login", { email, password }),
     [handleAuth]
   );
 
   const handleForgetPassword = useCallback(
-    async (email) => {
-      return handleAuth("/forgot-password", { email });
-    },
+    async (email) => handleAuth("/forgot-password", { email }),
     [handleAuth]
   );
 
   const handleResetPassword = useCallback(
-    async (token, newPassword) => {
-      return handleAuth("/reset-password", { token, newPassword });
-    },
+    async (token, newPassword) =>
+      handleAuth("/reset-password", { token, newPassword }),
     [handleAuth]
   );
 
@@ -140,7 +147,6 @@ export const AuthProvider = ({ children }) => {
           default:
             throw new Error("Invalid action type");
         }
-
         if (!response.success) {
           throw new Error(response.message);
         }
@@ -160,7 +166,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Always clear state
       setUser(null);
       setIsAuthenticated(false);
       setError(null);

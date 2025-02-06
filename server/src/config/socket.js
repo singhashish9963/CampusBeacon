@@ -2,11 +2,13 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
+import dotenv from "dotenv"
+dotenv.config()
 
 const initializeSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+      origin: process.env.FRONTEND_URL,
       credentials: true,
     },
   });

@@ -5,14 +5,16 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { sendEmail } from "../utils/emailService.js";
+import { OAuth2Client } from "google-auth-library";
+import dotenv from "dotenv"
+dotenv.config()
 
-
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 /*
 =============================
         Time and Date  
 =============================
 */
-
 const getCurrentUTCDateTime = () => {
   const now = new Date();
   return now.toISOString().slice(0, 19).replace("T", " ");
@@ -25,7 +27,7 @@ const getCurrentUTCDateTime = () => {
 */
 export const registerUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-// we cannot have same email as registration number are different 
+  // we cannot have same email as registration number are different
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) return next(new ApiError("User already exists", 400));
 
@@ -54,7 +56,6 @@ export const registerUser = asyncHandler(async (req, res, next) => {
         Login User 
 =============================
 */
-
 export const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -67,19 +68,19 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   if (!isMatch) {
     return next(new ApiError("Invalid email or password", 400));
   }
-// for safety expiry in 1h, user will be logged out if he doesnt generate a token again
+  // For safety expiry in 1h: user will be logged out if token is not regenerated
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-// save as http cookie for better security 
+  // Save as HTTP cookie for better security
   res.cookie("token", token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production", 
-    sameSite: "strict", 
-    maxAge: 60 * 60 * 1000, 
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 60 * 60 * 1000,
   });
 
   console.log(`User ${email} logged in at ${getCurrentUTCDateTime()}`);
@@ -100,12 +101,11 @@ export const loginUser = asyncHandler(async (req, res, next) => {
        Get current user 
 ==============================
 */
-
 export const getCurrentUser = asyncHandler(async (req, res, next) => {
   if (!req.user) {
     return next(new ApiError("Not authenticated", 401));
   }
-// get everything except password for safety 
+  // Get everything except password for safety
   const user = await User.findByPk(req.user.id, {
     attributes: { exclude: ["password"] },
   });
@@ -124,7 +124,6 @@ export const getCurrentUser = asyncHandler(async (req, res, next) => {
        Update User 
 ==============================
 */
-
 export const updateUser = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
   const {
@@ -135,12 +134,12 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     hostel,
     graduation_year,
   } = req.body;
-// find user by id to update that info only
+  // Find user by id to update that info only
   const user = await User.findByPk(userId);
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-// update only the fields that is given 
+  // Update only the fields that are given
   if (name !== undefined) user.name = name;
   if (registration_number !== undefined)
     user.registration_number = registration_number;
@@ -161,10 +160,9 @@ export const updateUser = asyncHandler(async (req, res, next) => {
 
 /*
 ==============================
-       forget Password 
+       Forgot Password 
 ==============================
 */
-
 export const forgotPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
 
@@ -172,7 +170,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-// given inside url for verification
+  // Given inside URL for verification
   const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
@@ -185,12 +183,12 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
       subject: "Password Reset Request",
       text: `Please click on the following link to reset your password: ${resetUrl}. This link will expire in 15 minutes.`,
       html: `
-                <h1>Password Reset Request</h1>
-                <p>Please click on the following link to reset your password:</p>
-                <a href="${resetUrl}">Reset Password</a>
-                <p>This link will expire in 15 minutes.</p>
-                <p>If you didn't request this, please ignore this email.</p>
-            `,
+        <h1>Password Reset Request</h1>
+        <p>Please click on the following link to reset your password:</p>
+        <a href="${resetUrl}">Reset Password</a>
+        <p>This link will expire in 15 minutes.</p>
+        <p>If you didn't request this, please ignore this email.</p>
+      `,
     });
 
     console.log(
@@ -209,17 +207,16 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 
 /*
 ==============================
-       reset Password 
+       Reset Password 
 ==============================
 */
-
 export const resetPassword = asyncHandler(async (req, res, next) => {
   const { token, newPassword } = req.body;
 
   if (!token) {
     return next(new ApiError("Reset token is required", 400));
   }
-// contains payload after jwt is verified 
+  // Contains payload after JWT verification
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -231,7 +228,7 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-// method to compare hashed password 
+  // Method to hash new password
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.password = hashedPassword;
   await user.save();
@@ -246,10 +243,10 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
       subject: "Password Changed Successfully",
       text: "Your password has been changed successfully. If you did not make this change, please contact support immediately.",
       html: `
-                <h1>Password Changed Successfully</h1>
-                <p>Your password has been changed successfully.</p>
-                <p>If you did not make this change, please contact support immediately.</p>
-            `,
+        <h1>Password Changed Successfully</h1>
+        <p>Your password has been changed successfully.</p>
+        <p>If you did not make this change, please contact support immediately.</p>
+      `,
     });
   } catch (error) {
     console.error("Error sending confirmation email:", error);
@@ -260,12 +257,10 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
 
 /*
 ==============================
-       logout User 
+       Logout User 
 ==============================
 */
-
 export const logoutUser = asyncHandler(async (req, res, next) => {
-
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -277,4 +272,70 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
   );
 
   res.status(200).json(new ApiResponse(200, null, "Logged out successfully"));
+});
+
+/*
+==============================
+       Google Auth
+==============================
+*/
+
+export const googleAuth = asyncHandler(async (req, res, next) => {
+  const { idToken } = req.body;
+  if (!idToken) {
+    return next(new ApiError("Google idToken is required", 400));
+  }
+
+  let ticket;
+  try {
+    ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+  } catch (error) {
+    return next(new ApiError("Invalid Google token", 400));
+  }
+
+  const payload = ticket.getPayload();
+  if (!payload) {
+    return next(new ApiError("Google token payload not found", 400));
+  }
+
+  const email = payload.email;
+  let user = await User.findOne({ where: { email } });
+  if (!user) {
+
+    user = await User.create({
+      email,
+      name: payload.name,
+      password: await bcrypt.hash(Math.random().toString(36), 10),
+    });
+    console.log(`New user created via Google Auth for ${email}`);
+  }
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 60 * 60 * 1000,
+  });
+
+  console.log(
+    `User ${email} authenticated via Google at ${getCurrentUTCDateTime()}`
+  );
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { user: { id: user.id, email: user.email, name: user.name } },
+        "Google authentication successful"
+      )
+    );
 });

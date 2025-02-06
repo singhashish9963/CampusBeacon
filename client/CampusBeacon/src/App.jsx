@@ -19,6 +19,7 @@ import AboutUs from "./pages/AboutUs.jsx";
 import ContactsDisplay from "./pages/ContactPage.jsx";
 import { ContactContextProvider } from "./contexts/contactContext.jsx";
 import { ChatContextProvider } from "./contexts/chatContext.jsx";
+import ResetPassword from "./pages/ResetPassword.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -34,6 +35,7 @@ function App() {
                       <Routes>
                         <Route path="/" element={<HomePage />} />
                         <Route path="/login" element={<LoginSignup />} />
+                        <Route path="/reset-password" element={<ResetPassword/>}/>
                         <Route element={<ProtectedRoute />}>
                           <Route path="/profile" element={<ProfilePage />} />
                           <Route
