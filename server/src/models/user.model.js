@@ -24,15 +24,14 @@ const users = sequelize.define(
       allowNull: true,
       unique: true,
     },
-    email:{
-      type:DataTypes.STRING,
-      unique:true,
-      allowNull:false,
+    email: {
+      type: DataTypes.STRING,
+      unique: true,
+      allowNull: false,
     },
-    password:{
-      type:DataTypes.STRING,
-      allowNull:false,
-
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
     },
     semester: {
       type: DataTypes.ENUM,
@@ -71,6 +70,11 @@ const users = sequelize.define(
     graduation_year: {
       type: DataTypes.INTEGER,
       allowNull: true,
+    },
+    isVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      allowNull: false,
     },
   },
   {

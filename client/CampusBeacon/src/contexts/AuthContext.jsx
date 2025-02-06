@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
-  // Automatically clear any welcome message after 5 seconds
+
   useEffect(() => {
     if (welcomeMessage) {
       const timer = setTimeout(() => {
@@ -39,8 +39,13 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await api.get("/users/current");
       if (response.data.success && response.data.data.user) {
-        setUser(response.data.data.user);
+        const userData = response.data.data.user;
+        setUser(userData);
         setIsAuthenticated(true);
+        // Check if user is verified
+        if (!userData.isVerified) {
+          setError("Please verify your email to continue.");
+        }
       }
     } catch (error) {
       console.error("Auth check failed:", error);
@@ -64,32 +69,69 @@ export const AuthProvider = ({ children }) => {
       const response = await api.post(`/users${endpoint}`, data);
 
       if (response.data.success) {
-        // Only set user and authentication state if a user object exists in response
         if (response.data.data && response.data.data.user) {
-          setUser(response.data.data.user);
+          const userData = response.data.data.user;
+          setUser(userData);
           setIsAuthenticated(true);
+
+          // Set appropriate welcome message
           if (endpoint === "/login") {
-            setWelcomeMessage(
-              `Welcome back, ${response.data.data.user.email}!`
-            );
+            if (!userData.isVerified) {
+              setError("Please verify your email to continue.");
+            } else {
+              setWelcomeMessage(`Welcome back, ${userData.email}!`);
+            }
           } else if (endpoint === "/signup") {
-            setWelcomeMessage(`Welcome, ${response.data.data.user.email}!`);
+            setWelcomeMessage(
+              "Welcome! Please check your email for verification instructions."
+            );
           }
         } else {
-          // For endpoints like forgot-password or reset-password that don't return a user
           setUser(null);
           setIsAuthenticated(false);
           setWelcomeMessage(response.data.message || "");
         }
         return {
           success: true,
-          user: (response.data.data && response.data.data.user) || null,
+          user: response.data.data?.user || null,
           message: response.data.message,
         };
       }
       throw new Error(response.data.message);
     } catch (error) {
       console.error(`Auth error (${endpoint}):`, error);
+      const errorMessage = error.response?.data?.message || error.message;
+      setError(errorMessage);
+      return { success: false, message: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleEmailVerification = useCallback(async (token) => {
+    setLoading(true);
+    setError(null);
+    try {
+      console.log("Starting email verification with token:", token);
+      const response = await api.get(`/users/verify-email?token=${token}`);
+      console.log("Verification response:", response.data);
+
+      if (response.data.success && response.data.data?.user) {
+        const userData = response.data.data.user;
+        setUser(userData);
+        setIsAuthenticated(true);
+        setWelcomeMessage(
+          response.data.message || "Email verified successfully!"
+        );
+        return {
+          success: true,
+          user: userData,
+          message: response.data.message,
+        };
+      }
+      throw new Error(response.data.message || "Email verification failed");
+    } catch (error) {
+      console.error("Email verification error:", error);
       const errorMessage = error.response?.data?.message || error.message;
       setError(errorMessage);
       return { success: false, message: errorMessage };
@@ -123,25 +165,29 @@ export const AuthProvider = ({ children }) => {
     async (e, actionType) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-      const email = formData.get("email");
-      const password = formData.get("password");
 
       try {
         let response;
         switch (actionType) {
           case "signUp":
-            response = await handleSignUp(email, password);
+            response = await handleSignUp(
+              formData.get("email"),
+              formData.get("password")
+            );
             break;
           case "signIn":
-            response = await handleSignIn(email, password);
+            response = await handleSignIn(
+              formData.get("email"),
+              formData.get("password")
+            );
             break;
-          case "forgetPassword":
-            response = await handleForgetPassword(email);
+          case "forgotPassword":
+            response = await handleForgetPassword(formData.get("email"));
             break;
           case "resetPassword":
             response = await handleResetPassword(
               formData.get("token"),
-              password
+              formData.get("password")
             );
             break;
           default:
@@ -185,6 +231,8 @@ export const AuthProvider = ({ children }) => {
     handleLogout,
     handleForgetPassword,
     handleResetPassword,
+    handleEmailVerification,
+    checkAuthStatus,
   };
 
   if (loading) {

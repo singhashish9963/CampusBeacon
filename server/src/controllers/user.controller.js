@@ -6,10 +6,11 @@ import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { sendEmail } from "../utils/emailService.js";
 import { OAuth2Client } from "google-auth-library";
-import dotenv from "dotenv"
-dotenv.config()
+import dotenv from "dotenv";
+dotenv.config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
 /*
 =============================
         Time and Date  
@@ -33,12 +34,38 @@ export const registerUser = asyncHandler(async (req, res, next) => {
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
+  // Create user with default isVerified to false (assuming your model handles this default)
   const newUser = await User.create({
     email,
     password: hashedPassword,
+    isVerified: false,
   });
 
   console.log(`New user registered at ${getCurrentUTCDateTime()}`);
+
+  // Send the verification email automatically upon registration
+  const token = jwt.sign(
+    { id: newUser.id, email: newUser.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+
+  try {
+    await sendEmail({
+      to: newUser.email,
+      subject: "Verify Your Email Address",
+      text: `Please verify your email by clicking the following link: ${verificationUrl}`,
+      html: `
+        <h1>Email Verification</h1>
+        <p>Please click the link below to verify your email address:</p>
+        <a href="${verificationUrl}">Verify Email</a>
+        <p>This link will expire in 1 hour.</p>
+      `,
+    });
+  } catch (error) {
+    return next(new ApiError("Error sending verification email", 500));
+  }
 
   res
     .status(201)
@@ -46,7 +73,7 @@ export const registerUser = asyncHandler(async (req, res, next) => {
       new ApiResponse(
         201,
         { userId: newUser.id },
-        "User registered successfully"
+        "User registered successfully. Please verify your email before logging in."
       )
     );
 });
@@ -64,11 +91,17 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Invalid email or password", 400));
   }
 
+  if (!user.isVerified) {
+    return next(
+      new ApiError("Please verify your email before logging in", 403)
+    );
+  }
+
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return next(new ApiError("Invalid email or password", 400));
   }
-  // For safety expiry in 1h: user will be logged out if token is not regenerated
+  // For safety, expiry in 1h: user will be logged out if token is not regenerated
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
@@ -98,7 +131,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
 
 /*
 ==============================
-       Get current user 
+       Get Current User 
 ==============================
 */
 export const getCurrentUser = asyncHandler(async (req, res, next) => {
@@ -139,7 +172,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-  // Update only the fields that are given
+  // Update only the fields that are provided
   if (name !== undefined) user.name = name;
   if (registration_number !== undefined)
     user.registration_number = registration_number;
@@ -170,7 +203,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-  // Given inside URL for verification
+  // Create a reset token that expires in 15 minutes
   const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
@@ -216,7 +249,7 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   if (!token) {
     return next(new ApiError("Reset token is required", 400));
   }
-  // Contains payload after JWT verification
+  // Verify the token to get payload
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -228,7 +261,7 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-  // Method to hash new password
+  // Hash new password
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.password = hashedPassword;
   await user.save();
@@ -279,7 +312,6 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
        Google Auth
 ==============================
 */
-
 export const googleAuth = asyncHandler(async (req, res, next) => {
   const { idToken } = req.body;
   if (!idToken) {
@@ -304,11 +336,12 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
   const email = payload.email;
   let user = await User.findOne({ where: { email } });
   if (!user) {
-
+    // Create a new user using details from Google.
     user = await User.create({
       email,
       name: payload.name,
       password: await bcrypt.hash(Math.random().toString(36), 10),
+      isVerified: true, // Since Google auth already verifies the email.
     });
     console.log(`New user created via Google Auth for ${email}`);
   }
@@ -338,4 +371,106 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
         "Google authentication successful"
       )
     );
+});
+
+/*
+==============================
+       Email Verification
+==============================
+
+ */
+export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+
+  const user = await User.findOne({ where: { email } });
+  if (!user) {
+    return next(new ApiError("User not found", 404));
+  }
+
+
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+
+  try {
+
+    await sendEmail({
+      to: user.email,
+      subject: "Verify Your Email Address",
+      text: `Please verify your email by clicking the following link: ${verificationUrl}`,
+      html: `
+        <h1>Email Verification</h1>
+        <p>Please click the link below to verify your email address:</p>
+        <a href="${verificationUrl}">Verify Email</a>
+        <p>This link will expire in 1 hour.</p>
+      `,
+    });
+
+    console.log(`Verification email sent to ${user.email}`);
+    res
+      .status(200)
+      .json(new ApiResponse(200, null, "Verification email sent successfully"));
+  } catch (error) {
+    return next(new ApiError("Error sending verification email", 500));
+  }
+});
+
+export const verifyEmail = asyncHandler(async (req, res, next) => {
+  const { token } = req.query;
+
+  if (!token) {
+    return next(new ApiError("Verification token is required", 400));
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    return next(new ApiError("Invalid or expired verification token", 400));
+  }
+
+  const user = await User.findByPk(decoded.id);
+  if (!user) {
+    return next(new ApiError("User not found", 404));
+  }
+
+
+  user.isVerified = true;
+  await user.save();
+
+
+  const authToken = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  res.cookie("token", authToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 60 * 60 * 1000,
+  });
+
+
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          isVerified: true, 
+        },
+      },
+      "Email verified successfully. You are now logged in."
+    )
+  );
 });

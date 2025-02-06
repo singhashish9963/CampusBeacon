@@ -1,5 +1,7 @@
 import {Sequelize} from 'sequelize';
 import asyncHandler from '../utils/asyncHandler.js';
+import dotenv from "dotenv"
+dotenv.config();
 
 /*
 =============================================================
@@ -7,9 +9,9 @@ import asyncHandler from '../utils/asyncHandler.js';
 =============================================================
 */
 const DB_NAME =  "CampusBeacon";
-const DB_USER = process.env.DB_USER || "postgres";
-const DB_PASSWORD = process.env.DB_PASSWORD || "superman";
-const DB_HOST = process.env.DB_HOST || "localhost";
+const DB_USER = process.env.DB_USER
+const DB_PASSWORD = process.env.DB_PASSWORD
+const DB_HOST = process.env.DB_HOST
 const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432;
 
 /*
@@ -18,10 +20,10 @@ const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432;
 =======================================================
 */
 
-const sequelize = new Sequelize("CampusBeacon", "postgres", "superman", {
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
     host: "localhost",
     dialect: 'postgres',
-    port:5432,
+    port:process.env.DB_PORT,
 });
 
 /*
