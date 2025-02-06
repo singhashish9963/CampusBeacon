@@ -24,6 +24,7 @@ const Marketplace = () => {
     owner_contact: "",
     image: null,
   });
+
   useEffect(() => {
     const fetchItems = async () => {
       try {
@@ -62,28 +63,35 @@ const Marketplace = () => {
     }
   };
 
-  const submitListing = async (e) => {
-    e.preventDefault();
-    try {
-      const formData = new FormData();
-      Object.keys(listingItem).forEach((key) => {
-        formData.append(key, listingItem[key]);
-      });
-      await createItem(formData);
-      setActiveTab("browse");
-      setListingItem({
-        item_name: "",
-        price: "",
-        category: "",
-        description: "",
-        item_condition: "",
-        owner_contact: "",
-        image: null,
-      });
-    } catch (err) {
-      console.error("Error creating item:", err);
-    }
-  };
+ const submitListing = async (e) => {
+   e.preventDefault();
+   try {
+     const formData = new FormData();
+     formData.append("item_name", listingItem.item_name);
+     formData.append("price", listingItem.price);
+     formData.append("category", listingItem.category);
+     formData.append("description", listingItem.description);
+     formData.append("item_condition", listingItem.item_condition);
+     formData.append("owner_contact", listingItem.owner_contact);
+     if (listingItem.image) {
+       formData.append("image", listingItem.image);
+     }
+
+     await createItem(formData);
+     setActiveTab("browse");
+     setListingItem({
+       item_name: "",
+       price: "",
+       category: "",
+       description: "",
+       item_condition: "",
+       owner_contact: "",
+       image: null,
+     });
+   } catch (err) {
+     console.error("Error creating item:", err);
+   }
+ };
 
   const filteredItems = items.filter((item) => {
     const matchesSearch =
