@@ -1,7 +1,8 @@
 
 import nodemailer from "nodemailer";
 import asyncHandler from "../utils/asyncHandler.js";
-
+import dotenv from "dotenv"
+dotenv.config()
 
 const transporter = nodemailer.createTransport({
   service: "gmail", 
@@ -11,6 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+console.log(process.env.EMAIL_FROM)
 /**
 
  * @param {Object} options - Email options

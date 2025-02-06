@@ -19,23 +19,20 @@ const LoginSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/");
     }
   }, [isAuthenticated, navigate]);
 
-
   useEffect(() => {
-    if (welcomeMessage) {
+    if (welcomeMessage && isAuthenticated) {
       const timer = setTimeout(() => {
         navigate("/");
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [welcomeMessage, navigate]);
-
+  }, [welcomeMessage, isAuthenticated, navigate]);
 
   useEffect(() => {
     if (authError) {
@@ -55,9 +52,7 @@ const LoginSignup = () => {
         setAuthMode("default");
       } else {
         const response = await handleSubmit(e, type);
-
         if (response?.success) {
-
           console.log("Authentication successful");
         } else {
           throw new Error(response?.message || "Authentication failed");
