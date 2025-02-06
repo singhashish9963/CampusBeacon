@@ -24,6 +24,7 @@ const Marketplace = () => {
     owner_contact: "",
     image: null,
   });
+
   useEffect(() => {
     const fetchItems = async () => {
       try {

@@ -18,7 +18,7 @@ export const BuyAndSellProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [currentItem, setCurrentItem] = useState(null);
 
-  const createItem = async (formData) => {
+  const createItem = useCallback(async (formData) => {
     try {
       setLoading(true);
       const response = await api.post("/buy-and-sell/items", formData, {
@@ -40,9 +40,9 @@ export const BuyAndSellProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const updateItem = async (id, formData) => {
+  const updateItem = useCallback(async (id, formData) => {
     try {
       setLoading(true);
       const response = await api.put(`/buy-and-sell/items/${id}`, formData, {
@@ -68,9 +68,9 @@ export const BuyAndSellProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const deleteItem = async (id) => {
+  const deleteItem = useCallback(async (id) => {
     try {
       setLoading(true);
       const response = await api.delete(`/buy-and-sell/items/${id}`);
@@ -88,7 +88,7 @@ export const BuyAndSellProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const getAllItems = useCallback(async (filters = {}) => {
     try {
@@ -131,7 +131,7 @@ export const BuyAndSellProvider = ({ children }) => {
     }
   }, []);
 
-  const getItemById = async (id) => {
+  const getItemById = useCallback(async (id) => {
     try {
       setLoading(true);
       const response = await api.get(`/buy-and-sell/items/${id}`);
@@ -148,9 +148,9 @@ export const BuyAndSellProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  const clearError = () => setError(null);
+  const clearError = useCallback(() => setError(null), []);
 
   const value = {
     items,
