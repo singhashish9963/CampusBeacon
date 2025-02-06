@@ -46,7 +46,6 @@ export const ProfileProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
-
     if (authUser && !userProfile) {
       getUser();
     }
