@@ -5,7 +5,9 @@ import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import { sendEmail } from "../utils/emailService.js";
+import { OAuth2Client } from "google-auth-library";
 
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 /*
 =============================
         Time and Date  
@@ -268,4 +270,70 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
   );
 
   res.status(200).json(new ApiResponse(200, null, "Logged out successfully"));
+});
+
+/*
+==============================
+       Google Auth
+==============================
+*/
+
+export const googleAuth = asyncHandler(async (req, res, next) => {
+  const { idToken } = req.body;
+  if (!idToken) {
+    return next(new ApiError("Google idToken is required", 400));
+  }
+
+  let ticket;
+  try {
+    ticket = await client.verifyIdToken({
+      idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+  } catch (error) {
+    return next(new ApiError("Invalid Google token", 400));
+  }
+
+  const payload = ticket.getPayload();
+  if (!payload) {
+    return next(new ApiError("Google token payload not found", 400));
+  }
+
+  const email = payload.email;
+  let user = await User.findOne({ where: { email } });
+  if (!user) {
+
+    user = await User.create({
+      email,
+      name: payload.name,
+      password: await bcrypt.hash(Math.random().toString(36), 10),
+    });
+    console.log(`New user created via Google Auth for ${email}`);
+  }
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: 60 * 60 * 1000,
+  });
+
+  console.log(
+    `User ${email} authenticated via Google at ${getCurrentUTCDateTime()}`
+  );
+
+  res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { user: { id: user.id, email: user.email, name: user.name } },
+        "Google authentication successful"
+      )
+    );
 });
