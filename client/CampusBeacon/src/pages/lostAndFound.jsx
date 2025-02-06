@@ -8,6 +8,7 @@ import LostItemCard from "../components/LostItemCard";
 const LostAndFound = () => {
   const { items, addItem, fetchItems, loading } = useLostAndFound();
   const { user } = useAuth();
+
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
@@ -20,8 +21,10 @@ const LostAndFound = () => {
   });
 
   useEffect(() => {
-    fetchItems();
-  }, [fetchItems]);
+    if (activeTab === "browse") {
+      fetchItems();
+    }
+  }, [activeTab, fetchItems]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -90,7 +93,9 @@ const LostAndFound = () => {
         >
           <div className="flex items-center space-x-4">
             <Rocket className="text-yellow-400 animate-pulse" size={48} />
-            <h1 className="text-4xl font-bold tracking-wide">Lost & Found</h1>
+            <h1 className="text-4xl font-bold tracking-wide">
+              Lost &amp; Found
+            </h1>
           </div>
           <div className="bg-gray-800 rounded-full flex">
             <button
