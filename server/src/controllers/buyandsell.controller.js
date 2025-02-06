@@ -13,8 +13,10 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     owner_contact,
     item_condition,
     price,
+    category,
   } = req.body;
 
+  // Validate inputs
   if (price < 0) throw new ApiError("Price must be positive", 405);
 
   if (!item_name?.trim()) {
@@ -33,25 +35,52 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     throw new ApiError("Authentication required", 401);
   }
 
-  let image_url;
+  let image_url = null;
   if (req.file) {
-    image_url = await uploadImageToCloudinary(req.file.path, "buy-and-sell");
+    try {
+   
+      const uploadedUrl = await uploadImageToCloudinary(req.file.path);
+      if (!uploadedUrl) {
+        throw new ApiError("Failed to upload image", 500);
+      }
+      image_url = uploadedUrl;
+      console.log("Successfully uploaded image to Cloudinary:", image_url);
+    } catch (error) {
+      console.error("Error uploading to Cloudinary:", error);
+      throw new ApiError("Failed to upload image: " + error.message, 500);
+    }
   }
 
-  const newItem = await BuyAndSell.create({
-    item_name,
-    description,
-    date_bought: date_bought || new Date(),
-    owner_contact,
-    image_url,
-    userId,
-    item_condition,
-    price,
-  });
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, newItem, "Item created successfully"));
+  try {
+    if (req.file && !image_url) {
+      throw new ApiError("Image upload failed", 500);
+    }
+
+    const newItem = await BuyAndSell.create({
+      item_name,
+      description,
+      date_bought: date_bought || new Date(),
+      owner_contact,
+      image_url, 
+      userId,
+      item_condition,
+      price,
+      category,
+    });
+
+    console.log("Successfully created item in database:", newItem.id);
+
+    return res
+      .status(201)
+      .json(new ApiResponse(201, newItem, "Item created successfully"));
+  } catch (error) {
+    console.error("Database error:", error);
+    throw new ApiError(
+      "Error creating item in database: " + error.message,
+      500
+    );
+  }
 });
 
 export const updateBuyAndSellItem = asyncHandler(async (req, res) => {
