@@ -9,8 +9,8 @@ import buyAndSellRoutes from "./src/routes/buyandsell.routes.js";
 import ChatRoutes from "./src/routes/chat.routes.js";
 import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
-
 import cookieParser from "cookie-parser";
+
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -38,10 +38,12 @@ app.use(
   })
 );
 
-
+/*
+===================================
+    Initialize WebSocket Server    
+===================================
+*/
 const io = initializeSocket(httpServer);
-
-
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -49,21 +51,21 @@ app.use((req, res, next) => {
 
 /*
 =============================
-        Time and Date  
+        JSON Parsing Middleware
 =============================
 */
 app.use(express.json());
 
 /*
 =============================
-        Connect database  
+        Connect Database  
 =============================
 */
 connectDb();
 
 /*
 =======================================
-        Testing route for backend  
+        Testing Route for Backend  
 =======================================
 */
 app.get("/", (req, res) => {
@@ -72,7 +74,7 @@ app.get("/", (req, res) => {
 
 /*
 =========================================
-        using routes as middleware   
+        Using Routes as Middleware   
 =========================================
 */
 app.use("/api/users", userRoutes);
@@ -83,7 +85,7 @@ app.use("/api/chat", ChatRoutes);
 
 /*
 =================================
-        Starting server :}  
+        Starting Server  
 =================================
 */
 httpServer.listen(PORT, () => {

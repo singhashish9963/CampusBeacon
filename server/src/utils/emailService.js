@@ -1,6 +1,6 @@
 
 import nodemailer from "nodemailer";
-import asyncHandler from "../utils/asyncHandler";
+import asyncHandler from "../utils/asyncHandler.js";
 
 
 const transporter = nodemailer.createTransport({
