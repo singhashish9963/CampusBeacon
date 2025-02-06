@@ -8,7 +8,7 @@ import { useAuth } from "../contexts/AuthContext";
 
 const Marketplace = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { items, loading, error, createItem, getAllItems, clearError } =
     useBuyAndSell();
 
@@ -24,30 +24,31 @@ const Marketplace = () => {
     owner_contact: "",
     image: null,
   });
-   useEffect(() => {
-     const fetchItems = async () => {
-       try {
-         if (!isAuthenticated) {
-           navigate("/login", { state: { from: "/marketplace" } });
-           return;
-         }
-         await getAllItems();
-       } catch (err) {
-         if (
-           err.message.includes("unauthorized") ||
-           err.message.includes("login")
-         ) {
-           navigate("/login", { state: { from: "/marketplace" } });
-         }
-       }
-     };
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        if (!isAuthenticated) {
+          navigate("/login", { state: { from: "/marketplace" } });
+          return;
+        }
+        await getAllItems();
+      } catch (err) {
+        if (
+          err.message.includes("unauthorized") ||
+          err.message.includes("login")
+        ) {
+          navigate("/login", { state: { from: "/marketplace" } });
+        }
+      }
+    };
 
-     fetchItems();
-     return () => {
-       clearError(); 
-     };
-   }, [getAllItems, isAuthenticated, navigate]);
-
+    if (activeTab === "browse") {
+      fetchItems();
+    }
+    return () => {
+      clearError();
+    };
+  }, [activeTab, isAuthenticated, navigate, getAllItems, clearError]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -57,8 +58,6 @@ const Marketplace = () => {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      const formData = new FormData();
-      formData.append("image", file);
       setListingItem((prev) => ({ ...prev, image: file }));
     }
   };
@@ -70,7 +69,6 @@ const Marketplace = () => {
       Object.keys(listingItem).forEach((key) => {
         formData.append(key, listingItem[key]);
       });
-
       await createItem(formData);
       setActiveTab("browse");
       setListingItem({
