@@ -20,12 +20,16 @@ const api = axios.create({
 const ProfileContext = createContext(null);
 
 export const ProfileProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  const { user: authUser } = useAuth();
+
+
   const getUser = useCallback(async () => {
+    if (!authUser) return;
     setLoading(true);
     setError(null);
     try {
@@ -33,7 +37,7 @@ export const ProfileProvider = ({ children }) => {
       console.log("API response:", response.data);
       if (response.data.success) {
         console.log("Fetched user:", response.data.data.user);
-        setUser(response.data.data.user);
+        setUserProfile(response.data.data.user);
       } else {
         setError(response.data.message || "Failed to load user");
       }
@@ -43,35 +47,41 @@ export const ProfileProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [authUser]);
 
   useEffect(() => {
-    getUser();
-  }, [getUser]);
-
-  const updateUser = useCallback(async (userData) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await api.put("/users/update", userData);
-      console.log("updateUser response:", response.data);
-      if (response.data.success) {
-        setUser(response.data.data.user);
-      } else {
-        setError(response.data.message || "Update failed");
-      }
-    } catch (err) {
-      setError(err.message || "Failed to update user");
-      console.error("Error in updateUser:", err);
-    } finally {
-      setLoading(false);
+    if (authUser) {
+      getUser();
     }
-  }, []);
+  }, [getUser, authUser]);
+
+  const updateUser = useCallback(
+    async (userData) => {
+      if (!authUser) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await api.put("/users/update", userData);
+        console.log("updateUser response:", response.data);
+        if (response.data.success) {
+          setUserProfile(response.data.data.user);
+        } else {
+          setError(response.data.message || "Update failed");
+        }
+      } catch (err) {
+        setError(err.message || "Failed to update user");
+        console.error("Error in updateUser:", err);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [authUser]
+  );
 
   return (
     <ProfileContext.Provider
       value={{
-        user,
+        user: userProfile,
         updateUser,
         isEditing,
         setIsEditing,

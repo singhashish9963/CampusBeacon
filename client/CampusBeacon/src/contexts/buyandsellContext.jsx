@@ -1,8 +1,7 @@
-import React, { createContext, useContext, useState, useCallback,useEffect } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 
 const BuyAndSellContext = createContext(undefined);
-
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
@@ -111,9 +110,6 @@ export const BuyAndSellProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
-  useEffect(() => {
-    getAllItems();
-  }, [getAllItems]);
 
   const getUserItems = useCallback(async () => {
     try {

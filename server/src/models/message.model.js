@@ -1,29 +1,49 @@
-import sequelize from "../db/db.js"
-import { DataTypes } from "sequelize"
-import users from "./user.model.js";
- const message=sequelize.define("message",{
-    id:{
-        type:DataTypes.INTEGER,
-        autoIncrement:true,
-        primaryKey:true
-    },
-    channelId:{
-        type:DataTypes.STRING,
-        allowNull:false,
-        field:'channel_id'
-    },
-    registration_number:{
-        type:DataTypes.STRING,
-        allowNull:false
-    },
-    messages:{
-        type:DataTypes.TEXT,
-        allowNull:false
-    }
-},{
-    timestamps:true
-})
-users.hasMany(message);
-message.belongsTo(users);
+import { DataTypes } from "sequelize";
+import sequelize from "../db/db.js";
 
-export default message;
+const Message = sequelize.define(
+  "Messages",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    content: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "users",
+        key: "id",
+      },
+    },
+    channelId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: "Channels",
+        key: "id",
+      },
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+  },
+  {
+    tableName: "Messages",
+    timestamps: true,
+  }
+);
+
+export default Message;

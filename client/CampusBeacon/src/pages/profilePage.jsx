@@ -1,13 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Book, Hash, Star, Pencil, Edit } from "lucide-react";
+import { Calendar, Book, Hash, Star, Edit } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
 import Achievements from "../components/ProfilePage/achievements";
 import { useProfile } from "../contexts/profileContext";
 import LoadingScreen from "../components/LoadingScreen";
 
 const ProfilePage = () => {
-  const { user, loading, error, updateUser,getUser } = useProfile();
+  const { user, loading, error, updateUser, getUser } = useProfile();
 
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
@@ -18,6 +18,20 @@ const ProfilePage = () => {
     semester: user?.semester || "Semester",
     graduation_year: user?.graduation_year || "2025",
   });
+
+
+  useEffect(() => {
+    if (user) {
+      setUserData({
+        name: user.name || "Name",
+        email: user.email || "Email",
+        branch: user.branch || "Branch",
+        registration_number: user.registration_number || "Registration Number",
+        semester: user.semester || "Semester",
+        graduation_year: user.graduation_year || "2025",
+      });
+    }
+  }, [user]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -33,7 +47,7 @@ const ProfilePage = () => {
         name: userData.name.trim() === "" ? user?.name : userData.name,
         branch: userData.branch.trim() === "" ? user?.branch : userData.branch,
         graduation_year:
-          userData.graduation_year  === ""
+          userData.graduation_year === ""
             ? user?.graduation_year
             : userData.graduation_year,
         registration_number:
@@ -153,13 +167,13 @@ const ProfilePage = () => {
                       type="text"
                       name={
                         stat.label === "Registration"
-                          ? "registrationNumber"
+                          ? "registration_number"
                           : "semester"
                       }
                       value={
                         userData[
                           stat.label === "Registration"
-                            ? "registrationNumber"
+                            ? "registration_number"
                             : "semester"
                         ]
                       }
@@ -171,7 +185,6 @@ const ProfilePage = () => {
                       {stat.value}
                     </p>
                   )}
-
                   <p className="text-gray-400">{stat.label}</p>
                 </motion.div>
               ))}
