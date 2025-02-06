@@ -10,11 +10,12 @@ const EmailVerification = () => {
     error: authError,
     welcomeMessage,
     isAuthenticated,
+    user,
   } = useAuth();
 
   const [verificationAttempted, setVerificationAttempted] = useState(false);
   const [verificationError, setVerificationError] = useState(null);
-  const [verificationStatus, setVerificationStatus] = useState("pending"); 
+  const [verificationStatus, setVerificationStatus] = useState("pending");
 
   useEffect(() => {
     const verifyEmail = async () => {
@@ -34,16 +35,16 @@ const EmailVerification = () => {
         const response = await handleEmailVerification(token);
         console.log("Verification response:", response);
 
-        if (response.success) {
+        if (response?.success) {
           setVerificationStatus("success");
         } else {
-          setVerificationError(response.message || "Verification failed.");
+          setVerificationError(response?.message || "Verification failed.");
           setVerificationStatus("failed");
         }
       } catch (error) {
         console.error("Verification error:", error);
         setVerificationError(
-          error.message || "An error occurred during verification."
+          error?.message || "An error occurred during verification."
         );
         setVerificationStatus("failed");
       }
@@ -52,16 +53,18 @@ const EmailVerification = () => {
     verifyEmail();
   }, [searchParams, handleEmailVerification, verificationAttempted]);
 
-
   useEffect(() => {
-    if (verificationStatus === "success" && isAuthenticated) {
+    if (
+      verificationStatus === "success" &&
+      isAuthenticated &&
+      user?.isVerified
+    ) {
       const timer = setTimeout(() => {
         navigate("/");
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [verificationStatus, isAuthenticated, navigate]);
-
+  }, [verificationStatus, isAuthenticated, navigate, user]);
 
   useEffect(() => {
     if (authError) {
@@ -81,8 +84,7 @@ const EmailVerification = () => {
             : "Verifying Email..."}
         </h1>
 
-
-        {welcomeMessage && (
+        {welcomeMessage && verificationStatus === "success" && (
           <div
             className="text-green-400 mb-4 p-4 bg-green-500/10 rounded-lg text-center"
             data-testid="welcome-message"
@@ -90,7 +92,6 @@ const EmailVerification = () => {
             {welcomeMessage}
           </div>
         )}
-
 
         {(verificationError || authError) && (
           <div
@@ -101,13 +102,11 @@ const EmailVerification = () => {
           </div>
         )}
 
-
         {verificationStatus === "pending" && (
           <div className="flex justify-center items-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
           </div>
         )}
-
 
         {verificationStatus === "success" && (
           <p className="text-gray-300 text-center mt-4">
