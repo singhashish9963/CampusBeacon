@@ -4,7 +4,7 @@
 <a href="https://weekendofcode.computercodingclub.in/"> <img src="https://i.postimg.cc/njCM24kx/woc.jpg" height=30px> </a>
 
 ## Introduction:
-  CampusBeacon is a exclusive MNNIT website which connects students and reduces the hassle of too many groups and false informations which is very prevelant in the college. Main agendda of the website is to connect students across all bramches and all academic years, and to centralize features such as marketplace and Lost and Found.
+  CampusBeacon is an exclusive MNNIT website which connects students and reduces the hassle of too many groups and false informations which is very prevelant in the college. Main agenda of the website is to connect students across all branches academic years, and to centralize features such as marketplace and Lost and Found.
   
 ## Table of Contents:
 CampusBeacon offer various features to tackle the problems faced by students on daily basis. Some features are:
