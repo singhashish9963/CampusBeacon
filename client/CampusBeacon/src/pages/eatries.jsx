@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, MapPin, Phone, Star, X,} from "lucide-react";
-import { IoFastFoodOutline } from "react-icons/io5"
+import { Clock, MapPin, Phone, Star, X } from "lucide-react";
+import { IoFastFoodOutline } from "react-icons/io5";
 
 const StarRating = ({ rating, setRating }) => {
   return (
@@ -139,6 +139,11 @@ const CollegeEateries = () => {
                     <span className="text-white text-l">Open Now</span>
                   </div>
                 )}
+                {eatery.name == "Namastey Tech" && (
+                  <div className="absolute top-15 left-4 bg-green-400/70 px-3 py-1 rounded-full">
+                    <span className="text-white text-l">Pure Veg</span>
+                  </div>
+                )}
                 {!eatery.isOpen && (
                   <div className="absolute top-4 left-4 bg-red-500/70 px-3 py-1 rounded-full">
                     <span className="text-white text-l">Closed Now</span>
@@ -156,7 +161,8 @@ const CollegeEateries = () => {
                     <MapPin className="w-4 h-4 mr-2" /> {eatery.location}
                   </p>
                   <p className="text-gray-300 flex items-center">
-                    <Clock className="w-4 h-4 mr-2" /> {eatery.openTime} - {eatery.closeTime}
+                    <Clock className="w-4 h-4 mr-2" /> {eatery.openTime} -{" "}
+                    {eatery.closeTime}
                   </p>
                   <p className="text-gray-300 flex items-center">
                     <Phone className="w-4 h-4 mr-2" /> {eatery.contact}
