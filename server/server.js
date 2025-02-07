@@ -10,7 +10,7 @@ import ChatRoutes from "./src/routes/chat.routes.js";
 import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
-import chatBotRoutes from "./src/routes/chatBot.routes.js";
+import chatBotRoutes from "./src/routes/chatBot.routes.js"
 import { initialize as initializeChatbot } from "./src/utils/chatbot.utils.js";
 
 dotenv.config({ path: "./.env" });

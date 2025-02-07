@@ -1,14 +1,14 @@
-// components/ChatbotWidget.js
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useChatbot } from "../../contexts/chatBotContext";
+import { useChatbot } from "../../contexts/chatBotContext"
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
-  const { askQuestion, loading, error } = useChatbot();
   const [chatHistory, setChatHistory] = useState([]);
   const chatContainerRef = useRef(null);
+
+  const { loading, error, askQuestion } = useChatbot();
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -30,18 +30,19 @@ const ChatbotWidget = () => {
       ...prev,
       { sender: "user", message: trimmedQuestion },
     ]);
-
     setQuestion("");
 
     try {
-      const res = await askQuestion(trimmedQuestion);
-      if (res?.answer) {
+      const result = await askQuestion(trimmedQuestion);
+
+      if (result?.answer) {
         setChatHistory((prev) => [
           ...prev,
           {
             sender: "chatbot",
-            message: res.answer,
-            similarQuestions: res.similarQuestions,
+            message: result.answer,
+            similarQuestions: result.similarQuestions,
+            category: result.category,
           },
         ]);
       }
@@ -57,6 +58,11 @@ const ChatbotWidget = () => {
     }
   };
 
+  const handleSimilarQuestionClick = (question) => {
+    setQuestion(question);
+    handleSubmit({ preventDefault: () => {}, target: null });
+  };
+
   return (
     <>
       <div className="fixed bottom-6 right-6 z-50">
@@ -65,7 +71,7 @@ const ChatbotWidget = () => {
           className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-full shadow-lg hover:shadow-xl transition-all"
           aria-label={isOpen ? "Close chat" : "Open chat"}
         >
-          {isOpen ? "Close Chat" : "Chat"}
+          {isOpen ? "Close Chat" : "Chat with CampusBeacon"}
         </button>
       </div>
 
@@ -79,7 +85,9 @@ const ChatbotWidget = () => {
             className="fixed bottom-20 right-6 z-50 w-80 max-h-[80vh] bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col"
           >
             <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4">
-              <h3 className="text-white font-semibold">CampusBeacon Chatbot</h3>
+              <h3 className="text-white font-semibold">
+                CampusBeacon Assistant
+              </h3>
             </div>
             <div
               ref={chatContainerRef}
@@ -87,16 +95,14 @@ const ChatbotWidget = () => {
             >
               {chatHistory.length === 0 ? (
                 <p className="text-gray-400 text-sm text-center">
-                  Hi! How can I help you today?
+                  Hi! How can I help you with CampusBeacon today?
                 </p>
               ) : (
                 chatHistory.map((msg, index) => (
                   <div
                     key={index}
-                    className={`${
-                      msg.sender === "user"
-                        ? "flex justify-end"
-                        : "flex justify-start"
+                    className={`flex ${
+                      msg.sender === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
                     <div
@@ -112,9 +118,15 @@ const ChatbotWidget = () => {
                       {msg.similarQuestions?.length > 0 && (
                         <div className="mt-2 text-xs">
                           <p className="font-semibold">Similar questions:</p>
-                          <ul className="list-disc list-inside">
+                          <ul className="list-none space-y-1">
                             {msg.similarQuestions.map((q, i) => (
-                              <li key={i}>{q.question}</li>
+                              <li
+                                key={i}
+                                onClick={() => handleSimilarQuestionClick(q)}
+                                className="cursor-pointer hover:bg-pink-600 p-1 rounded"
+                              >
+                                {q}
+                              </li>
                             ))}
                           </ul>
                         </div>
@@ -130,7 +142,6 @@ const ChatbotWidget = () => {
                   </div>
                 </div>
               )}
-
               {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
             <form
@@ -142,7 +153,7 @@ const ChatbotWidget = () => {
                   type="text"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Type your question..."
+                  placeholder="Ask about CampusBeacon..."
                   className="w-full px-4 py-2 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                   disabled={loading}
                 />

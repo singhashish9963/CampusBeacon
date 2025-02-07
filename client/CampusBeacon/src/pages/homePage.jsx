@@ -2,33 +2,38 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ButtonColourfull from "../components/ButtonColourfull";
 import FeatureCard from "../components/HomePage/FeatureCard.jsx";
-import QuickLinks from "../components/HomePage/QuickLinks.jsx"
-import EventsSection from "../components/HomePage/EventsSection.jsx"
+import QuickLinks from "../components/HomePage/QuickLinks.jsx";
+import EventsSection from "../components/HomePage/EventsSection.jsx";
 import { motion } from "framer-motion";
-import { Mail,Users,Globe,HelpCircle,Database,Calendar } from "lucide-react";
+import {
+  Mail,
+  Users,
+  Globe,
+  HelpCircle,
+  Database,
+  Calendar,
+} from "lucide-react";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
-import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx"
+import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
+
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { isAuthenticated, handleLogout, user, lastLoginTime } = useAuth();
   const navigate = useNavigate();
 
-  useEffect(()=>{
-    const token=localStorage.getItem("token");
-    if(token){
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
       setIsLoggedIn(true);
     }
-  },[]);
-  
+  }, []);
+
   const handleLogoutClick = async () => {
     await handleLogout();
     navigate("/login");
   };
-
-
-
 
   return (
     <>
@@ -94,14 +99,13 @@ const HomePage = () => {
               className="text-center mb-20"
             >
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                {" "}
                 Features
               </h2>
               <p className="text-xl text-gray-400 font-mono">
                 We offer various services
               </p>
             </motion.div>
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12 ">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12">
               <FeatureCard
                 icon={Mail}
                 title="Eatries"
@@ -150,7 +154,6 @@ const HomePage = () => {
               className="text-center mb-20"
             >
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                {" "}
                 Quick Links
               </h2>
               <p className="text-xl text-gray-400 font-mono">
@@ -178,9 +181,10 @@ const HomePage = () => {
           </div>
         </section>
         <EventsSection />
-        <ChatbotWidget/>
+        <ChatbotWidget />
       </div>
     </>
   );
-}
+};
+
 export default HomePage;
