@@ -1,7 +1,11 @@
 import {Sequelize} from 'sequelize';
 import asyncHandler from '../utils/asyncHandler.js';
 import dotenv from "dotenv"
-dotenv.config();
+dotenv.config({ path: "./.env" });
+
+console.log("DATABASE_URL:", process.env.DATABASE_URL);
+
+
 
 /*
 =============================================================
@@ -20,10 +24,14 @@ const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432;
 =======================================================
 */
 
-const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
-    host: "localhost",
-    dialect: 'postgres',
-    port:process.env.DB_PORT,
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: "postgres",
+  dialectOptions: {
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
 });
 
 /*
