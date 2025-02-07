@@ -30,7 +30,8 @@ export const askQuestion = asyncHandler(async (req, res) => {
 });
 
 export const getAllQuestions = asyncHandler(async (req, res) => {
-  const qnaPairs = getAllQnAPairs();
+
+  const qnaPairs = await getAllQnAPairs();
   res
     .status(200)
     .json(
@@ -43,7 +44,8 @@ export const getQuestionsByCategory = asyncHandler(async (req, res) => {
   if (!category) {
     throw new ApiError(400, "Category is required");
   }
-  const qnaPairs = getQnAPairsByCategory(category);
+
+  const qnaPairs = await getQnAPairsByCategory(category);
   res
     .status(200)
     .json(

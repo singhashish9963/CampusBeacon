@@ -4,6 +4,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import asyncHandler from "./asyncHandler.js";
 
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const manager = new NlpManager({
   languages: ["en"],
@@ -182,3 +183,4 @@ export const getQnAPairsByCategory = asyncHandler(async (category) => {
     resolve(filtered);
   });
 });
+

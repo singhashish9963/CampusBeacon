@@ -10,25 +10,17 @@ import ChatRoutes from "./src/routes/chat.routes.js";
 import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
-import chatBotRoutes from "./src/routes/chatBot.routes.js"
+import chatBotRoutes from "./src/routes/chatBot.routes.js";
+import { initialize as initializeChatbot } from "./src/utils/chatbot.utils.js";
+
 dotenv.config({ path: "./.env" });
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
 
-/*
-===================================
-        Cookie to be parsed   
-===================================
-*/
+// Middleware setup
 app.use(cookieParser());
-
-/*
-============================================================
-        Applying cors for cross origin data exchange 
-============================================================
-*/
 app.use(
   cors({
     origin: process.env.CORS_ORIGIN || "http://localhost:5173",
@@ -37,58 +29,61 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.use(express.json());
 
-/*
-===================================
-    Initialize WebSocket Server    
-===================================
-*/
+// Socket.io setup
 const io = initializeSocket(httpServer);
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-/*
-=============================
-        JSON Parsing Middleware
-=============================
-*/
-app.use(express.json());
-
-/*
-=============================
-        Connect Database  
-=============================
-*/
-connectDb();
-
-/*
-=======================================
-        Testing Route for Backend  
-=======================================
-*/
+// Test route
 app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-/*
-=========================================
-        Using Routes as Middleware   
-=========================================
-*/
+// Routes
 app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/lost-and-found", lostAndFoundRoutes);
 app.use("/api/buy-and-sell", buyAndSellRoutes);
 app.use("/api/chat", ChatRoutes);
-app.use("/bot",chatBotRoutes);
+app.use("/api/chatbot", chatBotRoutes);
 
-/*
-=================================
-        Starting Server  
-=================================
-*/
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+// Initialize services and start server
+const startServer = async () => {
+  try {
+    // Initialize database
+    console.log("Connecting to database...");
+    await connectDb();
+    console.log("Database connected successfully");
+
+    // Initialize chatbot
+    console.log("Initializing chatbot service...");
+    await initializeChatbot();
+    console.log("Chatbot service initialized successfully");
+
+    // Start the server
+    httpServer.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+// Handle uncaught errors
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception:", error);
+  process.exit(1);
 });
+
+process.on("unhandledRejection", (error) => {
+  console.error("Unhandled Rejection:", error);
+  process.exit(1);
+});
+
+// Start the server
+startServer();
