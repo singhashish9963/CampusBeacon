@@ -81,12 +81,6 @@ const createInitialModel = asyncHandler(async () => {
         "The 'Resources' section includes links to various college clubs, their social media pages, and websites.",
       category: "clubs",
     },
-    {
-      question: "Is there a way to share cabs?",
-      answer:
-        "Yes! You can find cab-sharing options in the 'Cab Sharing' section to coordinate rides with fellow students.",
-      category: "transportation",
-    },
   ];
 
   for (const item of initialData)
@@ -98,8 +92,10 @@ const createInitialModel = asyncHandler(async () => {
 export const addQnAPair = asyncHandler(
   async (question, answer, category = "general") => {
     const intent = `qna_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    manager.addDocument("en", question, intent);
-    manager.addAnswer("en", intent, answer);
+    await Promise.all([
+      manager.addDocument("en", question, intent),
+      manager.addAnswer("en", intent, answer),
+    ]);
     qnaStore.set(intent, {
       question,
       answer,
@@ -123,39 +119,66 @@ export const processQuestion = asyncHandler(async (question) => {
   const result = await manager.process("en", question);
   if (result.intent && result.score > 0.7) {
     const qnaPair = qnaStore.get(result.intent);
+    const similarQuestions = await findSimilarQuestions(
+      question,
+      result.intent
+    );
     return {
       answer: result.answer,
       confidence: result.score,
       category: qnaPair?.category,
-      similarQuestions: await findSimilarQuestions(question, result.intent),
+      similarQuestions,
     };
   }
+  const similarQuestions = await findSimilarQuestions(question);
   return {
     answer:
       "I'm not sure about that. Here are some similar questions I can help with:",
     confidence: 0,
-    similarQuestions: await findSimilarQuestions(question),
+    similarQuestions,
   };
 });
 
 export const findSimilarQuestions = asyncHandler(
   async (question, excludeIntent = null, limit = 3) => {
     const results = [];
-    for (const [intent, data] of qnaStore.entries()) {
-      if (excludeIntent && intent === excludeIntent) continue;
-      const similarity = await calculateSimilarity(question, data.question);
-      if (similarity > 0.5) results.push({ ...data, similarity });
-    }
-    return results.sort((a, b) => b.similarity - a.similarity).slice(0, limit);
+    const entries = Array.from(qnaStore.entries());
+
+    const similarities = await Promise.all(
+      entries.map(async ([intent, data]) => {
+        if (excludeIntent && intent === excludeIntent) return null;
+        const similarity = await calculateSimilarity(question, data.question);
+        if (similarity > 0.5) return { ...data, similarity };
+        return null;
+      })
+    );
+
+    return similarities
+      .filter((result) => result !== null)
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, limit);
   }
 );
 
 const calculateSimilarity = asyncHandler(async (text1, text2) => {
-  const result1 = await manager.process("en", text1);
-  const result2 = await manager.process("en", text2);
+  const [result1, result2] = await Promise.all([
+    manager.process("en", text1),
+    manager.process("en", text2),
+  ]);
   return result1.score * result2.score;
 });
 
-export const getAllQnAPairs = () => Array.from(qnaStore.values());
-export const getQnAPairsByCategory = (category) =>
-  Array.from(qnaStore.values()).filter((pair) => pair.category === category);
+export const getAllQnAPairs = asyncHandler(async () => {
+  return new Promise((resolve) => {
+    resolve(Array.from(qnaStore.values()));
+  });
+});
+
+export const getQnAPairsByCategory = asyncHandler(async (category) => {
+  return new Promise((resolve) => {
+    const filtered = Array.from(qnaStore.values()).filter(
+      (pair) => pair.category === category
+    );
+    resolve(filtered);
+  });
+});
