@@ -22,6 +22,43 @@ export const ChatContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [typingUsers, setTypingUsers] = useState(new Set());
+  const [userProfiles, setUserProfiles] = useState({}); // Store user profiles
+
+  const fetchUserProfile = async (userId) => {
+    try {
+      const response = await api.get(`/api/users/current`);
+      if (response.data.success) {
+        setUserProfiles((prev) => ({
+          ...prev,
+          [userId]: response.data.data.user,
+        }));
+        return response.data.data.user;
+      }
+    } catch (error) {
+      console.error(`Failed to fetch user profile for ${userId}:`, error);
+    }
+    return null;
+  };
+
+  const fetchMessages = async (channelId) => {
+    try {
+      setLoading(true);
+      const { data } = await api.get(
+        `/api/chat/channels/${channelId}/messages`
+      );
+
+      const userIds = [...new Set(data.data.map((msg) => msg.userId))];
+
+      const uncachedUserIds = userIds.filter((id) => !userProfiles[id]);
+      await Promise.all(uncachedUserIds.map(fetchUserProfile));
+
+      setMessages(data.data.reverse());
+    } catch (error) {
+      setError(error?.response?.data?.message || "Failed to fetch messages");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (user?.id) {
@@ -88,22 +125,7 @@ export const ChatContextProvider = ({ children }) => {
     }
   };
 
-  const fetchMessages = async (channelId) => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(
-        `/api/chat/channels/${channelId}/messages`
-      );
-      // Reverse the messages if API returns in descending order so oldest appear first
-      setMessages(data.data.reverse());
-    } catch (error) {
-      setError(error?.response?.data?.message || "Failed to fetch messages");
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  // Updated sendMessage: use a temporary id and update when the server returns the actual message.
   const sendMessage = async (content) => {
     if (!currentChannel || !content.trim()) return;
 
@@ -126,7 +148,7 @@ export const ChatContextProvider = ({ children }) => {
         }
       );
       const actualMessage = response.data.data;
-      // Replace optimistic message with the actual message from server.
+
       setMessages((prev) =>
         prev.map((m) => (m.id === tempId ? actualMessage : m))
       );
@@ -199,6 +221,7 @@ export const ChatContextProvider = ({ children }) => {
     handleTyping,
     fetchChannels,
     user,
+    userProfiles,
   };
 
   return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;

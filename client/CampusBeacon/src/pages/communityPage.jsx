@@ -7,19 +7,27 @@ import { useChat } from "../contexts/chatContext";
 import { useAuth } from "../contexts/AuthContext";
 
 const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
+  const { userProfiles } = useChat(); 
+  const userProfile = userProfiles[message.userId];
+
   return (
     <div className="group flex items-start space-x-3 p-2 hover:bg-purple-500/10 rounded-lg">
       <img
-        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`}
-        alt={message.userId}
+        src={
+          userProfile?.avatar ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`
+        }
+        alt={userProfile?.name || message.userId}
         className="w-10 h-10 rounded-full"
       />
       <div className="flex-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <span className="font-semibold text-white">{message.userId}</span>
+            <span className="font-semibold text-white">
+              {userProfile?.name || message.userId}{" "}
+            </span>
             <span className="text-xs text-gray-400">
-              {new Date(message.timestamp).toLocaleTimeString()}
+              {userProfile.registration_number}
             </span>
           </div>
           {isOwnMessage && (
@@ -28,7 +36,9 @@ const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
               whileTap={{ scale: 0.9 }}
               onClick={() => {
                 if (
-                  window.confirm("Are you sure you want to delete this message?")
+                  window.confirm(
+                    "Are you sure you want to delete this message?"
+                  )
                 ) {
                   onDelete(message.id);
                 }
