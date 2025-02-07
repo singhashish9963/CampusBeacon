@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import io from "socket.io-client";
-import axios from "axios"; // Add this import
+import axios from "axios";
 import { useAuth } from "./AuthContext";
 
 const ChatContext = createContext(null);
@@ -30,7 +30,7 @@ export const ChatContextProvider = ({ children }) => {
       });
 
       newSocket.on("connect", () => {
-        console.log("Socket connected");
+        console.log("Socket connected:", newSocket.id);
       });
 
       newSocket.on("connect_error", (error) => {
@@ -48,18 +48,22 @@ export const ChatContextProvider = ({ children }) => {
     if (!socket) return;
 
     socket.on("new-message", (message) => {
+      console.log("Received new message from socket:", message);
       setMessages((prev) => [message, ...prev]);
     });
 
     socket.on("message-deleted", (messageId) => {
+      console.log("Received message deletion event from socket:", messageId);
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     });
 
     socket.on("user-typing", ({ userId }) => {
+      console.log("User typing event received for user:", userId);
       setTypingUsers((prev) => new Set([...prev, userId]));
     });
 
     socket.on("user-stop-typing", ({ userId }) => {
+      console.log("User stop typing event received for user:", userId);
       setTypingUsers((prev) => {
         const newSet = new Set(prev);
         newSet.delete(userId);
@@ -102,6 +106,15 @@ export const ChatContextProvider = ({ children }) => {
     if (!currentChannel || !content.trim()) return;
 
     try {
+
+      const optimisticMessage = {
+        id: Date.now(),
+        content,
+        userId: user.id,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [optimisticMessage, ...prev]);
+
       await api.post(`/api/chat/channels/${currentChannel}/messages`, {
         content,
         timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
@@ -121,6 +134,7 @@ export const ChatContextProvider = ({ children }) => {
 
   const joinChannel = (channelId) => {
     if (socket && channelId) {
+      console.log("Joining channel:", channelId);
       socket.emit("join-channel", channelId);
       setCurrentChannel(channelId);
       fetchMessages(channelId);
@@ -133,32 +147,19 @@ export const ChatContextProvider = ({ children }) => {
     }
   };
 
-
   useEffect(() => {
-   
     const requestInterceptor = api.interceptors.request.use(
-      (config) => {
-   
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
+      (config) => config,
+      (error) => Promise.reject(error)
     );
-
-   
     const responseInterceptor = api.interceptors.response.use(
       (response) => response,
       (error) => {
-  
         if (error.response?.status === 401) {
-      
           setError("Please login again");
         } else if (error.response?.status === 404) {
-     
           setError("Resource not found");
         } else if (!error.response) {
-
           setError("Network error - please check your connection");
         }
         return Promise.reject(error);
@@ -197,3 +198,5 @@ export const useChat = () => {
   }
   return context;
 };
+
+export default ChatContext;

@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Hash, Search, Send, Users } from "lucide-react";
+import { Hash, Search, Send } from "lucide-react";
 import { motion } from "framer-motion";
 import { FaCode } from "react-icons/fa";
 import { TiMessages } from "react-icons/ti";
-import { useChat } from "../contexts/chatContext"; 
-import { useAuth } from "../contexts/AuthContext"; 
+import { useChat } from "../contexts/chatContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const MessageBubble = ({ message }) => (
   <div className="flex items-start space-x-3 p-2 hover:bg-purple-500/10 rounded-lg">
@@ -29,7 +29,6 @@ const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const messagesEndRef = useRef(null);
   const { user } = useAuth();
-
   const {
     messages,
     channels,
@@ -41,14 +40,11 @@ const CommunityPage = () => {
     handleTyping,
     typingUsers,
   } = useChat();
-
   const [newMessage, setNewMessage] = useState("");
-
 
   useEffect(() => {
     fetchChannels();
   }, []);
-
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
