@@ -94,7 +94,7 @@ export const ChatContextProvider = ({ children }) => {
       const { data } = await api.get(
         `/api/chat/channels/${channelId}/messages`
       );
-
+      // Reverse the messages if API returns in descending order so oldest appear first
       setMessages(data.data.reverse());
     } catch (error) {
       setError(error?.response?.data?.message || "Failed to fetch messages");
@@ -103,23 +103,33 @@ export const ChatContextProvider = ({ children }) => {
     }
   };
 
-
+  // Updated sendMessage: use a temporary id and update when the server returns the actual message.
   const sendMessage = async (content) => {
     if (!currentChannel || !content.trim()) return;
 
     try {
+      const tempId = Date.now();
       const optimisticMessage = {
-        id: Date.now(),
+        id: tempId,
         content,
         userId: user.id,
         timestamp: new Date().toISOString(),
+        temp: true,
       };
       setMessages((prev) => [...prev, optimisticMessage]);
 
-      await api.post(`/api/chat/channels/${currentChannel}/messages`, {
-        content,
-        timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
-      });
+      const response = await api.post(
+        `/api/chat/channels/${currentChannel}/messages`,
+        {
+          content,
+          timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
+        }
+      );
+      const actualMessage = response.data.data;
+      // Replace optimistic message with the actual message from server.
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempId ? actualMessage : m))
+      );
     } catch (error) {
       setError(error?.response?.data?.message || "Failed to send message");
     }
@@ -128,6 +138,8 @@ export const ChatContextProvider = ({ children }) => {
   const deleteMessage = async (messageId) => {
     try {
       await api.delete(`/api/chat/messages/${messageId}`);
+      // Optionally remove the message immediately if server doesn't push delete event
+      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     } catch (error) {
       setError(error?.response?.data?.message || "Failed to delete message");
     }

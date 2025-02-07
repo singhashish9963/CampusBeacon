@@ -1,29 +1,52 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Hash, Search, Send } from "lucide-react";
+import { Hash, Search, Send, Trash } from "lucide-react";
 import { motion } from "framer-motion";
 import { FaCode } from "react-icons/fa";
 import { TiMessages } from "react-icons/ti";
 import { useChat } from "../contexts/chatContext";
 import { useAuth } from "../contexts/AuthContext";
 
-const MessageBubble = ({ message }) => (
-  <div className="flex items-start space-x-3 p-2 hover:bg-purple-500/10 rounded-lg">
-    <img
-      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`}
-      alt={message.userId}
-      className="w-10 h-10 rounded-full"
-    />
-    <div className="flex-1">
-      <div className="flex items-center space-x-2">
-        <span className="font-semibold text-white">{message.userId}</span>
-        <span className="text-xs text-gray-400">
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </span>
+const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
+  return (
+    <div className="group flex items-start space-x-3 p-2 hover:bg-purple-500/10 rounded-lg">
+      <img
+        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${message.userId}`}
+        alt={message.userId}
+        className="w-10 h-10 rounded-full"
+      />
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <span className="font-semibold text-white">{message.userId}</span>
+            <span className="text-xs text-gray-400">
+              {new Date(message.timestamp).toLocaleTimeString()}
+            </span>
+          </div>
+          {isOwnMessage && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    "Are you sure you want to delete this message?"
+                  )
+                ) {
+                  onDelete(message.id);
+                }
+              }}
+              className="opacity-0 group-hover:opacity-100 text-red-500"
+              title="Delete Message"
+            >
+              <Trash size={18} />
+            </motion.button>
+          )}
+        </div>
+        <p className="text-gray-300">{message.content}</p>
       </div>
-      <p className="text-gray-300">{message.content}</p>
     </div>
-  </div>
-);
+  );
+};
 
 const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -39,6 +62,7 @@ const CommunityPage = () => {
     fetchChannels,
     handleTyping,
     typingUsers,
+    deleteMessage,
   } = useChat();
   const [newMessage, setNewMessage] = useState("");
 
@@ -153,7 +177,7 @@ const CommunityPage = () => {
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
               {isLoading ? (
                 <div className="flex items-center justify-center h-full">
                   <motion.div
@@ -169,7 +193,12 @@ const CommunityPage = () => {
               ) : (
                 <>
                   {messages.map((message) => (
-                    <MessageBubble key={message.id} message={message} />
+                    <MessageBubble
+                      key={message.id}
+                      message={message}
+                      isOwnMessage={user?.id === message.userId}
+                      onDelete={deleteMessage}
+                    />
                   ))}
                   <div ref={messagesEndRef} />
                 </>
@@ -199,8 +228,9 @@ const CommunityPage = () => {
                   whileTap={{ scale: 0.9 }}
                   onClick={handleSendMessage}
                   className="p-2 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+                  title="Send Message"
                 >
-                  <Send className="w-5 h-5" />
+                  <Send size={18} />
                 </motion.button>
               </div>
             </div>

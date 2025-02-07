@@ -36,7 +36,7 @@ const createMessage = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
   const { content } = req.body;
   const userId = req.user?.id;
-  const currentTime = "2025-02-05 18:08:34"; 
+  const currentTime = new Date()
 
   if (!content?.trim()) {
     throw new ApiError(400, "Message content is required");
