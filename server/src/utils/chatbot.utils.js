@@ -2,24 +2,28 @@ import { NlpManager } from "node-nlp";
 import { promises as fs } from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import asyncHandler from "./asyncHandler.js";
-
+import asyncHandler from "../utils/asyncHandler.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const modelPath = path.join(__dirname, "../models/campus-bot.nlp");
+
 const manager = new NlpManager({
   languages: ["en"],
   threshold: 0.7,
-  autoSave: true,
+  autoSave: false,
   autoLoad: true,
 });
+
 const qnaStore = new Map();
-const modelPath = path.join(__dirname, "../models/qna-model.nlp");
 
 export const initialize = asyncHandler(async () => {
-  console.log("Initializing NLP Service...");
-  const modelExists = await checkModelExists();
-  modelExists ? await loadModel() : await createInitialModel();
-  console.log("NLP Service initialized successfully");
+  console.log("Initializing CampusBeacon Chatbot...");
+  if (await checkModelExists()) {
+    await loadModel();
+  } else {
+    await createInitialModel();
+  }
+  console.log("CampusBeacon Chatbot initialized successfully");
 });
 
 const checkModelExists = asyncHandler(async () => {
@@ -40,52 +44,54 @@ const loadModel = asyncHandler(async () => {
 const createInitialModel = asyncHandler(async () => {
   console.log("Creating initial model...");
   const initialData = [
+    // General Campus Information
     {
-      question: "What is this website?",
+      question: "What is CampusBeacon?",
       answer:
-        "This is a platform designed to help college students with various needs such as event updates, lost and found, buy and sell, and more.",
+        "CampusBeacon is a comprehensive student platform that connects and helps manage various aspects of campus life, including hostel management, lost & found services, marketplace, and attendance tracking.",
       category: "general",
     },
+    // Hostel Related
     {
-      question: "How can I find lost items?",
+      question: "How do I submit a hostel maintenance request?",
       answer:
-        "You can check the 'Lost and Found' section where users post details about lost or found items.",
+        "You can submit a maintenance request through the Hostel Management section. Click on 'Hostel Management' in the features section, then select 'Submit Maintenance Request'.",
+      category: "hostel",
+    },
+    // Lost and Found
+    {
+      question: "How can I report a lost item?",
+      answer:
+        "To report a lost item, navigate to the 'Lost & Found' section, click on 'Report Lost Item', and fill out the form with details about your lost item.",
       category: "lost_found",
     },
+    // Marketplace
     {
-      question: "How do I buy or sell items?",
+      question: "How do I list an item for sale?",
       answer:
-        "Navigate to the 'Buy and Sell' section to list items for sale or browse items posted by other students.",
+        "To sell an item, go to the 'Buy & Sell' marketplace section, click on 'List New Item', and fill out the item details including price and description.",
       category: "marketplace",
     },
+    // Attendance
     {
-      question: "Where can I see my attendance?",
+      question: "Where can I check my attendance?",
       answer:
-        "Attendance details are available in the 'Attendance Management' section, where you can select subjects and track your attendance.",
-      category: "academics",
+        "You can check your attendance by clicking on the 'Attendance Manager' feature. It shows your attendance percentage for all subjects.",
+      category: "attendance",
     },
+    // Events
     {
-      question: "How can I check the hostel menu?",
+      question: "How do I find upcoming campus events?",
       answer:
-        "The 'Hostel' section provides the daily mess menu along with contact details for mess and hostel representatives.",
-      category: "hostel",
-    },
-    {
-      question: "How do I report a hostel issue?",
-      answer:
-        "You can file complaints in the 'Hostel' section, where contacts for hostel and mess representatives are listed.",
-      category: "hostel",
-    },
-    {
-      question: "How do I join college clubs?",
-      answer:
-        "The 'Resources' section includes links to various college clubs, their social media pages, and websites.",
-      category: "clubs",
+        "Check the Events section on the homepage or navigate to the Community section to see all upcoming campus events and activities.",
+      category: "events",
     },
   ];
 
-  for (const item of initialData)
+  for (const item of initialData) {
     await addQnAPair(item.question, item.answer, item.category);
+  }
+
   await trainAndSave();
   console.log("Initial model created successfully");
 });
@@ -93,18 +99,9 @@ const createInitialModel = asyncHandler(async () => {
 export const addQnAPair = asyncHandler(
   async (question, answer, category = "general") => {
     const intent = `qna_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    await Promise.all([
-      manager.addDocument("en", question, intent),
-      manager.addAnswer("en", intent, answer),
-    ]);
-    qnaStore.set(intent, {
-      question,
-      answer,
-      category,
-      intent,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    });
+    manager.addDocument("en", question, intent);
+    manager.addAnswer("en", intent, answer);
+    qnaStore.set(intent, { question, answer, category, intent });
     return intent;
   }
 );
@@ -120,67 +117,30 @@ export const processQuestion = asyncHandler(async (question) => {
   const result = await manager.process("en", question);
   if (result.intent && result.score > 0.7) {
     const qnaPair = qnaStore.get(result.intent);
-    const similarQuestions = await findSimilarQuestions(
-      question,
-      result.intent
-    );
     return {
       answer: result.answer,
       confidence: result.score,
       category: qnaPair?.category,
-      similarQuestions,
+      similarQuestions: Array.from(qnaStore.values())
+        .filter((pair) => pair.category === qnaPair?.category)
+        .slice(0, 3)
+        .map((pair) => pair.question),
     };
   }
-  const similarQuestions = await findSimilarQuestions(question);
   return {
     answer:
-      "I'm not sure about that. Here are some similar questions I can help with:",
+      "I'm not quite sure about that. Could you please rephrase your question? You can also check our specific sections like Hostel Management, Lost & Found, or Marketplace for more information.",
     confidence: 0,
-    similarQuestions,
+    similarQuestions: [],
   };
 });
 
-export const findSimilarQuestions = asyncHandler(
-  async (question, excludeIntent = null, limit = 3) => {
-    const results = [];
-    const entries = Array.from(qnaStore.entries());
-
-    const similarities = await Promise.all(
-      entries.map(async ([intent, data]) => {
-        if (excludeIntent && intent === excludeIntent) return null;
-        const similarity = await calculateSimilarity(question, data.question);
-        if (similarity > 0.5) return { ...data, similarity };
-        return null;
-      })
-    );
-
-    return similarities
-      .filter((result) => result !== null)
-      .sort((a, b) => b.similarity - a.similarity)
-      .slice(0, limit);
-  }
-);
-
-const calculateSimilarity = asyncHandler(async (text1, text2) => {
-  const [result1, result2] = await Promise.all([
-    manager.process("en", text1),
-    manager.process("en", text2),
-  ]);
-  return result1.score * result2.score;
-});
-
 export const getAllQnAPairs = asyncHandler(async () => {
-  return new Promise((resolve) => {
-    resolve(Array.from(qnaStore.values()));
-  });
+  return Array.from(qnaStore.values());
 });
 
 export const getQnAPairsByCategory = asyncHandler(async (category) => {
-  return new Promise((resolve) => {
-    const filtered = Array.from(qnaStore.values()).filter(
-      (pair) => pair.category === category
-    );
-    resolve(filtered);
-  });
+  return Array.from(qnaStore.values()).filter(
+    (pair) => pair.category === category
+  );
 });
-
