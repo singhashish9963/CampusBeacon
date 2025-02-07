@@ -22,7 +22,7 @@ export const ChatContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [typingUsers, setTypingUsers] = useState(new Set());
-  const [userProfiles, setUserProfiles] = useState({}); // Store user profiles
+  const [userProfiles, setUserProfiles] = useState({}); 
 
   const fetchUserProfile = async (userId) => {
     try {
