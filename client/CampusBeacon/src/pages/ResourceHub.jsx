@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-
+import { FaBookReader } from "react-icons/fa";
 const ResourcesPage = () => {
   const [selectedBranch, setSelectedBranch] = useState(null);
   const [selectedYear, setSelectedYear] = useState(null);
@@ -50,8 +50,17 @@ const resources = {
 
 return (
   <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 p-8">
+      <motion.h1 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-4xl font-bold text-white mb-8 flex items-center"
+        >
+          <FaBookReader className="mr-3 " /> Academic Resources
+        </motion.h1>
 
   </div>
 
 );
 };
+
+export default ResourcesPage;
