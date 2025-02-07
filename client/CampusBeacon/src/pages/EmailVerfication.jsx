@@ -29,7 +29,7 @@ const EmailVerification = () => {
         return;
       }
 
-      hasAttemptedVerification.current = true; // Set ref to true to prevent multiple calls
+      hasAttemptedVerification.current = true; 
 
       try {
         console.log("Starting verification with token:", token);
@@ -38,6 +38,10 @@ const EmailVerification = () => {
 
         if (response?.success) {
           setVerificationStatus("success");
+          if (response.data.success) {
+            await checkAuthStatus(); 
+            navigate("/");
+          }
         } else {
           setVerificationError(response?.message || "Verification failed.");
           setVerificationStatus("failed");

@@ -35,28 +35,24 @@ export const AuthProvider = ({ children }) => {
       return () => clearTimeout(timer);
     }
   }, [welcomeMessage]);
-
-  const checkAuthStatus = useCallback(async () => {
-    try {
-      const response = await api.get("/users/current");
-      if (response.data.success && response.data.data.user) {
-        const userData = response.data.data.user;
-        setUser(userData);
-        setIsAuthenticated(true);
-        // Check if user is verified
-        if (!userData.isVerified) {
-          setError("Please verify your email to continue.");
-        }
-      }
-    } catch (error) {
-      console.error("Auth check failed:", error);
-      if (error.response?.status !== 401) {
-        handleLogout();
-      }
-    } finally {
-      setLoading(false);
+const checkAuthStatus = useCallback(async () => {
+  try {
+    const response = await api.get("/users/current");
+    if (response.data?.data?.user) {
+      setUser(response.data.data.user);
+      setIsAuthenticated(true);
+      return true;
     }
-  }, []);
+  } catch (error) {
+    console.error("Auth check failed:", error);
+    setUser(null);
+    setIsAuthenticated(false);
+  } finally {
+    setLoading(false);
+  }
+  return false;
+}, []);
+
 
   useEffect(() => {
     checkAuthStatus();
