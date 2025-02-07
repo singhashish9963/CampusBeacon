@@ -121,6 +121,59 @@ class NlpService {
     await this.manager.save(this.modelPath);
     console.log("Model trained and saved successfully");
   });
+  processQuestion = asyncHandler(async (question) => {
+    const result = await this.manager.process("en", question);
+    if (result.intent && result.score > config.nlpConfig.threshold) {
+      const qnaPair = this.qnaStore.get(result.intent);
+      return {
+        answer: result.answer,
+        confidence: result.score,
+        category: qnaPair?.category,
+        similarQuestions: await this.findSimilarQuestions(
+          question,
+          result.intent
+        ),
+      };
+    }
+    return {
+      answer: "I'm not sure about that. Here are some similar questions:",
+      confidence: 0,
+      similarQuestions: await this.findSimilarQuestions(question),
+    };
+  });
+
+  findSimilarQuestions = asyncHandler(
+    async (question, excludeIntent = null, limit = 3) => {
+      const results = [];
+      for (const [intent, data] of this.qnaStore.entries()) {
+        if (excludeIntent && intent === excludeIntent) continue;
+        const similarity = await this.calculateSimilarity(
+          question,
+          data.question
+        );
+        if (similarity > 0.5) {
+          results.push({ ...data, similarity });
+        }
+      }
+      return results
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, limit);
+    }
+  );
+
+  calculateSimilarity = asyncHandler(async (text1, text2) => {
+    const result1 = await this.manager.process("en", text1);
+    const result2 = await this.manager.process("en", text2);
+    return result1.score * result2.score;
+  });
+
+  getAllQnAPairs = asyncHandler(async () => Array.from(this.qnaStore.values()));
+
+  getQnAPairsByCategory = asyncHandler(async (category) =>
+    Array.from(this.qnaStore.values()).filter(
+      (pair) => pair.category === category
+    )
+  );
 }
 
-export default NlpService;
+export default new NlpService();
