@@ -3,12 +3,12 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import dotenv from "dotenv"
-dotenv.config()
+dotenv.config("./.env")
 
 const initializeSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL,
+      origin: process.env.FRONTEND_URL || "https://campusbeacon.onrender.com",
       credentials: true,
     },
   });
