@@ -35,68 +35,68 @@
         },
         "stemDict": {
           "campusbeacon,is,what": {
-            "intent": "qna_1738948514390_r0sil813e8k",
+            "intent": "qna_1738950089509_3uliczjvtea",
             "domain": "default"
           },
           "a,do,hostel,how,i,mainten,request,submit": {
-            "intent": "qna_1738948514393_yatcjtr4wn",
+            "intent": "qna_1738950089511_pzyo21er8aq",
             "domain": "default"
           },
           "a,can,how,i,item,lost,report": {
-            "intent": "qna_1738948514393_jhy7elb96ic",
+            "intent": "qna_1738950089511_pu85cqwi9aa",
             "domain": "default"
           },
           "an,do,for,how,i,item,list,sale": {
-            "intent": "qna_1738948514393_i6v40zkozd",
+            "intent": "qna_1738950089511_mv6mt2m0jtb",
             "domain": "default"
           },
           "attend,can,check,i,my,where": {
-            "intent": "qna_1738948514393_0hg9bds8t1i7",
+            "intent": "qna_1738950089512_qzshtu15edk",
             "domain": "default"
           },
           "campus,do,event,find,how,i,upcom": {
-            "intent": "qna_1738948514393_znybho2ewg",
+            "intent": "qna_1738950089512_clspdrdrm8v",
             "domain": "default"
           }
         },
         "intentDict": {
-          "qna_1738948514390_r0sil813e8k": "default",
-          "qna_1738948514393_yatcjtr4wn": "default",
-          "qna_1738948514393_jhy7elb96ic": "default",
-          "qna_1738948514393_i6v40zkozd": "default",
-          "qna_1738948514393_0hg9bds8t1i7": "default",
-          "qna_1738948514393_znybho2ewg": "default"
+          "qna_1738950089509_3uliczjvtea": "default",
+          "qna_1738950089511_pzyo21er8aq": "default",
+          "qna_1738950089511_pu85cqwi9aa": "default",
+          "qna_1738950089511_mv6mt2m0jtb": "default",
+          "qna_1738950089512_qzshtu15edk": "default",
+          "qna_1738950089512_clspdrdrm8v": "default"
         },
         "sentences": [
           {
             "domain": "default",
             "utterance": "What is CampusBeacon?",
-            "intent": "qna_1738948514390_r0sil813e8k"
+            "intent": "qna_1738950089509_3uliczjvtea"
           },
           {
             "domain": "default",
             "utterance": "How do I submit a hostel maintenance request?",
-            "intent": "qna_1738948514393_yatcjtr4wn"
+            "intent": "qna_1738950089511_pzyo21er8aq"
           },
           {
             "domain": "default",
             "utterance": "How can I report a lost item?",
-            "intent": "qna_1738948514393_jhy7elb96ic"
+            "intent": "qna_1738950089511_pu85cqwi9aa"
           },
           {
             "domain": "default",
             "utterance": "How do I list an item for sale?",
-            "intent": "qna_1738948514393_i6v40zkozd"
+            "intent": "qna_1738950089511_mv6mt2m0jtb"
           },
           {
             "domain": "default",
             "utterance": "Where can I check my attendance?",
-            "intent": "qna_1738948514393_0hg9bds8t1i7"
+            "intent": "qna_1738950089512_qzshtu15edk"
           },
           {
             "domain": "default",
             "utterance": "How do I find upcoming campus events?",
-            "intent": "qna_1738948514393_znybho2ewg"
+            "intent": "qna_1738950089512_clspdrdrm8v"
           }
         ],
         "domains": {
@@ -142,20 +142,20 @@
               "event": 1
             },
             "intents": {
-              "qna_1738948514390_r0sil813e8k": 1,
-              "qna_1738948514393_yatcjtr4wn": 1,
-              "qna_1738948514393_jhy7elb96ic": 1,
-              "qna_1738948514393_i6v40zkozd": 1,
-              "qna_1738948514393_0hg9bds8t1i7": 1,
-              "qna_1738948514393_znybho2ewg": 1
+              "qna_1738950089509_3uliczjvtea": 1,
+              "qna_1738950089511_pzyo21er8aq": 1,
+              "qna_1738950089511_pu85cqwi9aa": 1,
+              "qna_1738950089511_mv6mt2m0jtb": 1,
+              "qna_1738950089512_qzshtu15edk": 1,
+              "qna_1738950089512_clspdrdrm8v": 1
             },
             "intentFeatures": {
-              "qna_1738948514390_r0sil813e8k": {
+              "qna_1738950089509_3uliczjvtea": {
                 "what": 1,
                 "is": 1,
                 "campusbeacon": 1
               },
-              "qna_1738948514393_yatcjtr4wn": {
+              "qna_1738950089511_pzyo21er8aq": {
                 "how": 1,
                 "do": 1,
                 "i": 1,
@@ -165,7 +165,7 @@
                 "mainten": 1,
                 "request": 1
               },
-              "qna_1738948514393_jhy7elb96ic": {
+              "qna_1738950089511_pu85cqwi9aa": {
                 "how": 1,
                 "can": 1,
                 "i": 1,
@@ -174,7 +174,7 @@
                 "lost": 1,
                 "item": 1
               },
-              "qna_1738948514393_i6v40zkozd": {
+              "qna_1738950089511_mv6mt2m0jtb": {
                 "how": 1,
                 "do": 1,
                 "i": 1,
@@ -184,7 +184,7 @@
                 "for": 1,
                 "sale": 1
               },
-              "qna_1738948514393_0hg9bds8t1i7": {
+              "qna_1738950089512_qzshtu15edk": {
                 "where": 1,
                 "can": 1,
                 "i": 1,
@@ -192,7 +192,7 @@
                 "my": 1,
                 "attend": 1
               },
-              "qna_1738948514393_znybho2ewg": {
+              "qna_1738950089512_clspdrdrm8v": {
                 "how": 1,
                 "do": 1,
                 "i": 1,
@@ -204,97 +204,97 @@
             },
             "featuresToIntent": {
               "what": [
-                "qna_1738948514390_r0sil813e8k"
+                "qna_1738950089509_3uliczjvtea"
               ],
               "is": [
-                "qna_1738948514390_r0sil813e8k"
+                "qna_1738950089509_3uliczjvtea"
               ],
               "campusbeacon": [
-                "qna_1738948514390_r0sil813e8k"
+                "qna_1738950089509_3uliczjvtea"
               ],
               "how": [
-                "qna_1738948514393_yatcjtr4wn",
-                "qna_1738948514393_jhy7elb96ic",
-                "qna_1738948514393_i6v40zkozd",
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089511_pzyo21er8aq",
+                "qna_1738950089511_pu85cqwi9aa",
+                "qna_1738950089511_mv6mt2m0jtb",
+                "qna_1738950089512_clspdrdrm8v"
               ],
               "do": [
-                "qna_1738948514393_yatcjtr4wn",
-                "qna_1738948514393_i6v40zkozd",
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089511_pzyo21er8aq",
+                "qna_1738950089511_mv6mt2m0jtb",
+                "qna_1738950089512_clspdrdrm8v"
               ],
               "i": [
-                "qna_1738948514393_yatcjtr4wn",
-                "qna_1738948514393_jhy7elb96ic",
-                "qna_1738948514393_i6v40zkozd",
-                "qna_1738948514393_0hg9bds8t1i7",
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089511_pzyo21er8aq",
+                "qna_1738950089511_pu85cqwi9aa",
+                "qna_1738950089511_mv6mt2m0jtb",
+                "qna_1738950089512_qzshtu15edk",
+                "qna_1738950089512_clspdrdrm8v"
               ],
               "submit": [
-                "qna_1738948514393_yatcjtr4wn"
+                "qna_1738950089511_pzyo21er8aq"
               ],
               "a": [
-                "qna_1738948514393_yatcjtr4wn",
-                "qna_1738948514393_jhy7elb96ic"
+                "qna_1738950089511_pzyo21er8aq",
+                "qna_1738950089511_pu85cqwi9aa"
               ],
               "hostel": [
-                "qna_1738948514393_yatcjtr4wn"
+                "qna_1738950089511_pzyo21er8aq"
               ],
               "mainten": [
-                "qna_1738948514393_yatcjtr4wn"
+                "qna_1738950089511_pzyo21er8aq"
               ],
               "request": [
-                "qna_1738948514393_yatcjtr4wn"
+                "qna_1738950089511_pzyo21er8aq"
               ],
               "can": [
-                "qna_1738948514393_jhy7elb96ic",
-                "qna_1738948514393_0hg9bds8t1i7"
+                "qna_1738950089511_pu85cqwi9aa",
+                "qna_1738950089512_qzshtu15edk"
               ],
               "report": [
-                "qna_1738948514393_jhy7elb96ic"
+                "qna_1738950089511_pu85cqwi9aa"
               ],
               "lost": [
-                "qna_1738948514393_jhy7elb96ic"
+                "qna_1738950089511_pu85cqwi9aa"
               ],
               "item": [
-                "qna_1738948514393_jhy7elb96ic",
-                "qna_1738948514393_i6v40zkozd"
+                "qna_1738950089511_pu85cqwi9aa",
+                "qna_1738950089511_mv6mt2m0jtb"
               ],
               "list": [
-                "qna_1738948514393_i6v40zkozd"
+                "qna_1738950089511_mv6mt2m0jtb"
               ],
               "an": [
-                "qna_1738948514393_i6v40zkozd"
+                "qna_1738950089511_mv6mt2m0jtb"
               ],
               "for": [
-                "qna_1738948514393_i6v40zkozd"
+                "qna_1738950089511_mv6mt2m0jtb"
               ],
               "sale": [
-                "qna_1738948514393_i6v40zkozd"
+                "qna_1738950089511_mv6mt2m0jtb"
               ],
               "where": [
-                "qna_1738948514393_0hg9bds8t1i7"
+                "qna_1738950089512_qzshtu15edk"
               ],
               "check": [
-                "qna_1738948514393_0hg9bds8t1i7"
+                "qna_1738950089512_qzshtu15edk"
               ],
               "my": [
-                "qna_1738948514393_0hg9bds8t1i7"
+                "qna_1738950089512_qzshtu15edk"
               ],
               "attend": [
-                "qna_1738948514393_0hg9bds8t1i7"
+                "qna_1738950089512_qzshtu15edk"
               ],
               "find": [
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089512_clspdrdrm8v"
               ],
               "upcom": [
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089512_clspdrdrm8v"
               ],
               "campus": [
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089512_clspdrdrm8v"
               ],
               "event": [
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089512_clspdrdrm8v"
               ]
             },
             "neuralNetwork": {
@@ -339,12 +339,12 @@
                 "event"
               ],
               "intents": [
-                "qna_1738948514390_r0sil813e8k",
-                "qna_1738948514393_yatcjtr4wn",
-                "qna_1738948514393_jhy7elb96ic",
-                "qna_1738948514393_i6v40zkozd",
-                "qna_1738948514393_0hg9bds8t1i7",
-                "qna_1738948514393_znybho2ewg"
+                "qna_1738950089509_3uliczjvtea",
+                "qna_1738950089511_pzyo21er8aq",
+                "qna_1738950089511_pu85cqwi9aa",
+                "qna_1738950089511_mv6mt2m0jtb",
+                "qna_1738950089512_qzshtu15edk",
+                "qna_1738950089512_clspdrdrm8v"
               ],
               "perceptrons": [
                 [
@@ -575,32 +575,32 @@
     },
     "responses": {
       "en": {
-        "qna_1738948514390_r0sil813e8k": [
+        "qna_1738950089509_3uliczjvtea": [
           {
             "answer": "CampusBeacon is a comprehensive student platform that connects and helps manage various aspects of campus life, including hostel management, lost & found services, marketplace, and attendance tracking."
           }
         ],
-        "qna_1738948514393_yatcjtr4wn": [
+        "qna_1738950089511_pzyo21er8aq": [
           {
             "answer": "You can submit a maintenance request through the Hostel Management section. Click on 'Hostel Management' in the features section, then select 'Submit Maintenance Request'."
           }
         ],
-        "qna_1738948514393_jhy7elb96ic": [
+        "qna_1738950089511_pu85cqwi9aa": [
           {
             "answer": "To report a lost item, navigate to the 'Lost & Found' section, click on 'Report Lost Item', and fill out the form with details about your lost item."
           }
         ],
-        "qna_1738948514393_i6v40zkozd": [
+        "qna_1738950089511_mv6mt2m0jtb": [
           {
             "answer": "To sell an item, go to the 'Buy & Sell' marketplace section, click on 'List New Item', and fill out the item details including price and description."
           }
         ],
-        "qna_1738948514393_0hg9bds8t1i7": [
+        "qna_1738950089512_qzshtu15edk": [
           {
             "answer": "You can check your attendance by clicking on the 'Attendance Manager' feature. It shows your attendance percentage for all subjects."
           }
         ],
-        "qna_1738948514393_znybho2ewg": [
+        "qna_1738950089512_clspdrdrm8v": [
           {
             "answer": "Check the Events section on the homepage or navigate to the Community section to see all upcoming campus events and activities."
           }
