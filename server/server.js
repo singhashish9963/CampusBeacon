@@ -30,6 +30,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
+
+app.use(cookieParser())
+
+
 // Socket.io setup
 const io = initializeSocket(httpServer);
 app.use((req, res, next) => {
