@@ -10,7 +10,7 @@ import ChatRoutes from "./src/routes/chat.routes.js";
 import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
-
+import chatBotRoutes from "./src/routes/chatBot.routes.js"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -82,6 +82,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/lost-and-found", lostAndFoundRoutes);
 app.use("/api/buy-and-sell", buyAndSellRoutes);
 app.use("/api/chat", ChatRoutes);
+app.use("/bot",chatBotRoutes);
 
 /*
 =================================
