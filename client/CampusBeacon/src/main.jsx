@@ -6,7 +6,6 @@ import ResourcesPage from "./pages/ResourceHub.jsx";
 
   createRoot(document.getElementById("root")).render(
     <StrictMode>
-    {/* <App/> */}
-    <ResourcesPage />
+    <App/>
     </StrictMode>
   );
