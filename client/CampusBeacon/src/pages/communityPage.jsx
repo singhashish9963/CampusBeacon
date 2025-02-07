@@ -28,9 +28,7 @@ const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
               whileTap={{ scale: 0.9 }}
               onClick={() => {
                 if (
-                  window.confirm(
-                    "Are you sure you want to delete this message?"
-                  )
+                  window.confirm("Are you sure you want to delete this message?")
                 ) {
                   onDelete(message.id);
                 }
@@ -50,6 +48,7 @@ const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
 
 const CommunityPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const { user } = useAuth();
   const {
@@ -70,9 +69,6 @@ const CommunityPage = () => {
     fetchChannels();
   }, []);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -125,7 +121,6 @@ const CommunityPage = () => {
                 </div>
               </div>
 
-              {/* Channel List */}
               <div className="space-y-2">
                 {channelList.map((channel) => (
                   <motion.div
@@ -152,88 +147,104 @@ const CommunityPage = () => {
             </div>
           </div>
 
-          {/* Main Chat Area */}
           <div className="col-span-9 flex flex-col">
-            {/* Channel Header */}
+
             <div className="p-4 border-b border-purple-500/20">
-              <div className="flex items-center space-x-4">
-                <Hash className="w-6 h-6 text-purple-500" />
-                <div>
-                  <h3 className="text-xl font-bold text-white">
-                    {channelList.find((c) => c.id === currentChannel)?.name}
-                  </h3>
-                  <p className="text-gray-400 text-sm">
-                    {
-                      channelList.find((c) => c.id === currentChannel)
-                        ?.description
-                    }
-                  </p>
-                </div>
-              </div>
-              {typingUsers.size > 0 && (
-                <div className="text-sm text-purple-400 mt-1">
-                  {Array.from(typingUsers).join(", ")} is typing...
-                </div>
-              )}
-            </div>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {isLoading ? (
-                <div className="flex items-center justify-center h-full">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"
-                  />
-                </div>
-              ) : (
+              {currentChannel ? (
                 <>
-                  {messages.map((message) => (
-                    <MessageBubble
-                      key={message.id}
-                      message={message}
-                      isOwnMessage={user?.id === message.userId}
-                      onDelete={deleteMessage}
-                    />
-                  ))}
-                  <div ref={messagesEndRef} />
+                  <div className="flex items-center space-x-4">
+                    <Hash className="w-6 h-6 text-purple-500" />
+                    <div>
+                      <h3 className="text-xl font-bold text-white">
+                        {channelList.find((c) => c.id === currentChannel)?.name}
+                      </h3>
+                      <p className="text-gray-400 text-sm">
+                        {
+                          channelList.find((c) => c.id === currentChannel)
+                            ?.description
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  {typingUsers.size > 0 && (
+                    <div className="text-sm text-purple-400 mt-1">
+                      {Array.from(typingUsers).join(", ")} is typing...
+                    </div>
+                  )}
                 </>
+              ) : (
+                <h3 className="text-xl font-bold text-white">Select a channel to join conversation</h3>
+              )}
+            </div>
+            {/* Chat Content */}
+            <div
+              className="flex-1 overflow-y-auto p-4 space-y-2"
+              ref={messagesContainerRef}
+            >
+              {currentChannel ? (
+                isLoading ? (
+                  <div className="flex items-center justify-center h-full">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {messages.map((message) => (
+                      <MessageBubble
+                        key={message.id}
+                        message={message}
+                        isOwnMessage={user?.id === message.userId}
+                        onDelete={deleteMessage}
+                      />
+                    ))}
+                    <div ref={messagesEndRef} />
+                  </>
+                )
+              ) : (
+                <div className="flex items-center justify-center h-full text-white font-medium">
+                  Please select a channel from the sidebar.
+                </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-purple-500/20">
-              <div className="flex items-center space-x-4">
-                <input
-                  type="text"
-                  placeholder={`Message #${currentChannel}`}
-                  className="flex-1 bg-purple-500/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
-                  value={newMessage}
-                  onChange={(e) => {
-                    setNewMessage(e.target.value);
-                    handleTyping(true);
-                  }}
-                  onBlur={() => handleTyping(false)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSendMessage();
-                    }
-                  }}
-                />
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={handleSendMessage}
-                  className="p-2 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors"
-                  title="Send Message"
-                >
-                  <Send size={18} />
-                </motion.button>
+            {currentChannel && (
+              <div className="p-4 border-t border-purple-500/20">
+                <div className="flex items-center space-x-4">
+                  <input
+                    type="text"
+                    placeholder={`Message #${currentChannel}`}
+                    className="flex-1 bg-purple-500/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+                    value={newMessage}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      handleTyping(true);
+                    }}
+                    onBlur={() => handleTyping(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSendMessage();
+                      }
+                    }}
+                  />
+                  <motion.button
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={handleSendMessage}
+                    className="p-2 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+                    title="Send Message"
+                  >
+                    <Send size={18} />
+                  </motion.button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
