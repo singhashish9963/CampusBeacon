@@ -20,23 +20,14 @@ const PORT = process.env.PORT || 5000;
 const httpServer = createServer(app);
 
 // Middleware setup
-app.use(cookieParser());
-const allowedOrigins = [
-  "https://campus-beacon.vercel.app",
-];
+const corsOptions = {
+  origin: ["http://localhost:5173", "https://campus-beacon.vercel.app"],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Socket.io setup
