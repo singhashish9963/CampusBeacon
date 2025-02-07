@@ -9,7 +9,7 @@ import { Mail,Users,Globe,HelpCircle,Database,Calendar } from "lucide-react";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
-
+import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx"
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const { isAuthenticated, handleLogout, user, lastLoginTime } = useAuth();
@@ -178,6 +178,7 @@ const HomePage = () => {
           </div>
         </section>
         <EventsSection />
+        <ChatbotWidget/>
       </div>
     </>
   );
