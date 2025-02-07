@@ -49,7 +49,7 @@ export const ChatContextProvider = ({ children }) => {
 
     socket.on("new-message", (message) => {
       console.log("Received new message from socket:", message);
-      setMessages((prev) => [message, ...prev]);
+      setMessages((prev) => [...prev, message]);
     });
 
     socket.on("message-deleted", (messageId) => {
@@ -94,7 +94,8 @@ export const ChatContextProvider = ({ children }) => {
       const { data } = await api.get(
         `/api/chat/channels/${channelId}/messages`
       );
-      setMessages(data.data);
+
+      setMessages(data.data.reverse());
     } catch (error) {
       setError(error?.response?.data?.message || "Failed to fetch messages");
     } finally {
@@ -102,18 +103,18 @@ export const ChatContextProvider = ({ children }) => {
     }
   };
 
+
   const sendMessage = async (content) => {
     if (!currentChannel || !content.trim()) return;
 
     try {
-
       const optimisticMessage = {
         id: Date.now(),
         content,
         userId: user.id,
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [optimisticMessage, ...prev]);
+      setMessages((prev) => [...prev, optimisticMessage]);
 
       await api.post(`/api/chat/channels/${currentChannel}/messages`, {
         content,
