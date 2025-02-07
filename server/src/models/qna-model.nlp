@@ -1,0 +1,690 @@
+{
+  "settings": {
+    "languages": [
+      "en"
+    ],
+    "threshold": 0.7,
+    "autoSave": true,
+    "autoLoad": true,
+    "tag": "nlp",
+    "modelFileName": "model.nlp",
+    "executeActionsBeforeAnswers": false,
+    "calculateSentiment": true
+  },
+  "nluManager": {
+    "settings": {
+      "tag": "nlu-manager"
+    },
+    "locales": [
+      "en"
+    ],
+    "languageNames": {},
+    "domainManagers": {
+      "en": {
+        "settings": {
+          "locale": "en",
+          "trainByDomain": false,
+          "tag": "domain-manager-en",
+          "nluByDomain": {
+            "default": {
+              "className": "NeuralNlu",
+              "settings": {}
+            }
+          },
+          "useStemDict": true
+        },
+        "stemDict": {
+          "is,this,websit,what": {
+            "intent": "qna_1738929728066_t24vvaw310b",
+            "domain": "default"
+          },
+          "can,find,how,i,item,lost": {
+            "intent": "qna_1738929728067_jlkr1ugj0mj",
+            "domain": "default"
+          },
+          "buy,do,how,i,item,or,sell": {
+            "intent": "qna_1738929728068_2sw7y536wpq",
+            "domain": "default"
+          },
+          "attend,can,i,my,see,where": {
+            "intent": "qna_1738929728068_odddirbodv",
+            "domain": "default"
+          },
+          "can,check,hostel,how,i,menu,the": {
+            "intent": "qna_1738929728068_fk534xiolkq",
+            "domain": "default"
+          },
+          "a,do,hostel,how,i,issu,report": {
+            "intent": "qna_1738929728068_wuacm6rzxlm",
+            "domain": "default"
+          },
+          "club,colleg,do,how,i,join": {
+            "intent": "qna_1738929728068_a07uagofzk",
+            "domain": "default"
+          }
+        },
+        "intentDict": {
+          "qna_1738929728066_t24vvaw310b": "default",
+          "qna_1738929728067_jlkr1ugj0mj": "default",
+          "qna_1738929728068_2sw7y536wpq": "default",
+          "qna_1738929728068_odddirbodv": "default",
+          "qna_1738929728068_fk534xiolkq": "default",
+          "qna_1738929728068_wuacm6rzxlm": "default",
+          "qna_1738929728068_a07uagofzk": "default"
+        },
+        "sentences": [
+          {
+            "domain": "default",
+            "utterance": "What is this website?",
+            "intent": "qna_1738929728066_t24vvaw310b"
+          },
+          {
+            "domain": "default",
+            "utterance": "How can I find lost items?",
+            "intent": "qna_1738929728067_jlkr1ugj0mj"
+          },
+          {
+            "domain": "default",
+            "utterance": "How do I buy or sell items?",
+            "intent": "qna_1738929728068_2sw7y536wpq"
+          },
+          {
+            "domain": "default",
+            "utterance": "Where can I see my attendance?",
+            "intent": "qna_1738929728068_odddirbodv"
+          },
+          {
+            "domain": "default",
+            "utterance": "How can I check the hostel menu?",
+            "intent": "qna_1738929728068_fk534xiolkq"
+          },
+          {
+            "domain": "default",
+            "utterance": "How do I report a hostel issue?",
+            "intent": "qna_1738929728068_wuacm6rzxlm"
+          },
+          {
+            "domain": "default",
+            "utterance": "How do I join college clubs?",
+            "intent": "qna_1738929728068_a07uagofzk"
+          }
+        ],
+        "domains": {
+          "master_domain": {
+            "settings": {
+              "locale": "en",
+              "tag": "nlu-en",
+              "keepStopwords": true,
+              "nonefeatureValue": 1,
+              "nonedeltaMultiplier": 1.2,
+              "spellCheck": false,
+              "spellCheckDistance": 1,
+              "filterZeros": true,
+              "log": true
+            },
+            "features": {
+              "what": 1,
+              "is": 1,
+              "this": 1,
+              "websit": 1,
+              "how": 1,
+              "can": 1,
+              "i": 1,
+              "find": 1,
+              "lost": 1,
+              "item": 1,
+              "do": 1,
+              "buy": 1,
+              "or": 1,
+              "sell": 1,
+              "where": 1,
+              "see": 1,
+              "my": 1,
+              "attend": 1,
+              "check": 1,
+              "the": 1,
+              "hostel": 1,
+              "menu": 1,
+              "report": 1,
+              "a": 1,
+              "issu": 1,
+              "join": 1,
+              "colleg": 1,
+              "club": 1
+            },
+            "intents": {
+              "qna_1738929728066_t24vvaw310b": 1,
+              "qna_1738929728067_jlkr1ugj0mj": 1,
+              "qna_1738929728068_2sw7y536wpq": 1,
+              "qna_1738929728068_odddirbodv": 1,
+              "qna_1738929728068_fk534xiolkq": 1,
+              "qna_1738929728068_wuacm6rzxlm": 1,
+              "qna_1738929728068_a07uagofzk": 1
+            },
+            "intentFeatures": {
+              "qna_1738929728066_t24vvaw310b": {
+                "what": 1,
+                "is": 1,
+                "this": 1,
+                "websit": 1
+              },
+              "qna_1738929728067_jlkr1ugj0mj": {
+                "how": 1,
+                "can": 1,
+                "i": 1,
+                "find": 1,
+                "lost": 1,
+                "item": 1
+              },
+              "qna_1738929728068_2sw7y536wpq": {
+                "how": 1,
+                "do": 1,
+                "i": 1,
+                "buy": 1,
+                "or": 1,
+                "sell": 1,
+                "item": 1
+              },
+              "qna_1738929728068_odddirbodv": {
+                "where": 1,
+                "can": 1,
+                "i": 1,
+                "see": 1,
+                "my": 1,
+                "attend": 1
+              },
+              "qna_1738929728068_fk534xiolkq": {
+                "how": 1,
+                "can": 1,
+                "i": 1,
+                "check": 1,
+                "the": 1,
+                "hostel": 1,
+                "menu": 1
+              },
+              "qna_1738929728068_wuacm6rzxlm": {
+                "how": 1,
+                "do": 1,
+                "i": 1,
+                "report": 1,
+                "a": 1,
+                "hostel": 1,
+                "issu": 1
+              },
+              "qna_1738929728068_a07uagofzk": {
+                "how": 1,
+                "do": 1,
+                "i": 1,
+                "join": 1,
+                "colleg": 1,
+                "club": 1
+              }
+            },
+            "featuresToIntent": {
+              "what": [
+                "qna_1738929728066_t24vvaw310b"
+              ],
+              "is": [
+                "qna_1738929728066_t24vvaw310b"
+              ],
+              "this": [
+                "qna_1738929728066_t24vvaw310b"
+              ],
+              "websit": [
+                "qna_1738929728066_t24vvaw310b"
+              ],
+              "how": [
+                "qna_1738929728067_jlkr1ugj0mj",
+                "qna_1738929728068_2sw7y536wpq",
+                "qna_1738929728068_fk534xiolkq",
+                "qna_1738929728068_wuacm6rzxlm",
+                "qna_1738929728068_a07uagofzk"
+              ],
+              "can": [
+                "qna_1738929728067_jlkr1ugj0mj",
+                "qna_1738929728068_odddirbodv",
+                "qna_1738929728068_fk534xiolkq"
+              ],
+              "i": [
+                "qna_1738929728067_jlkr1ugj0mj",
+                "qna_1738929728068_2sw7y536wpq",
+                "qna_1738929728068_odddirbodv",
+                "qna_1738929728068_fk534xiolkq",
+                "qna_1738929728068_wuacm6rzxlm",
+                "qna_1738929728068_a07uagofzk"
+              ],
+              "find": [
+                "qna_1738929728067_jlkr1ugj0mj"
+              ],
+              "lost": [
+                "qna_1738929728067_jlkr1ugj0mj"
+              ],
+              "item": [
+                "qna_1738929728067_jlkr1ugj0mj",
+                "qna_1738929728068_2sw7y536wpq"
+              ],
+              "do": [
+                "qna_1738929728068_2sw7y536wpq",
+                "qna_1738929728068_wuacm6rzxlm",
+                "qna_1738929728068_a07uagofzk"
+              ],
+              "buy": [
+                "qna_1738929728068_2sw7y536wpq"
+              ],
+              "or": [
+                "qna_1738929728068_2sw7y536wpq"
+              ],
+              "sell": [
+                "qna_1738929728068_2sw7y536wpq"
+              ],
+              "where": [
+                "qna_1738929728068_odddirbodv"
+              ],
+              "see": [
+                "qna_1738929728068_odddirbodv"
+              ],
+              "my": [
+                "qna_1738929728068_odddirbodv"
+              ],
+              "attend": [
+                "qna_1738929728068_odddirbodv"
+              ],
+              "check": [
+                "qna_1738929728068_fk534xiolkq"
+              ],
+              "the": [
+                "qna_1738929728068_fk534xiolkq"
+              ],
+              "hostel": [
+                "qna_1738929728068_fk534xiolkq",
+                "qna_1738929728068_wuacm6rzxlm"
+              ],
+              "menu": [
+                "qna_1738929728068_fk534xiolkq"
+              ],
+              "report": [
+                "qna_1738929728068_wuacm6rzxlm"
+              ],
+              "a": [
+                "qna_1738929728068_wuacm6rzxlm"
+              ],
+              "issu": [
+                "qna_1738929728068_wuacm6rzxlm"
+              ],
+              "join": [
+                "qna_1738929728068_a07uagofzk"
+              ],
+              "colleg": [
+                "qna_1738929728068_a07uagofzk"
+              ],
+              "club": [
+                "qna_1738929728068_a07uagofzk"
+              ]
+            },
+            "neuralNetwork": {
+              "settings": {
+                "locale": "en",
+                "tag": "nlu-en",
+                "keepStopwords": true,
+                "nonefeatureValue": 1,
+                "nonedeltaMultiplier": 1.2,
+                "spellCheck": false,
+                "spellCheckDistance": 1,
+                "filterZeros": true,
+                "log": true
+              },
+              "features": [
+                "what",
+                "is",
+                "this",
+                "websit",
+                "how",
+                "can",
+                "i",
+                "find",
+                "lost",
+                "item",
+                "do",
+                "buy",
+                "or",
+                "sell",
+                "where",
+                "see",
+                "my",
+                "attend",
+                "check",
+                "the",
+                "hostel",
+                "menu",
+                "report",
+                "a",
+                "issu",
+                "join",
+                "colleg",
+                "club"
+              ],
+              "intents": [
+                "qna_1738929728066_t24vvaw310b",
+                "qna_1738929728067_jlkr1ugj0mj",
+                "qna_1738929728068_2sw7y536wpq",
+                "qna_1738929728068_odddirbodv",
+                "qna_1738929728068_fk534xiolkq",
+                "qna_1738929728068_wuacm6rzxlm",
+                "qna_1738929728068_a07uagofzk"
+              ],
+              "perceptrons": [
+                [
+                  3.3014516830444336,
+                  3.3014516830444336,
+                  3.3014516830444336,
+                  3.3014516830444336,
+                  -0.40206217765808105,
+                  -0.3159741163253784,
+                  -0.5659058690071106,
+                  -0.0820579081773758,
+                  -0.0820579081773758,
+                  -0.18313686549663544,
+                  -0.24037311971187592,
+                  -0.07754909247159958,
+                  -0.07754909247159958,
+                  -0.07754909247159958,
+                  -0.15007410943508148,
+                  -0.15007410943508148,
+                  -0.15007410943508148,
+                  -0.15007410943508148,
+                  -0.04928680881857872,
+                  -0.04928680881857872,
+                  -0.11857129633426666,
+                  -0.04928680881857872,
+                  -0.06055162101984024,
+                  -0.06055162101984024,
+                  -0.06055162101984024,
+                  -0.08241019397974014,
+                  -0.08241019397974014,
+                  -0.08241019397974014,
+                  1.349406118188992
+                ],
+                [
+                  -0.057786863297224045,
+                  -0.057786863297224045,
+                  -0.057786863297224045,
+                  -0.057786863297224045,
+                  1.2640206813812256,
+                  2.066383123397827,
+                  0.5354846119880676,
+                  3.7748284339904785,
+                  3.7748284339904785,
+                  2.695068120956421,
+                  -1.519654631614685,
+                  -1.0859425067901611,
+                  -1.0859425067901611,
+                  -1.0859425067901611,
+                  -0.7184478640556335,
+                  -0.7184478640556335,
+                  -0.7184478640556335,
+                  -0.7184478640556335,
+                  -0.9810437560081482,
+                  -0.9810437560081482,
+                  -1.1725162267684937,
+                  -0.9810437560081482,
+                  -0.1305065006017685,
+                  -0.1305065006017685,
+                  -0.1305065006017685,
+                  -0.20788425207138062,
+                  -0.20788425207138062,
+                  -0.20788425207138062,
+                  0.23768482750662578
+                ],
+                [
+                  -0.041696999222040176,
+                  -0.041696999222040176,
+                  -0.041696999222040176,
+                  -0.041696999222040176,
+                  0.41382789611816406,
+                  -1.3506016731262207,
+                  0.24216648936271667,
+                  -0.8938823342323303,
+                  -0.8938823342323303,
+                  2.3038485050201416,
+                  1.631975531578064,
+                  3.2296650409698486,
+                  3.2296650409698486,
+                  3.2296650409698486,
+                  -0.11307118833065033,
+                  -0.11307118833065033,
+                  -0.11307118833065033,
+                  -0.11307118833065033,
+                  -0.18694356083869934,
+                  -0.18694356083869934,
+                  -0.9206236004829407,
+                  -0.18694356083869934,
+                  -0.6365063190460205,
+                  -0.6365063190460205,
+                  -0.6365063190460205,
+                  -0.868769645690918,
+                  -0.868769645690918,
+                  -0.868769645690918,
+                  0.09128943428141408
+                ],
+                [
+                  -0.1457379311323166,
+                  -0.1457379311323166,
+                  -0.1457379311323166,
+                  -0.1457379311323166,
+                  -1.5989073514938354,
+                  1.5306365489959717,
+                  1.1515878438949585,
+                  -0.6183041334152222,
+                  -0.6183041334152222,
+                  -0.6701903939247131,
+                  -0.35383298993110657,
+                  -0.03548290207982063,
+                  -0.03548290207982063,
+                  -0.03548290207982063,
+                  2.7863388061523438,
+                  2.7863388061523438,
+                  2.7863388061523438,
+                  2.7863388061523438,
+                  -0.5220953226089478,
+                  -0.5220953226089478,
+                  -0.6764141321182251,
+                  -0.5220953226089478,
+                  -0.10137946158647537,
+                  -0.10137946158647537,
+                  -0.10137946158647537,
+                  -0.14438755810260773,
+                  -0.14438755810260773,
+                  -0.14438755810260773,
+                  0.48659489921412
+                ],
+                [
+                  -0.056335289031267166,
+                  -0.056335289031267166,
+                  -0.056335289031267166,
+                  -0.056335289031267166,
+                  0.8284412622451782,
+                  1.5890034437179565,
+                  0.2644312381744385,
+                  -0.9359554648399353,
+                  -0.9359554648399353,
+                  -1.0887969732284546,
+                  -1.2725311517715454,
+                  -0.10617221891880035,
+                  -0.10617221891880035,
+                  -0.10617221891880035,
+                  -0.523093581199646,
+                  -0.523093581199646,
+                  -0.523093581199646,
+                  -0.523093581199646,
+                  3.1077933311462402,
+                  3.1077933311462402,
+                  2.2728641033172607,
+                  3.1077933311462402,
+                  -0.7772452235221863,
+                  -0.7772452235221863,
+                  -0.7772452235221863,
+                  -0.2630872130393982,
+                  -0.2630872130393982,
+                  -0.2630872130393982,
+                  0.0894842748073416
+                ],
+                [
+                  -0.06393449008464813,
+                  -0.06393449008464813,
+                  -0.06393449008464813,
+                  -0.06393449008464813,
+                  0.4490974545478821,
+                  -1.1759192943572998,
+                  0.3446580767631531,
+                  -0.2552228569984436,
+                  -0.2552228569984436,
+                  -0.9375767707824707,
+                  1.5654041767120361,
+                  -0.6158458590507507,
+                  -0.6158458590507507,
+                  -0.6158458590507507,
+                  -0.07210242748260498,
+                  -0.07210242748260498,
+                  -0.07210242748260498,
+                  -0.07210242748260498,
+                  -0.7565979957580566,
+                  -0.7565979957580566,
+                  2.3733506202697754,
+                  -0.7565979957580566,
+                  3.1701443195343018,
+                  3.1701443195343018,
+                  3.1701443195343018,
+                  -0.888064444065094,
+                  -0.888064444065094,
+                  -0.888064444065094,
+                  0.12537830731871172
+                ],
+                [
+                  -0.10464277118444443,
+                  -0.10464277118444443,
+                  -0.10464277118444443,
+                  -0.10464277118444443,
+                  0.9859827756881714,
+                  -0.818725049495697,
+                  0.8217069506645203,
+                  -0.32398220896720886,
+                  -0.32398220896720886,
+                  -1.2794766426086426,
+                  1.6528658866882324,
+                  -0.9034847021102905,
+                  -0.9034847021102905,
+                  -0.9034847021102905,
+                  -0.1334967464208603,
+                  -0.1334967464208603,
+                  -0.1334967464208603,
+                  -0.1334967464208603,
+                  -0.26506948471069336,
+                  -0.26506948471069336,
+                  -1.2213895320892334,
+                  -0.26506948471069336,
+                  -0.9207095503807068,
+                  -0.9207095503807068,
+                  -0.9207095503807068,
+                  3.5403554439544678,
+                  3.5403554439544678,
+                  3.5403554439544678,
+                  0.34354216971548424
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "intentDomains": {},
+    "extraSentences": [
+      [
+        "en",
+        "What is this website?"
+      ],
+      [
+        "en",
+        "How can I find lost items?"
+      ],
+      [
+        "en",
+        "How do I buy or sell items?"
+      ],
+      [
+        "en",
+        "Where can I see my attendance?"
+      ],
+      [
+        "en",
+        "How can I check the hostel menu?"
+      ],
+      [
+        "en",
+        "How do I report a hostel issue?"
+      ],
+      [
+        "en",
+        "How do I join college clubs?"
+      ]
+    ]
+  },
+  "ner": {
+    "settings": {
+      "tag": "ner",
+      "entityPreffix": "%",
+      "entitySuffix": "%"
+    },
+    "rules": {}
+  },
+  "nlgManager": {
+    "settings": {
+      "tag": "nlg-manager"
+    },
+    "responses": {
+      "en": {
+        "qna_1738929728066_t24vvaw310b": [
+          {
+            "answer": "This is a platform designed to help college students with various needs such as event updates, lost and found, buy and sell, and more."
+          }
+        ],
+        "qna_1738929728067_jlkr1ugj0mj": [
+          {
+            "answer": "You can check the 'Lost and Found' section where users post details about lost or found items."
+          }
+        ],
+        "qna_1738929728068_2sw7y536wpq": [
+          {
+            "answer": "Navigate to the 'Buy and Sell' section to list items for sale or browse items posted by other students."
+          }
+        ],
+        "qna_1738929728068_odddirbodv": [
+          {
+            "answer": "Attendance details are available in the 'Attendance Management' section, where you can select subjects and track your attendance."
+          }
+        ],
+        "qna_1738929728068_fk534xiolkq": [
+          {
+            "answer": "The 'Hostel' section provides the daily mess menu along with contact details for mess and hostel representatives."
+          }
+        ],
+        "qna_1738929728068_wuacm6rzxlm": [
+          {
+            "answer": "You can file complaints in the 'Hostel' section, where contacts for hostel and mess representatives are listed."
+          }
+        ],
+        "qna_1738929728068_a07uagofzk": [
+          {
+            "answer": "The 'Resources' section includes links to various college clubs, their social media pages, and websites."
+          }
+        ]
+      }
+    }
+  },
+  "actionManager": {
+    "settings": {
+      "tag": "action-manager"
+    },
+    "actions": {}
+  },
+  "slotManager": {}
+}
