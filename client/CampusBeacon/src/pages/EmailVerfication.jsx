@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
@@ -13,13 +13,14 @@ const EmailVerification = () => {
     user,
   } = useAuth();
 
-  const [verificationAttempted, setVerificationAttempted] = useState(false);
   const [verificationError, setVerificationError] = useState(null);
   const [verificationStatus, setVerificationStatus] = useState("pending");
 
+  const hasAttemptedVerification = useRef(false);
+
   useEffect(() => {
     const verifyEmail = async () => {
-      if (verificationAttempted) return;
+      if (hasAttemptedVerification.current) return;
 
       const token = searchParams.get("token");
       if (!token) {
@@ -28,7 +29,7 @@ const EmailVerification = () => {
         return;
       }
 
-      setVerificationAttempted(true);
+      hasAttemptedVerification.current = true; // Set ref to true to prevent multiple calls
 
       try {
         console.log("Starting verification with token:", token);
@@ -51,7 +52,7 @@ const EmailVerification = () => {
     };
 
     verifyEmail();
-  }, [searchParams, handleEmailVerification, verificationAttempted]);
+  }, [searchParams, handleEmailVerification]);
 
   useEffect(() => {
     if (
