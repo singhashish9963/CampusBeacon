@@ -4,7 +4,7 @@ import axios from "axios";
 const ChatbotContext = createContext(null);
 
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  baseURL: "http://localhost:5000", 
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });
@@ -12,7 +12,6 @@ const api = axios.create({
 export const ChatbotProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
 
   useEffect(() => {
     const requestInterceptor = api.interceptors.request.use(
@@ -36,13 +35,11 @@ export const ChatbotProvider = ({ children }) => {
     };
   }, []);
 
-
   const askQuestion = async (question) => {
     setLoading(true);
     try {
       const { data } = await api.post("/api/chatbot/ask", { question });
       setError(null);
-
       return data.data;
     } catch (err) {
       setError(err?.response?.data?.message || "Failed to ask question");

@@ -1,3 +1,4 @@
+// components/ChatbotWidget.js
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatbot } from "../../contexts/chatBotContext";
@@ -34,7 +35,6 @@ const ChatbotWidget = () => {
 
     try {
       const res = await askQuestion(trimmedQuestion);
-
       if (res?.answer) {
         setChatHistory((prev) => [
           ...prev,
