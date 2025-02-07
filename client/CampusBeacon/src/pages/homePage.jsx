@@ -110,7 +110,7 @@ const HomePage = () => {
                 icon={Mail}
                 title="Eatries"
                 description="Discover places to eat around campus"
-                href="/"
+                href="/eatries"
               />
               <FeatureCard
                 icon={Users}

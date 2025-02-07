@@ -22,6 +22,7 @@ import { ChatContextProvider } from "./contexts/chatContext.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
 import { ChatbotProvider } from "./contexts/chatBotContext.jsx";
+import CollegeEateries from "./pages/eatries.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -61,6 +62,7 @@ function App() {
                               path="/contact"
                               element={<ContactsDisplay />}
                             />
+                            <Route path = "eatries" element={<CollegeEateries/>}/>
                             <Route path="/SVBH" element={<SVBH />} />
                             <Route path="/DJGH" element={<DJGH />} />
                             <Route
