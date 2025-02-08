@@ -7,7 +7,7 @@ import { useChat } from "../contexts/chatContext";
 import { useAuth } from "../contexts/AuthContext";
 
 const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
-  const { userProfiles } = useChat(); 
+  const { userProfiles } = useChat();
   const userProfile = userProfiles[message.userId];
 
   return (
@@ -27,7 +27,7 @@ const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
               {userProfile?.name || message.userId}{" "}
             </span>
             <span className="text-xs text-gray-400">
-              {userProfile.registration_number}
+              {userProfile?.registration_number || message.userId}
             </span>
           </div>
           {isOwnMessage && (
@@ -79,7 +79,6 @@ const CommunityPage = () => {
     fetchChannels();
   }, []);
 
-
   const handleSendMessage = () => {
     if (newMessage.trim()) {
       sendMessage(newMessage);
@@ -130,7 +129,6 @@ const CommunityPage = () => {
                   />
                 </div>
               </div>
-
               <div className="space-y-2">
                 {channelList.map((channel) => (
                   <motion.div
@@ -157,8 +155,8 @@ const CommunityPage = () => {
             </div>
           </div>
 
+          {/* Chat Section */}
           <div className="col-span-9 flex flex-col">
-
             <div className="p-4 border-b border-purple-500/20">
               {currentChannel ? (
                 <>
@@ -183,7 +181,9 @@ const CommunityPage = () => {
                   )}
                 </>
               ) : (
-                <h3 className="text-xl font-bold text-white">Select a channel to join conversation</h3>
+                <h3 className="text-xl font-bold text-white">
+                  Select a channel to join conversation
+                </h3>
               )}
             </div>
             {/* Chat Content */}
@@ -206,9 +206,9 @@ const CommunityPage = () => {
                   </div>
                 ) : (
                   <>
-                    {messages.map((message) => (
+                    {messages.map((message, index) => (
                       <MessageBubble
-                        key={message.id}
+                        key={message.id || `${message.userId}-${index}`} // Ensure unique key
                         message={message}
                         isOwnMessage={user?.id === message.userId}
                         onDelete={deleteMessage}
@@ -223,7 +223,6 @@ const CommunityPage = () => {
                 </div>
               )}
             </div>
-
             {currentChannel && (
               <div className="p-4 border-t border-purple-500/20">
                 <div className="flex items-center space-x-4">

@@ -22,7 +22,7 @@ export const ChatContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [typingUsers, setTypingUsers] = useState(new Set());
-  const [userProfiles, setUserProfiles] = useState({}); // Store user profiles
+  const [userProfiles, setUserProfiles] = useState({});
 
   const fetchUserProfile = async (userId) => {
     try {
@@ -46,12 +46,9 @@ export const ChatContextProvider = ({ children }) => {
       const { data } = await api.get(
         `/api/chat/channels/${channelId}/messages`
       );
-
       const userIds = [...new Set(data.data.map((msg) => msg.userId))];
-
       const uncachedUserIds = userIds.filter((id) => !userProfiles[id]);
       await Promise.all(uncachedUserIds.map(fetchUserProfile));
-
       setMessages(data.data.reverse());
     } catch (error) {
       setError(error?.response?.data?.message || "Failed to fetch messages");
@@ -125,10 +122,8 @@ export const ChatContextProvider = ({ children }) => {
     }
   };
 
-
   const sendMessage = async (content) => {
     if (!currentChannel || !content.trim()) return;
-
     try {
       const tempId = Date.now();
       const optimisticMessage = {
@@ -148,7 +143,6 @@ export const ChatContextProvider = ({ children }) => {
         }
       );
       const actualMessage = response.data.data;
-
       setMessages((prev) =>
         prev.map((m) => (m.id === tempId ? actualMessage : m))
       );
@@ -160,7 +154,6 @@ export const ChatContextProvider = ({ children }) => {
   const deleteMessage = async (messageId) => {
     try {
       await api.delete(`/api/chat/messages/${messageId}`);
-      // Optionally remove the message immediately if server doesn't push delete event
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     } catch (error) {
       setError(error?.response?.data?.message || "Failed to delete message");
