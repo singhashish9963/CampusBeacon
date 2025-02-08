@@ -474,3 +474,19 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     )
   );
 });
+
+export const getUserById = asyncHandler(async (req, res, next) => {
+  const { id } = req.params; // Get user ID from request params
+
+  const user = await User.findByPk(id, {
+    attributes: { exclude: ["password"] }, // Exclude password for security
+  });
+
+  if (!user) {
+    return next(new ApiError("User not found", 404));
+  }
+
+  res
+    .status(200)
+    .json(new ApiResponse(200, { user }, "User fetched successfully"));
+});

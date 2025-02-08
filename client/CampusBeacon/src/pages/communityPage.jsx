@@ -80,9 +80,15 @@ const CommunityPage = () => {
   } = useChat();
   const [newMessage, setNewMessage] = useState("");
 
+  // Fetch channels when the component mounts
   useEffect(() => {
     fetchChannels();
   }, []);
+
+  // Scroll to the bottom on messages update
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSendMessage = () => {
     if (newMessage.trim()) {
@@ -213,7 +219,7 @@ const CommunityPage = () => {
                   <>
                     {messages.map((message, index) => (
                       <MessageBubble
-                        key={message.id || `${message.userId}-${index}`} // Ensure unique key
+                        key={message.id || `${message.userId}-${index}`}
                         message={message}
                         isOwnMessage={user?.id === message.userId}
                         onDelete={deleteMessage}

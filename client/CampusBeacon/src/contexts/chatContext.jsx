@@ -26,7 +26,8 @@ export const ChatContextProvider = ({ children }) => {
 
   const fetchUserProfile = async (userId) => {
     try {
-      const response = await api.get(`/api/users/current`);
+      const response = await api.get(`/api/users/user/${userId}`);
+
       if (response.data.success) {
         setUserProfiles((prev) => ({
           ...prev,
