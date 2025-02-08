@@ -1,7 +1,7 @@
 import {Sequelize} from 'sequelize';
 import asyncHandler from '../utils/asyncHandler.js';
 import dotenv from "dotenv"
-dotenv.config();
+dotenv.config("./.env");
 
 /*
 =============================================================
