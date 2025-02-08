@@ -11,7 +11,6 @@ import {
   registerUser,
   loginUser,
   googleAuth,
-  sendVerificationEmail,
   verifyEmail,
 } from "../controllers/user.controller.js";
 
@@ -33,7 +32,6 @@ router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
 
-router.post("/send-verification-email", sendVerificationEmail);
 router.get("/verify-email", verifyEmail); 
 
 

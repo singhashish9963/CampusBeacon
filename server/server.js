@@ -10,7 +10,7 @@ import ChatRoutes from "./src/routes/chat.routes.js";
 import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
-import chatBotRoutes from "./src/routes/chatBot.routes.js"
+import chatBotRoutes from "./src/routes/chatBot.routes.js";
 import { initialize as initializeChatbot } from "./src/utils/chatbot.utils.js";
 
 dotenv.config({ path: "./.env" });
@@ -29,10 +29,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
-
-
-app.use(cookieParser())
-
+app.use(cookieParser());
 
 // Socket.io setup
 const io = initializeSocket(httpServer);
@@ -57,17 +54,14 @@ app.use("/api/chatbot", chatBotRoutes);
 // Initialize services and start server
 const startServer = async () => {
   try {
-    // Initialize database
     console.log("Connecting to database...");
     await connectDb();
     console.log("Database connected successfully");
 
-    // Initialize chatbot
     console.log("Initializing chatbot service...");
     await initializeChatbot();
     console.log("Chatbot service initialized successfully");
 
-    // Start the server
     httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
@@ -77,7 +71,6 @@ const startServer = async () => {
   }
 };
 
-// Handle uncaught errors
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
   process.exit(1);
@@ -88,5 +81,4 @@ process.on("unhandledRejection", (error) => {
   process.exit(1);
 });
 
-// Start the server
 startServer();
