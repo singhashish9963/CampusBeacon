@@ -121,6 +121,10 @@ const Footer = () => {
                 </a>
               </div>
             </div>
+            <div className="flex items-center ">
+              <a className={IconHoverStyle} href="/about">About Us</a>
+              
+            </div>
           </div>
         </motion.div>
       </div>

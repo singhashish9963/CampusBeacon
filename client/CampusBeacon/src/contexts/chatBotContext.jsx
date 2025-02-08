@@ -4,7 +4,7 @@ import axios from "axios";
 const ChatbotContext = createContext(null);
 
 const api = axios.create({
-  baseURL: "https://campusbeacon.onrender.com",
+  baseURL: "http://localhost:5000",
   withCredentials: true,
   headers: { "Content-Type": "application/json" },
 });

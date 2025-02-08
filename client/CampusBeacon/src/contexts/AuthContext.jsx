@@ -9,8 +9,7 @@ import axios from "axios";
 import LoadingScreen from "../components/LoadingScreen.jsx";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL || "https://campusbeacon.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
