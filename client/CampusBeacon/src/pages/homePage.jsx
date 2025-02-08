@@ -132,9 +132,9 @@ const HomePage = () => {
               />
               <FeatureCard
                 icon={Calendar}
-                title="Attendance Manager"
+                title="Resource Hub"
                 description="Track and manage your attendance across all subjects efficiently"
-                href="/"
+                href="/resource"
               />
               <FeatureCard
                 icon={Globe}

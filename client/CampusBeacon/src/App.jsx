@@ -79,8 +79,11 @@ function App() {
                             path="*"
                             element={<Navigate to="/" replace />}
                           />
+                          <Route
+                            path="/contact"
+                            element={<ContactsDisplay />}
+                          />
                         </Routes>
-                        <Route path="/contact" element={<ContactsDisplay />} />
                       </main>
                       <Footer />
                     </div>
