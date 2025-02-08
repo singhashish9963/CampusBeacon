@@ -23,6 +23,7 @@ import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
 import { ChatbotProvider } from "./contexts/chatBotContext.jsx";
 import CollegeEateries from "./pages/eatries.jsx";
+import ResourcesPage from "./pages/ResourceHub.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -57,12 +58,16 @@ function App() {
                               path="/lost-found"
                               element={<LostAndFound />}
                             />
-                            <Route path="/about" element={<AboutUs />} />
                             <Route
-                              path="/contact"
-                              element={<ContactsDisplay />}
+                              path="/resource"
+                              element={<ResourcesPage />}
                             />
-                            <Route path = "eatries" element={<CollegeEateries/>}/>
+                            <Route path="/about" element={<AboutUs />} />
+
+                            <Route
+                              path="eatries"
+                              element={<CollegeEateries />}
+                            />
                             <Route path="/SVBH" element={<SVBH />} />
                             <Route path="/DJGH" element={<DJGH />} />
                             <Route
@@ -73,6 +78,10 @@ function App() {
                           <Route
                             path="*"
                             element={<Navigate to="/" replace />}
+                          />
+                          <Route
+                            path="/contact"
+                            element={<ContactsDisplay />}
                           />
                         </Routes>
                       </main>
