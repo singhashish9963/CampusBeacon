@@ -12,6 +12,8 @@ import {
   loginUser,
   googleAuth,
   verifyEmail,
+  sendVerificationEmail,
+  getUserById,
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -34,7 +36,7 @@ router.post("/reset-password", resetPassword);
 
 router.get("/verify-email", verifyEmail); 
 
-
+router.get("/user/:id", getUserById);
 router.get("/verify-status", authMiddleware, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
@@ -61,5 +63,7 @@ router.get("/verify-status", authMiddleware, async (req, res) => {
 router.get("/current", authMiddleware, getCurrentUser);
 router.put("/update", authMiddleware, updateUser);
 router.post("/logout", authMiddleware, logoutUser);
+
+
 
 export default router;

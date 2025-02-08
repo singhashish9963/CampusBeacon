@@ -1,15 +1,15 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
-import ApiResponse from "../utils/apiError.js";
+import ApiResponse from "../utils/apiResponse.js";
 import Channel from "../models/channel.model.js";
 import Message from "../models/message.model.js";
 
 const getMessages = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
 
-  const channel = await Channel.findOne({
-    where: { name: channelId.toLowerCase() },
-  });
+ const channel = await Channel.findOne({
+   where: { name: channelId.toLowerCase() },
+ });
 
   if (!channel) {
     throw new ApiError(404, "Channel not found");
@@ -46,9 +46,9 @@ const createMessage = asyncHandler(async (req, res) => {
     throw new ApiError(401, "User not authenticated");
   }
 
-  const channel = await Channel.findOne({
-    where: { name: channelId.toLowerCase() },
-  });
+const channel = await Channel.findOne({
+  where: { name: channelId.toLowerCase() },
+});
 
   if (!channel) {
     throw new ApiError(404, "Channel not found");
