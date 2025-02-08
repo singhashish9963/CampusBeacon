@@ -5,7 +5,7 @@ import App from "./App.jsx";
 import ResourcesPage from "./pages/ResourceHub.jsx";
 
   createRoot(document.getElementById("root")).render(
-    <StrictMode>
+
     <App/>
-    </StrictMode>
+
   );
