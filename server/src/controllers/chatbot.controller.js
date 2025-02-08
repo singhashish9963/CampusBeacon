@@ -1,52 +1,110 @@
-import asyncHandler from "../utils/asyncHandler.js";
-import ApiError from "../utils/apiError.js";
-import ApiResponse from "../utils/apiResponse.js";
 import {
   processQuestion,
   addQnAPair,
-  getAllQnAPairs,
   trainAndSave,
 } from "../utils/chatbot.utils.js";
 
-export const askQuestion = asyncHandler(async (req, res) => {
-  const { question } = req.body;
+const questionCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
-  if (!question?.trim()) {
-    throw new ApiError(400, "Question is required");
+const getCacheKey = (question) => {
+  return question.toLowerCase().trim();
+};
+
+const getCachedResponse = (question) => {
+  const key = getCacheKey(question);
+  const cached = questionCache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.response;
   }
+  return null;
+};
 
-  const result = await processQuestion(question);
+const cacheResponse = (question, response) => {
+  const key = getCacheKey(question);
+  questionCache.set(key, {
+    response,
+    timestamp: Date.now(),
+  });
+};
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, result, "Answer fetched successfully"));
-});
+export const askQuestion = async (req, res, next) => {
+  try {
+    const { question } = req.body;
+    const sessionId = req.headers["x-session-id"] || "default";
 
-export const addQuestionAnswer = asyncHandler(async (req, res) => {
-  const { question, answer, category } = req.body;
+    const cachedResponse = getCachedResponse(question);
+    if (cachedResponse) {
+      return res.status(200).json({
+        data: cachedResponse,
+        message: "Answer fetched from cache",
+        cached: true,
+      });
+    }
 
-  if (!question?.trim() || !answer?.trim()) {
-    throw new ApiError(400, "Both question and answer are required");
+    const result = await processQuestion(question, sessionId);
+
+    cacheResponse(question, result);
+
+    return res.status(200).json({
+      data: result,
+      message: "Answer generated successfully",
+      cached: false,
+    });
+  } catch (error) {
+    next(error);
   }
+};
 
-  const intent = await addQnAPair(question, answer, category);
-  await trainAndSave();
+export const addQuestionAnswer = async (req, res, next) => {
+  try {
+    const { question, answer, category = "general" } = req.body;
 
-  return res
-    .status(201)
-    .json(new ApiResponse(201, { intent }, "QnA pair added successfully"));
-});
+    const existingResponse = getCachedResponse(question);
+    if (existingResponse) {
+      questionCache.delete(getCacheKey(question));
+    }
 
-export const getAllQuestions = asyncHandler(async (req, res) => {
-  const questions = await getAllQnAPairs();
-  return res
-    .status(200)
-    .json(new ApiResponse(200, questions, "Questions fetched successfully"));
-});
+    const intent = await addQnAPair(question, answer, category);
+    await trainAndSave();
 
-export const trainModel = asyncHandler(async (req, res) => {
-  await trainAndSave();
-  return res
-    .status(200)
-    .json(new ApiResponse(200, null, "Model trained successfully"));
-});
+    return res.status(201).json({
+      data: { intent },
+      message: "QnA pair added and model trained successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const trainModel = async (req, res, next) => {
+  try {
+    await trainAndSave();
+    questionCache.clear();
+
+    return res.status(200).json({
+      message: "Model trained successfully",
+      data: { timestamp: new Date().toISOString() },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const clearCache = async (req, res, next) => {
+  try {
+    questionCache.clear();
+    return res.status(200).json({
+      message: "Cache cleared successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export default {
+  askQuestion,
+  addQuestionAnswer,
+  trainModel,
+  clearCache,
+};

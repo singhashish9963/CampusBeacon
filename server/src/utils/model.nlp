@@ -1,0 +1,481 @@
+{
+  "settings": {
+    "languages": [
+      "en"
+    ],
+    "forceNER": true,
+    "tag": "nlp",
+    "threshold": 0.5,
+    "autoLoad": true,
+    "autoSave": true,
+    "modelFileName": "model.nlp",
+    "executeActionsBeforeAnswers": false,
+    "calculateSentiment": true
+  },
+  "nluManager": {
+    "settings": {
+      "tag": "nlu-manager"
+    },
+    "locales": [
+      "en"
+    ],
+    "languageNames": {},
+    "domainManagers": {
+      "en": {
+        "settings": {
+          "locale": "en",
+          "trainByDomain": false,
+          "tag": "domain-manager-en",
+          "nluByDomain": {
+            "default": {
+              "className": "NeuralNlu",
+              "settings": {}
+            }
+          },
+          "useStemDict": true
+        },
+        "stemDict": {
+          "campusbeacon,is,what": {
+            "intent": "general",
+            "domain": "default"
+          },
+          "campusbeacon,do,for,how,i,sign,up": {
+            "intent": "registration",
+            "domain": "default"
+          },
+          "campusbeacon,doe,offer,servic,what": {
+            "intent": "services",
+            "domain": "default"
+          },
+          "campusbeacon,can,contact,how,i,support": {
+            "intent": "support",
+            "domain": "default"
+          },
+          "campusbeacon,data,is,my,on,person,safe": {
+            "intent": "privacy",
+            "domain": "default"
+          }
+        },
+        "intentDict": {
+          "general": "default",
+          "registration": "default",
+          "services": "default",
+          "support": "default",
+          "privacy": "default"
+        },
+        "sentences": [
+          {
+            "domain": "default",
+            "utterance": "What is CampusBeacon?",
+            "intent": "general"
+          },
+          {
+            "domain": "default",
+            "utterance": "How do I sign up for CampusBeacon?",
+            "intent": "registration"
+          },
+          {
+            "domain": "default",
+            "utterance": "What services does CampusBeacon offer?",
+            "intent": "services"
+          },
+          {
+            "domain": "default",
+            "utterance": "How can I contact CampusBeacon support?",
+            "intent": "support"
+          },
+          {
+            "domain": "default",
+            "utterance": "Is my personal data safe on CampusBeacon?",
+            "intent": "privacy"
+          }
+        ],
+        "domains": {
+          "master_domain": {
+            "settings": {
+              "locale": "en",
+              "tag": "nlu-en",
+              "keepStopwords": true,
+              "nonefeatureValue": 1,
+              "nonedeltaMultiplier": 1.2,
+              "spellCheck": false,
+              "spellCheckDistance": 1,
+              "filterZeros": true,
+              "log": true
+            },
+            "features": {
+              "what": 1,
+              "is": 1,
+              "campusbeacon": 1,
+              "how": 1,
+              "do": 1,
+              "i": 1,
+              "sign": 1,
+              "up": 1,
+              "for": 1,
+              "servic": 1,
+              "doe": 1,
+              "offer": 1,
+              "can": 1,
+              "contact": 1,
+              "support": 1,
+              "my": 1,
+              "person": 1,
+              "data": 1,
+              "safe": 1,
+              "on": 1
+            },
+            "intents": {
+              "general": 1,
+              "registration": 1,
+              "services": 1,
+              "support": 1,
+              "privacy": 1
+            },
+            "intentFeatures": {
+              "general": {
+                "what": 1,
+                "is": 1,
+                "campusbeacon": 1
+              },
+              "registration": {
+                "how": 1,
+                "do": 1,
+                "i": 1,
+                "sign": 1,
+                "up": 1,
+                "for": 1,
+                "campusbeacon": 1
+              },
+              "services": {
+                "what": 1,
+                "servic": 1,
+                "doe": 1,
+                "campusbeacon": 1,
+                "offer": 1
+              },
+              "support": {
+                "how": 1,
+                "can": 1,
+                "i": 1,
+                "contact": 1,
+                "campusbeacon": 1,
+                "support": 1
+              },
+              "privacy": {
+                "is": 1,
+                "my": 1,
+                "person": 1,
+                "data": 1,
+                "safe": 1,
+                "on": 1,
+                "campusbeacon": 1
+              }
+            },
+            "featuresToIntent": {
+              "what": [
+                "general",
+                "services"
+              ],
+              "is": [
+                "general",
+                "privacy"
+              ],
+              "campusbeacon": [
+                "general",
+                "registration",
+                "services",
+                "support",
+                "privacy"
+              ],
+              "how": [
+                "registration",
+                "support"
+              ],
+              "do": [
+                "registration"
+              ],
+              "i": [
+                "registration",
+                "support"
+              ],
+              "sign": [
+                "registration"
+              ],
+              "up": [
+                "registration"
+              ],
+              "for": [
+                "registration"
+              ],
+              "servic": [
+                "services"
+              ],
+              "doe": [
+                "services"
+              ],
+              "offer": [
+                "services"
+              ],
+              "can": [
+                "support"
+              ],
+              "contact": [
+                "support"
+              ],
+              "support": [
+                "support"
+              ],
+              "my": [
+                "privacy"
+              ],
+              "person": [
+                "privacy"
+              ],
+              "data": [
+                "privacy"
+              ],
+              "safe": [
+                "privacy"
+              ],
+              "on": [
+                "privacy"
+              ]
+            },
+            "neuralNetwork": {
+              "settings": {
+                "locale": "en",
+                "tag": "nlu-en",
+                "keepStopwords": true,
+                "nonefeatureValue": 1,
+                "nonedeltaMultiplier": 1.2,
+                "spellCheck": false,
+                "spellCheckDistance": 1,
+                "filterZeros": true,
+                "log": true
+              },
+              "features": [
+                "what",
+                "is",
+                "campusbeacon",
+                "how",
+                "do",
+                "i",
+                "sign",
+                "up",
+                "for",
+                "servic",
+                "doe",
+                "offer",
+                "can",
+                "contact",
+                "support",
+                "my",
+                "person",
+                "data",
+                "safe",
+                "on"
+              ],
+              "intents": [
+                "general",
+                "registration",
+                "services",
+                "support",
+                "privacy"
+              ],
+              "perceptrons": [
+                [
+                  4.880922794342041,
+                  5.770932674407959,
+                  2.1895220279693604,
+                  -0.8862967491149902,
+                  -0.3816092014312744,
+                  -0.8862967491149902,
+                  -0.3816092014312744,
+                  -0.3816092014312744,
+                  -0.3816092014312744,
+                  -2.688499927520752,
+                  -2.688499927520752,
+                  -2.688499927520752,
+                  -0.5029962062835693,
+                  -0.5029962062835693,
+                  -0.5029962062835693,
+                  -1.8014167547225952,
+                  -1.8014167547225952,
+                  -1.8014167547225952,
+                  -1.8014167547225952,
+                  -1.8014167547225952,
+                  1.0920874317730827
+                ],
+                [
+                  -0.5535798668861389,
+                  -0.4660957455635071,
+                  0.5359532237052917,
+                  1.3485112190246582,
+                  2.696187734603882,
+                  1.3485112190246582,
+                  2.696187734603882,
+                  2.696187734603882,
+                  2.696187734603882,
+                  -0.27815577387809753,
+                  -0.27815577387809753,
+                  -0.27815577387809753,
+                  -1.2762144804000854,
+                  -1.2762144804000854,
+                  -1.2762144804000854,
+                  -0.1891295462846756,
+                  -0.1891295462846756,
+                  -0.1891295462846756,
+                  -0.1891295462846756,
+                  -0.1891295462846756,
+                  0.2679248778091511
+                ],
+                [
+                  1.611274003982544,
+                  -2.5917129516601562,
+                  0.6855740547180176,
+                  -0.5679619312286377,
+                  -0.20913591980934143,
+                  -0.5679619312286377,
+                  -0.20913591980934143,
+                  -0.20913591980934143,
+                  -0.20913591980934143,
+                  3.875323534011841,
+                  3.875323534011841,
+                  3.875323534011841,
+                  -0.2958635091781616,
+                  -0.2958635091781616,
+                  -0.2958635091781616,
+                  -0.28765034675598145,
+                  -0.28765034675598145,
+                  -0.28765034675598145,
+                  -0.28765034675598145,
+                  -0.28765034675598145,
+                  0.34285251570631625
+                ],
+                [
+                  -0.6654687523841858,
+                  -0.6817992925643921,
+                  0.8333152532577515,
+                  1.7967519760131836,
+                  -1.2753154039382935,
+                  1.7967519760131836,
+                  -1.2753154039382935,
+                  -1.2753154039382935,
+                  -1.2753154039382935,
+                  -0.2279939204454422,
+                  -0.2279939204454422,
+                  -0.2279939204454422,
+                  3.1478846073150635,
+                  3.1478846073150635,
+                  3.1478846073150635,
+                  -0.21550311148166656,
+                  -0.21550311148166656,
+                  -0.21550311148166656,
+                  -0.21550311148166656,
+                  -0.21550311148166656,
+                  0.41662759116726583
+                ],
+                [
+                  -1.6650325059890747,
+                  1.114967703819275,
+                  0.3680982291698456,
+                  -0.4635806977748871,
+                  -0.20522935688495636,
+                  -0.4635806977748871,
+                  -0.20522935688495636,
+                  -0.20522935688495636,
+                  -0.20522935688495636,
+                  -0.19646158814430237,
+                  -0.19646158814430237,
+                  -0.19646158814430237,
+                  -0.19726604223251343,
+                  -0.19726604223251343,
+                  -0.19726604223251343,
+                  2.523650646209717,
+                  2.523650646209717,
+                  2.523650646209717,
+                  2.523650646209717,
+                  2.523650646209717,
+                  0.18403312570965563
+                ]
+              ]
+            }
+          }
+        }
+      }
+    },
+    "intentDomains": {},
+    "extraSentences": [
+      [
+        "en",
+        "What is CampusBeacon?"
+      ],
+      [
+        "en",
+        "How do I sign up for CampusBeacon?"
+      ],
+      [
+        "en",
+        "What services does CampusBeacon offer?"
+      ],
+      [
+        "en",
+        "How can I contact CampusBeacon support?"
+      ],
+      [
+        "en",
+        "Is my personal data safe on CampusBeacon?"
+      ]
+    ]
+  },
+  "ner": {
+    "settings": {
+      "tag": "ner",
+      "entityPreffix": "%",
+      "entitySuffix": "%"
+    },
+    "rules": {}
+  },
+  "nlgManager": {
+    "settings": {
+      "tag": "nlg-manager"
+    },
+    "responses": {
+      "en": {
+        "general": [
+          {
+            "answer": "CampusBeacon is a comprehensive platform designed to connect campus communities, offering a wide range of services like event listings, academic resources, and community forums."
+          }
+        ],
+        "registration": [
+          {
+            "answer": "To sign up, click on the 'Register' button on the homepage and follow the instructions. You'll need a valid email address and password."
+          }
+        ],
+        "services": [
+          {
+            "answer": "CampusBeacon offers services including event updates, lost and found, buy and sell community boards, and academic collaboration tools."
+          }
+        ],
+        "support": [
+          {
+            "answer": "You can contact support by visiting our 'Contact Us' page or by sending an email to support@campusbeacon.com."
+          }
+        ],
+        "privacy": [
+          {
+            "answer": "Yes, CampusBeacon uses industry-standard security measures to ensure your personal data is secure. Please refer to our Privacy Policy for more details."
+          }
+        ]
+      }
+    }
+  },
+  "actionManager": {
+    "settings": {
+      "tag": "action-manager"
+    },
+    "actions": {}
+  },
+  "slotManager": {}
+}

@@ -11,7 +11,7 @@ import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
 import chatBotRoutes from "./src/routes/chatBot.routes.js";
-import { initialize as initializeChatbot } from "./src/utils/chatbot.utils.js";
+
 
 dotenv.config({ path: "./.env" });
 
@@ -58,9 +58,6 @@ const startServer = async () => {
     await connectDb();
     console.log("Database connected successfully");
 
-    console.log("Initializing chatbot service...");
-    await initializeChatbot();
-    console.log("Chatbot service initialized successfully");
 
     httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
