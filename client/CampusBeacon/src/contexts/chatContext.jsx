@@ -6,7 +6,7 @@ import { useAuth } from "./AuthContext";
 const ChatContext = createContext(null);
 
 const api = axios.create({
-  baseURL: "",
+  baseURL: "http://localhost:5000",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -62,7 +62,7 @@ export const ChatContextProvider = ({ children }) => {
 
   useEffect(() => {
     if (user?.id) {
-      const newSocket = io("https://campusbeacon.onrender.com", {
+      const newSocket = io("http://localhost:5000", {
         withCredentials: true,
       });
 

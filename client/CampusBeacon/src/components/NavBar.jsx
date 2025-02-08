@@ -16,19 +16,16 @@ function NavBar() {
         { name: "Lost & Found", path: "/lost-found" },
         { name: "Buy & Sell", path: "/marketplace" },
         { name: "Profile", path: "/profile" },
-        {name:"About us",path:"/about"}
+        
       ]
     : [{ name: "Home", path: "/" }];
 
-  const academicOptions = [
-    { name: "Attendance Tracker", path: "/attendance" },
-    { name: "Academic Performance", path: "/academics" },
-  ];
 
   const hostelOptions = [
     { name: "SVBH", path: "/SVBH" },
     { name: "DGJH", path: "/DJGH" },
   ];
+  
 
   const handleMouseEnter = (dropdown) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -107,29 +104,7 @@ function NavBar() {
                           onMouseLeave={handleMouseLeave}
                           className="relative"
                         >
-                          <button className="text-gray-300 hover:text-white transition-colors">
-                            Academics
-                          </button>
-                          <AnimatePresence>
-                            {activeDropdown === "academics" && (
-                              <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
-                                className="absolute top-full right-0 mt-2 w-56 bg-black/70 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 z-50"
-                              >
-                                {academicOptions.map((option) => (
-                                  <Link
-                                    key={option.name}
-                                    to={option.path}
-                                    className="block px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
-                                  >
-                                    {option.name}
-                                  </Link>
-                                ))}
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
+                          
                         </div>
 
                         <div
