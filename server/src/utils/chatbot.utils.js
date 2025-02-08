@@ -1,146 +1,344 @@
 import { NlpManager } from "node-nlp";
-import { promises as fs } from "fs";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import asyncHandler from "../utils/asyncHandler.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const modelPath = path.join(__dirname, "../models/campus-bot.nlp");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const MODEL_FILE = path.join(__dirname, "model.nlp");
+const CORPUS_FILE = path.join(__dirname, "corpus.json");
 
 const manager = new NlpManager({
   languages: ["en"],
-  threshold: 0.7,
-  autoSave: false,
-  autoLoad: true,
+  forceNER: true,
+  nlu: { log: false },
+  useNeural: true,
+  modelFileName: MODEL_FILE,
 });
 
-const qnaStore = new Map();
 
-export const initialize = asyncHandler(async () => {
-  console.log("Initializing CampusBeacon Chatbot...");
-  if (await checkModelExists()) {
-    await loadModel();
-  } else {
-    await createInitialModel();
-  }
-  console.log("CampusBeacon Chatbot initialized successfully");
-});
-
-const checkModelExists = asyncHandler(async () => {
-  try {
-    await fs.access(modelPath);
-    return true;
-  } catch {
-    return false;
-  }
-});
-
-const loadModel = asyncHandler(async () => {
-  console.log("Loading existing model...");
-  await manager.load(modelPath);
-  console.log("Model loaded successfully");
-});
-
-const createInitialModel = asyncHandler(async () => {
-  console.log("Creating initial model...");
-  const initialData = [
-    // General Campus Information
-    {
-      question: "What is CampusBeacon?",
-      answer:
-        "CampusBeacon is a comprehensive student platform that connects and helps manage various aspects of campus life, including hostel management, lost & found services, marketplace, and attendance tracking.",
-      category: "general",
-    },
-    // Hostel Related
-    {
-      question: "How do I submit a hostel maintenance request?",
-      answer:
-        "You can submit a maintenance request through the Hostel Management section. Click on 'Hostel Management' in the features section, then select 'Submit Maintenance Request'.",
-      category: "hostel",
-    },
-    // Lost and Found
-    {
-      question: "How can I report a lost item?",
-      answer:
-        "To report a lost item, navigate to the 'Lost & Found' section, click on 'Report Lost Item', and fill out the form with details about your lost item.",
-      category: "lost_found",
-    },
-    // Marketplace
-    {
-      question: "How do I list an item for sale?",
-      answer:
-        "To sell an item, go to the 'Buy & Sell' marketplace section, click on 'List New Item', and fill out the item details including price and description.",
-      category: "marketplace",
-    },
-    // Attendance
-    {
-      question: "Where can I check my attendance?",
-      answer:
-        "You can check your attendance by clicking on the 'Attendance Manager' feature. It shows your attendance percentage for all subjects.",
-      category: "attendance",
-    },
-    // Events
-    {
-      question: "How do I find upcoming campus events?",
-      answer:
-        "Check the Events section on the homepage or navigate to the Community section to see all upcoming campus events and activities.",
-      category: "events",
-    },
-  ];
-
-  for (const item of initialData) {
-    await addQnAPair(item.question, item.answer, item.category);
+class AdvancedLanguageProcessor {
+  constructor() {
+    this.corpus = this.loadCorpus();
+    this.contextMemory = new Map();
+    this.wordVectors = new Map();
+    this.entityPatterns = this.initializeEntityPatterns();
+    this.synonyms = this.initializeSynonyms();
   }
 
-  await trainAndSave();
-  console.log("Initial model created successfully");
-});
+  loadCorpus() {
+    try {
+      return JSON.parse(fs.readFileSync(CORPUS_FILE, "utf8"));
+    } catch {
+      return {
+        phrases: [
+          {
+            question: "hello",
+            answer:
+              "Hello there! Welcome to CampusBeacon. It's great to have you here. How can I assist you today?",
+            category: "greetings",
+          },
+          {
+            question: "hi",
+            answer:
+              "Hi! Glad you're here at CampusBeacon. How can I help you with our services?",
+            category: "greetings",
+          },
+          {
+            question: "hey",
+            answer:
+              "Hey! Thanks for stopping by CampusBeacon. Let me know what you're looking for!",
+            category: "greetings",
+          },
+          {
+            question: "good morning",
+            answer:
+              "Good morning! Hope you have a wonderful day on CampusBeacon!",
+            category: "greetings",
+          },
+          {
+            question: "good evening",
+            answer:
+              "Good evening! Feel free to explore CampusBeacon's features anytime.",
+            category: "greetings",
+          },
+          {
+            question: "how are you",
+            answer:
+              "I'm here to help! Thanks for asking. What can I do for you today on CampusBeacon?",
+            category: "casual",
+          },
 
-export const addQnAPair = asyncHandler(
-  async (question, answer, category = "general") => {
-    const intent = `qna_${Date.now()}_${Math.random().toString(36).slice(2)}`;
-    manager.addDocument("en", question, intent);
-    manager.addAnswer("en", intent, answer);
-    qnaStore.set(intent, { question, answer, category, intent });
-    return intent;
+          {
+            question: "What is CampusBeacon?",
+            answer:
+              "CampusBeacon is a comprehensive platform that connects campus communities with events, academic resources, forums, and more. We strive to make campus life easier and more engaging.",
+            category: "general",
+          },
+
+          {
+            question: "How do I sign up for CampusBeacon?",
+            answer:
+              "Signing up is quick and easy! Just click on 'Register' on our homepage, enter your email and password, and you're all set.",
+            category: "registration",
+          },
+
+          {
+            question: "What services does CampusBeacon offer?",
+            answer:
+              "We offer real-time event updates, lost and found, buy and sell boards, academic collaboration tools, forums, and more. Check our site for a full list of features!",
+            category: "services",
+          },
+
+          {
+            question: "How can I contact CampusBeacon support?",
+            answer:
+              "For support, visit our 'Contact Us' page or send an email to support@campusbeacon.com. We'll get back to you soon!",
+            category: "support",
+          },
+
+          {
+            question: "Is my personal data safe on CampusBeacon?",
+            answer:
+              "Yes, we employ industry-standard security measures to keep your data safe. Please see our Privacy Policy for more details.",
+            category: "privacy",
+          },
+  
+          {
+            question: "What campus events are coming up?",
+            answer:
+              "Check out the dynamic events calendar on CampusBeacon to see what's happening. You can also filter by categories or dates.",
+            category: "events",
+          },
+          {
+            question: "How do I find events on CampusBeacon?",
+            answer:
+              "Just head to our 'Events' section. You can browse upcoming events by date, category, or campus location.",
+            category: "events",
+          },
+
+          {
+            question: "I need help",
+            answer:
+              "Let me know what you need help with specifically, and I'll do my best to assist!",
+            category: "help",
+          },
+        ],
+        entities: {},
+        patterns: [],
+        relationships: {},
+      };
+    }
   }
-);
 
-export const trainAndSave = asyncHandler(async () => {
-  console.log("Training model...");
-  await manager.train();
-  await manager.save(modelPath);
-  console.log("Model trained and saved successfully");
-});
-
-export const processQuestion = asyncHandler(async (question) => {
-  const result = await manager.process("en", question);
-  if (result.intent && result.score > 0.7) {
-    const qnaPair = qnaStore.get(result.intent);
+  initializeEntityPatterns() {
     return {
-      answer: result.answer,
-      confidence: result.score,
-      category: qnaPair?.category,
-      similarQuestions: Array.from(qnaStore.values())
-        .filter((pair) => pair.category === qnaPair?.category)
-        .slice(0, 3)
-        .map((pair) => pair.question),
+      date: /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b/i,
+      email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/,
+      phone: /\b\d{3}[-.)]\d{3}[-.)]\d{4}\b/,
+      time: /\b(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:am|pm)\b/i,
+      url: /https?:\/\/[^\s]+/,
     };
   }
-  return {
-    answer:
-      "I'm not quite sure about that. Could you please rephrase your question? You can also check our specific sections like Hostel Management, Lost & Found, or Marketplace for more information.",
-    confidence: 0,
-    similarQuestions: [],
-  };
-});
 
-export const getAllQnAPairs = asyncHandler(async () => {
-  return Array.from(qnaStore.values());
-});
+  initializeSynonyms() {
+    return new Map([
+      ["hello", ["hi", "hey", "greetings", "howdy"]],
+      ["help", ["assist", "support", "aid", "guide"]],
+      ["event", ["activity", "program", "gathering", "meeting"]],
+      ["register", ["signup", "enroll", "join", "subscribe"]],
+      ["cancel", ["delete", "remove", "unsubscribe", "quit"]],
+    ]);
+  }
 
-export const getQnAPairsByCategory = asyncHandler(async (category) => {
-  return Array.from(qnaStore.values()).filter(
-    (pair) => pair.category === category
-  );
-});
+  generateWordVector(text) {
+    const words = text.toLowerCase().split(/\W+/);
+    const vector = new Map();
+    words.forEach((word) => {
+      vector.set(word, (vector.get(word) || 0) + 1);
+    });
+    return vector;
+  }
+
+  cosineSimilarity(vecA, vecB) {
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+
+    for (const [word, countA] of vecA) {
+      const countB = vecB.get(word) || 0;
+      dotProduct += countA * countB;
+      normA += countA * countA;
+    }
+
+    for (const [_, countB] of vecB) {
+      normB += countB * countB;
+    }
+
+    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  }
+
+  findSynonyms(word) {
+    for (const [key, synonyms] of this.synonyms) {
+      if (key === word || synonyms.includes(word)) {
+        return [key, ...synonyms];
+      }
+    }
+    return [word];
+  }
+
+  extractEntities(text) {
+    const entities = {};
+    for (const [type, pattern] of Object.entries(this.entityPatterns)) {
+      const matches = text.match(pattern);
+      if (matches) {
+        entities[type] = matches[0];
+      }
+    }
+    return entities;
+  }
+
+  findContextualMatches(question, threshold = 0.6) {
+    const questionVector = this.generateWordVector(question);
+    const matches = [];
+
+    for (const phrase of this.corpus.phrases) {
+      const phraseVector = this.generateWordVector(phrase.question);
+      const similarity = this.cosineSimilarity(questionVector, phraseVector);
+
+      if (similarity > threshold) {
+        matches.push({
+          question: phrase.question,
+          answer: phrase.answer,
+          similarity,
+        });
+      }
+    }
+
+    return matches.sort((a, b) => b.similarity - a.similarity);
+  }
+
+  updateContext(sessionId, question) {
+    const context = this.contextMemory.get(sessionId) || [];
+    context.push(question);
+    if (context.length > 5) context.shift();
+    this.contextMemory.set(sessionId, context);
+  }
+}
+
+
+const processor = new AdvancedLanguageProcessor();
+
+export const processQuestion = async (question, sessionId = "default") => {
+  try {
+    processor.updateContext(sessionId, question);
+
+
+    const nlpResult = await manager.process("en", question);
+
+
+    const entities = processor.extractEntities(question);
+
+    const contextualMatches = processor.findContextualMatches(question);
+
+    if (nlpResult.score > 0.7 && nlpResult.answer) {
+      return {
+        answer: nlpResult.answer,
+        similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
+        category: nlpResult.intent,
+        confidence: nlpResult.score,
+        entities,
+      };
+    }
+
+
+    if (contextualMatches.length > 0 && contextualMatches[0].similarity > 0.6) {
+      return {
+        answer: contextualMatches[0].answer,
+        similarQuestions: contextualMatches.slice(1, 4).map((m) => m.question),
+        category: "contextual",
+        confidence: contextualMatches[0].similarity,
+        entities,
+      };
+    }
+
+
+    return {
+      answer:
+        "I'm not entirely sure about that. Could you rephrase your question?",
+      similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
+      category: "unknown",
+      confidence: 0.3,
+      entities,
+    };
+  } catch (error) {
+    console.error("Error processing question:", error);
+    return {
+      answer: "Sorry, I encountered an error processing your question.",
+      similarQuestions: [],
+      category: "error",
+      confidence: 0,
+      entities: {},
+    };
+  }
+};
+
+
+export const addQnAPair = async (question, answer, category = "general") => {
+  try {
+
+    processor.corpus.phrases.push({
+      question,
+      answer,
+      category,
+    });
+
+ 
+    await fs.promises.writeFile(
+      CORPUS_FILE,
+      JSON.stringify(processor.corpus, null, 2)
+    );
+
+   
+    manager.addDocument("en", question, category);
+    manager.addAnswer("en", category, answer);
+
+    return true;
+  } catch (error) {
+    console.error("Error adding QnA pair:", error);
+    return false;
+  }
+};
+
+
+export const trainAndSave = async () => {
+  try {
+    await manager.train();
+    manager.save(MODEL_FILE);
+    return true;
+  } catch (error) {
+    console.error("Error training model:", error);
+    return false;
+  }
+};
+
+
+(async () => {
+  try {
+
+    if (fs.existsSync(MODEL_FILE)) {
+      await manager.load(MODEL_FILE);
+    } else {
+
+      for (const phrase of processor.corpus.phrases) {
+        manager.addDocument("en", phrase.question, phrase.category);
+        manager.addAnswer("en", phrase.category, phrase.answer);
+      }
+      await manager.train();
+      manager.save(MODEL_FILE);
+    }
+  } catch (error) {
+    console.error("Error initializing chatbot:", error);
+  }
+})();

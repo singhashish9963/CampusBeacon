@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+import { Rocket, Stars, Moon, Send, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useChatbot } from "../../contexts/chatBotContext"
+import { useChatbot } from "../../contexts/ChatbotContext";
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const chatContainerRef = useRef(null);
-
   const { loading, error, askQuestion } = useChatbot();
 
   useEffect(() => {
@@ -17,24 +17,17 @@ const ChatbotWidget = () => {
     }
   }, [chatHistory]);
 
-  const toggleWidget = () => {
-    setIsOpen(!isOpen);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) return;
-
     setChatHistory((prev) => [
       ...prev,
       { sender: "user", message: trimmedQuestion },
     ]);
     setQuestion("");
-
     try {
       const result = await askQuestion(trimmedQuestion);
-
       if (result?.answer) {
         setChatHistory((prev) => [
           ...prev,
@@ -51,79 +44,105 @@ const ChatbotWidget = () => {
         ...prev,
         {
           sender: "chatbot",
-          message: "Sorry, I encountered an error. Please try again.",
+          message: "Houston, we have a problem. Please try again.",
           error: true,
         },
       ]);
     }
   };
 
-  const handleSimilarQuestionClick = (question) => {
-    setQuestion(question);
-    handleSubmit({ preventDefault: () => {}, target: null });
+  const handleSimilarQuestionClick = (similarQ) => {
+    setQuestion(similarQ);
+    handleSubmit({ preventDefault: () => {} });
   };
 
   return (
     <>
       <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={toggleWidget}
-          className="bg-gradient-to-r from-purple-500 to-pink-500 p-4 rounded-full shadow-lg hover:shadow-xl transition-all"
-          aria-label={isOpen ? "Close chat" : "Open chat"}
+        <motion.button
+          onClick={() => setIsOpen(!isOpen)}
+          className="group bg-gradient-to-r from-indigo-600 to-purple-600 p-4 rounded-full shadow-lg hover:shadow-xl transition-all text-white font-semibold focus:outline-none focus:ring-4 focus:ring-purple-300 flex items-center gap-2"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          {isOpen ? "Close Chat" : "Chat with CampusBeacon"}
-        </button>
+          {isOpen ? (
+            <>
+              <X className="w-5 h-5" />
+              <span>Close Mission Control</span>
+            </>
+          ) : (
+            <>
+              <Rocket className="w-5 h-5 group-hover:animate-bounce" />
+              <span>Launch Assistant</span>
+            </>
+          )}
+        </motion.button>
       </div>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed bottom-20 right-6 z-50 w-80 max-h-[80vh] bg-white shadow-2xl rounded-lg overflow-hidden flex flex-col"
+            className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-gradient-to-b from-gray-900 to-indigo-900 shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-purple-400/30"
           >
-            <div className="bg-gradient-to-r from-purple-500 to-pink-500 p-4">
-              <h3 className="text-white font-semibold">
-                CampusBeacon Assistant
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Rocket className="w-6 h-6 text-white animate-pulse" />
+                <Stars className="w-6 h-6 text-white" />
+                <Moon className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-white font-bold text-lg">
+                Space Mission Control
               </h3>
             </div>
+
             <div
               ref={chatContainerRef}
-              className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50"
+              className="flex-1 p-4 overflow-y-auto space-y-3 bg-transparent"
             >
               {chatHistory.length === 0 ? (
-                <p className="text-gray-400 text-sm text-center">
-                  Hi! How can I help you with CampusBeacon today?
-                </p>
+                <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
+                  <Rocket className="w-16 h-16 text-purple-400 animate-bounce" />
+                  <p className="text-purple-200 text-lg">
+                    Ground Control to Major Tom...
+                    <br />
+                    How can I assist you today?
+                  </p>
+                </div>
               ) : (
                 chatHistory.map((msg, index) => (
-                  <div
+                  <motion.div
                     key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     className={`flex ${
                       msg.sender === "user" ? "justify-end" : "justify-start"
                     }`}
                   >
                     <div
-                      className={`max-w-[80%] px-3 py-2 rounded-lg text-sm ${
+                      className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm ${
                         msg.sender === "user"
-                          ? "bg-purple-500 text-white"
+                          ? "bg-purple-600 text-white"
                           : msg.error
-                          ? "bg-red-100 text-red-500"
-                          : "bg-pink-500 text-white"
+                          ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                          : "bg-indigo-600/40 text-white backdrop-blur-sm border border-indigo-400/30"
                       }`}
                     >
                       {msg.message}
                       {msg.similarQuestions?.length > 0 && (
-                        <div className="mt-2 text-xs">
-                          <p className="font-semibold">Similar questions:</p>
-                          <ul className="list-none space-y-1">
+                        <div className="mt-3 text-xs bg-white/10 backdrop-blur-sm rounded-xl p-3 text-purple-100">
+                          <p className="font-semibold mb-2">
+                            Related missions:
+                          </p>
+                          <ul className="space-y-1">
                             {msg.similarQuestions.map((q, i) => (
                               <li
                                 key={i}
                                 onClick={() => handleSimilarQuestionClick(q)}
-                                className="cursor-pointer hover:bg-pink-600 p-1 rounded"
+                                className="cursor-pointer p-2 hover:bg-purple-500/30 rounded-lg transition-colors"
                               >
                                 {q}
                               </li>
@@ -132,38 +151,50 @@ const ChatbotWidget = () => {
                         </div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               )}
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-gray-200 px-3 py-2 rounded-lg">
-                    <span className="animate-pulse">...</span>
+                  <div className="bg-indigo-600/20 px-4 py-3 rounded-2xl">
+                    <span className="inline-flex gap-1">
+                      <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" />
+                      <span
+                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      />
+                      <span
+                        className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+                        style={{ animationDelay: "0.4s" }}
+                      />
+                    </span>
                   </div>
                 </div>
               )}
-              {error && <p className="text-red-500 text-sm">{error}</p>}
             </div>
+
             <form
               onSubmit={handleSubmit}
-              className="p-4 border-t border-gray-200 bg-white"
+              className="p-4 border-t border-purple-400/30 bg-gray-900/50 backdrop-blur-sm"
             >
               <div className="relative">
                 <input
                   type="text"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  placeholder="Ask about CampusBeacon..."
-                  className="w-full px-4 py-2 pr-12 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  placeholder="Transmit your message..."
+                  className="w-full px-4 py-3 pr-12 bg-indigo-900/30 border border-purple-400/30 rounded-xl text-white placeholder-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
                   disabled={loading}
                 />
-                <button
+                <motion.button
                   type="submit"
                   disabled={loading || !question.trim()}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-purple-500 hover:text-purple-600 disabled:opacity-50"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-purple-400 hover:text-purple-300 disabled:opacity-50 focus:outline-none"
                 >
-                  Send
-                </button>
+                  <Send className="w-5 h-5" />
+                </motion.button>
               </div>
             </form>
           </motion.div>

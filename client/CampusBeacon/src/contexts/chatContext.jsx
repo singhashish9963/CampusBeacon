@@ -41,27 +41,59 @@ export const ChatContextProvider = ({ children }) => {
     return null;
   };
 
-const fetchMessages = async (channelId) => {
-  try {
-    setLoading(true);
-    const { data } = await api.get(`/api/chat/channels/${channelId}/messages`);
+  const fetchMessages = async (channelId) => {
+    try {
+      setLoading(true);
+      const { data } = await api.get(
+        `/api/chat/channels/${channelId}/messages`
+      );
 
-    // Extract unique userIds from messages
-    const userIds = [...new Set(data.data.map((msg) => msg.userId))];
+      // Extract unique userIds from messages
+      const userIds = [...new Set(data.data.map((msg) => msg.userId))];
 
-    // Fetch details for users not yet stored
-    const uncachedUserIds = userIds.filter((id) => !userProfiles[id]);
-    await Promise.all(uncachedUserIds.map(fetchUserProfile));
+      // Fetch details for users not yet stored
+      const uncachedUserIds = userIds.filter((id) => !userProfiles[id]);
+      await Promise.all(uncachedUserIds.map(fetchUserProfile));
 
-    // Set messages after fetching user details
-    setMessages(data.data.reverse());
-  } catch (error) {
-    setError(error?.response?.data?.message || "Failed to fetch messages");
-  } finally {
-    setLoading(false);
-  }
-};
+      // Set messages after fetching user details
+      setMessages(data.data.reverse());
+    } catch (error) {
+      setError(error?.response?.data?.message || "Failed to fetch messages");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleSocketRequest = () => {
+      socket.on("connect", () => {
+        console.log("Socket connected, fetching channels...");
+        fetchChannels();
+      });
+
+      socket.on("channel-update", () => {
+        console.log("Channel update received, refreshing channels...");
+        fetchChannels();
+      });
+
+      socket.on("message-update", () => {
+        if (currentChannel) {
+          console.log("Message update received, refreshing messages...");
+          fetchMessages(currentChannel);
+        }
+      });
+    };
+
+    handleSocketRequest();
+
+    return () => {
+      socket.off("connect");
+      socket.off("channel-update");
+      socket.off("message-update");
+    };
+  }, [socket, currentChannel]);
 
   useEffect(() => {
     if (user?.id) {
@@ -117,7 +149,7 @@ const fetchMessages = async (channelId) => {
       socket.off("user-typing");
       socket.off("user-stop-typing");
     };
-  }, [socket]);
+  }, [socket, currentChannel]);
 
   const fetchChannels = async () => {
     try {
