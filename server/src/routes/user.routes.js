@@ -12,6 +12,7 @@ import {
   loginUser,
   googleAuth,
   verifyEmail,
+  sendVerificationEmail
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
