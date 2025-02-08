@@ -20,14 +20,10 @@ const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432;
 =======================================================
 */
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  dialect: "postgres",
-  dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
-  },
+const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: "localhost",
+    dialect: 'postgres',
+    port:process.env.DB_PORT,
 });
 
 /*
@@ -37,7 +33,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 */
 
 sequelize
-  .sync({force:true})
+  .sync()
   .then(() => {
     console.log("Database & tables have been updated!");
   })
