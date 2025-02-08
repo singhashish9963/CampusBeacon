@@ -7,8 +7,7 @@ const QuickLinks = () => {
   const links = [
     { icon: Calendar, label: "Academic Calendar", href: "https://drive.google.com/file/d/1yYKlN_WktRy2SQYdSaAr-8R42w3wGnTs/view?usp=sharing" },
     { icon: User, label: "Academic Portal", href: "https://www.academics.mnnit.ac.in/new" },
-    { icon: FileText, label: "LAN Information", href: "/" },
-    { icon: Phone, label: "Resource Hub", href: "/" },
+    { icon: FileText, label: "LAN Information", href: "https://drive.google.com/file/d/1IUyYjTPWsRlQCzVMvO1dkHKLIamg37js/view?usp=sharing" },
     { icon: User, label: "Contacts", href: "/contact" },
   ];
 
@@ -19,7 +18,7 @@ const QuickLinks = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols- lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
         >
           {links.map((link, index) => (
             <Link 

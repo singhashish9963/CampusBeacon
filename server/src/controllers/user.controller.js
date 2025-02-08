@@ -379,47 +379,47 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
 ==============================
 
  */
-export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
-  const { email } = req.body;
+// export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
+//   const { email } = req.body;
 
 
-  const user = await User.findOne({ where: { email } });
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
+//   const user = await User.findOne({ where: { email } });
+//   if (!user) {
+//     return next(new ApiError("User not found", 404));
+//   }
 
 
-  const token = jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
+//   const token = jwt.sign(
+//     { id: user.id, email: user.email },
+//     process.env.JWT_SECRET,
+//     { expiresIn: "1h" }
+//   );
 
   
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+//   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
-  try {
+//   try {
 
-    await sendEmail({
-      to: user.email,
-      subject: "Verify Your Email Address",
-      text: `Please verify your email by clicking the following link: ${verificationUrl}`,
-      html: `
-        <h1>Email Verification</h1>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verificationUrl}">Verify Email</a>
-        <p>This link will expire in 1 hour.</p>
-      `,
-    });
+//     await sendEmail({
+//       to: user.email,
+//       subject: "Verify Your Email Address",
+//       text: `Please verify your email by clicking the following link: ${verificationUrl}`,
+//       html: `
+//         <h1>Email Verification</h1>
+//         <p>Please click the link below to verify your email address:</p>
+//         <a href="${verificationUrl}">Verify Email</a>
+//         <p>This link will expire in 1 hour.</p>
+//       `,
+//     });
 
-    console.log(`Verification email sent to ${user.email}`);
-    res
-      .status(200)
-      .json(new ApiResponse(200, null, "Verification email sent successfully"));
-  } catch (error) {
-    return next(new ApiError("Error sending verification email", 500));
-  }
-});
+//     console.log(`Verification email sent to ${user.email}`);
+//     res
+//       .status(200)
+//       .json(new ApiResponse(200, null, "Verification email sent successfully"));
+//   } catch (error) {
+//     return next(new ApiError("Error sending verification email", 500));
+//   }
+// });
 
 export const verifyEmail = asyncHandler(async (req, res, next) => {
   const { token } = req.query;
@@ -454,7 +454,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   res.cookie("token", authToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 60 * 60 * 1000,
   });
 

@@ -104,7 +104,7 @@ const AboutUs = () => {
         {/* Team Section */}
         <div>
           <h2 className="text-3xl font-bold text-white mb-12 text-center m-20">Meet Our Team</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-70 ml-30 mr-30">
+          <div className="grid grid-cols-1 md:grid-cols-2 m-10 gap-20 md:gap-50 md:ml-20 md:mr-20">
             {teamMembers.map((member, index) => (
               <motion.div
                 key={index}
@@ -117,7 +117,7 @@ const AboutUs = () => {
                 <div className="relative">
                   <img
                     src={member.image}
-                    className="w-25 h-25 rounded-full mx-auto mb-4 group-hover:scale-105 transition-transform"
+                    className="w-25 h-25 rounded-full mx-auto md:mb-4 group-hover:scale-105 transition-transform"
                   />
                 </div>
                 <h3 className="text-xl font-bold text-white mt-5 mb-5 text-center">{member.name}</h3>
