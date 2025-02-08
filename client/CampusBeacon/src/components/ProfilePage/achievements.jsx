@@ -3,9 +3,9 @@ import { Award, Star, Hash } from "lucide-react";
 {/*Dummy data for achievements to display */}
 const Achievements = [
   {
-    title: "DevJam Winner",
+    title: "CodeSprint",
     icon: Award,
-    description: "Won DevJam event #1",
+    description: "Won CodeSprint AIML hackathon under robotics club #1",
   },
   {
     title: "Star Performer",
@@ -13,9 +13,9 @@ const Achievements = [
     description: "Maintained a 9.0+ GPA for three consecutive semesters.",
   },
   {
-    title: "CodeStart #69",
+    title: "CodeStart #100",
     icon: Hash,
-    description: "Secured 69th rank in CodeStart event",
+    description: "Secured 100th rank in CodeStart event",
   },
 ];
 

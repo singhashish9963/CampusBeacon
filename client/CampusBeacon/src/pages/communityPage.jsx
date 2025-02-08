@@ -12,6 +12,7 @@ const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
 
   return (
     <div className="group flex items-start space-x-3 p-2 hover:bg-purple-500/10 rounded-lg">
+      {/* User Avatar */}
       <img
         src={
           userProfile?.avatar ||
@@ -20,16 +21,19 @@ const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
         alt={userProfile?.name || message.userId}
         className="w-10 h-10 rounded-full"
       />
+
+      {/* Message Content */}
       <div className="flex-1">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
             <span className="font-semibold text-white">
-              {userProfile?.name || message.userId}{" "}
+              {userProfile?.name || "Unknown User"}
             </span>
             <span className="text-xs text-gray-400">
-              {userProfile?.registration_number || message.userId}
+              {userProfile?.registration_number || "No Reg. Number"}
             </span>
           </div>
+
           {isOwnMessage && (
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -50,6 +54,7 @@ const MessageBubble = ({ message, onDelete, isOwnMessage }) => {
             </motion.button>
           )}
         </div>
+
         <p className="text-gray-300">{message.content}</p>
       </div>
     </div>

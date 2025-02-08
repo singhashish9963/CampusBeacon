@@ -40,22 +40,27 @@ export const ChatContextProvider = ({ children }) => {
     return null;
   };
 
-  const fetchMessages = async (channelId) => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(
-        `/api/chat/channels/${channelId}/messages`
-      );
-      const userIds = [...new Set(data.data.map((msg) => msg.userId))];
-      const uncachedUserIds = userIds.filter((id) => !userProfiles[id]);
-      await Promise.all(uncachedUserIds.map(fetchUserProfile));
-      setMessages(data.data.reverse());
-    } catch (error) {
-      setError(error?.response?.data?.message || "Failed to fetch messages");
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchMessages = async (channelId) => {
+  try {
+    setLoading(true);
+    const { data } = await api.get(`/api/chat/channels/${channelId}/messages`);
+
+    // Extract unique userIds from messages
+    const userIds = [...new Set(data.data.map((msg) => msg.userId))];
+
+    // Fetch details for users not yet stored
+    const uncachedUserIds = userIds.filter((id) => !userProfiles[id]);
+    await Promise.all(uncachedUserIds.map(fetchUserProfile));
+
+    // Set messages after fetching user details
+    setMessages(data.data.reverse());
+  } catch (error) {
+    setError(error?.response?.data?.message || "Failed to fetch messages");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   useEffect(() => {
     if (user?.id) {

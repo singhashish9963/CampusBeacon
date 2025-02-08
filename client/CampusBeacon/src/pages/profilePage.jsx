@@ -83,6 +83,7 @@ const ProfilePage = () => {
         hostel: userData.hostel || user?.hostel || "",
       };
 
+      console.log("Submitting Data:", formData);
       await updateUser(formData);
       setIsEditing(false);
     } catch (err) {
@@ -107,7 +108,12 @@ const ProfilePage = () => {
       icon: Star,
       readonly: true,
     },
-    { label: "Registration", value: userData.registration_number, icon: Hash },
+    {
+      label: "Registration",
+      value: userData.registration_number,
+      icon: Hash,
+      name: "registration_number", // use proper key name
+    },
     { label: "Hostel", value: userData.hostel, icon: Home },
   ];
 
@@ -233,8 +239,8 @@ const ProfilePage = () => {
                     ) : (
                       <input
                         type="text"
-                        name={stat.label.toLowerCase()}
-                        value={stat.value}
+                        name={stat.name || stat.label.toLowerCase()}
+                        value={userData[stat.name || stat.label.toLowerCase()]}
                         onChange={handleChange}
                         placeholder={stat.label}
                         className="w-full bg-transparent text-center text-purple-400 text-xl font-bold border-b border-purple-400 focus:outline-none"
