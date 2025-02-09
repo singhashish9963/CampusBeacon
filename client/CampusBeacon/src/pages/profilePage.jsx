@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Calendar, Book, Hash, Star, Edit, Home } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+  Calendar, 
+  Book, 
+  Hash, 
+  Star, 
+  Edit, 
+  Home,
+  User,
+  Mail,
+  Award,
+  AlertCircle,
+  Save,
+  X,
+  Check
+} from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
 import Achievements from "../components/ProfilePage/achievements";
 import { useProfile } from "../contexts/profileContext";
@@ -8,16 +22,17 @@ import LoadingScreen from "../components/LoadingScreen";
 
 const ProfilePage = () => {
   const { user, loading, error, updateUser } = useProfile();
-
   const [isEditing, setIsEditing] = useState(false);
+  const [notification, setNotification] = useState(null);
+  const [originalData, setOriginalData] = useState(null);
   const [userData, setUserData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    branch: user?.branch || "",
-    registration_number: user?.registration_number || "",
-    semester: user?.semester || "",
-    graduation_year: user?.graduation_year || 2025,
-    hostel: user?.hostel || "",
+    name: "",
+    email: "",
+    branch: "",
+    registration_number: "",
+    semester: "",
+    graduation_year: 2025,
+    hostel: "",
     attendance: "87%",
     semesterCredits: "21",
   });
@@ -46,9 +61,19 @@ const ProfilePage = () => {
     "Eighth",
   ];
 
+  const hostelOptions = [
+    "SVBH",
+    "DGJH",
+    "Tilak",
+    "Malviya",
+    "Patel",
+    "Tandon",
+    "PG",
+  ];
+
   useEffect(() => {
     if (user) {
-      setUserData({
+      const newUserData = {
         name: user.name || "",
         email: user.email || "",
         branch: user.branch || "",
@@ -58,9 +83,16 @@ const ProfilePage = () => {
         hostel: user.hostel || "",
         attendance: "87%",
         semesterCredits: "21",
-      });
+      };
+      setUserData(newUserData);
+      setOriginalData(newUserData);
     }
   }, [user]);
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,29 +102,42 @@ const ProfilePage = () => {
     }));
   };
 
+  const handleCancel = () => {
+    setUserData(originalData);
+    setIsEditing(false);
+  };
+
   const handleSubmit = async () => {
     try {
       const formData = {
-        name: userData.name || user?.name || "",
-        branch: userData.branch || user?.branch || "",
-        graduation_year:
-          userData.graduation_year || user?.graduation_year || 2025,
-        registration_number:
-          userData.registration_number || user?.registration_number || "",
-        semester: userData.semester || user?.semester || "",
-        hostel: userData.hostel || user?.hostel || "",
+        name: userData.name,
+        branch: userData.branch,
+        graduation_year: userData.graduation_year,
+        registration_number: userData.registration_number,
+        semester: userData.semester,
+        hostel: userData.hostel,
       };
 
-      console.log("Submitting Data:", formData);
       await updateUser(formData);
       setIsEditing(false);
+      showNotification("Profile updated successfully!");
+      setOriginalData(userData);
     } catch (err) {
+      showNotification("Error updating profile", "error");
       console.error("Error updating profile:", err);
     }
   };
 
   if (loading) return <LoadingScreen />;
-  if (error) return <div>Error: {error}</div>;
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800">
+        <div className="bg-red-500/10 text-red-500 p-4 rounded-lg flex items-center">
+          <AlertCircle className="mr-2" />
+          {error}
+        </div>
+      </div>
+    );
 
   const stats = [
     {
@@ -100,27 +145,70 @@ const ProfilePage = () => {
       value: userData.attendance,
       icon: Calendar,
       readonly: true,
+      color: "text-green-400",
     },
-    { label: "Semester", value: userData.semester, icon: Book, isSelect: true },
+    {
+      label: "Semester",
+      value: userData.semester,
+      icon: Book,
+      isSelect: true,
+      color: "text-blue-400",
+    },
     {
       label: "Semester Credits",
       value: userData.semesterCredits,
       icon: Star,
       readonly: true,
+      color: "text-yellow-400",
     },
     {
       label: "Registration",
       value: userData.registration_number,
       icon: Hash,
-      name: "registration_number", // use proper key name
+      name: "registration_number",
+      color: "text-purple-400",
     },
-    { label: "Hostel", value: userData.hostel, icon: Home },
+    {
+      label: "Hostel",
+      value: userData.hostel,
+      icon: Home,
+      isSelect: true,
+      options: hostelOptions,
+      color: "text-pink-400",
+    },
   ];
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 py-20 px-4 overflow-hidden">
+      {/* Notification */}
+      <AnimatePresence>
+        {notification && (
+          <motion.div
+            initial={{ opacity: 0, y: -100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -100 }}
+            className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-2 ${
+              notification.type === "error" ? "bg-red-500" : "bg-green-500"
+            }`}
+          >
+            {notification.type === "error" ? (
+              <AlertCircle size={20} className="text-white" />
+            ) : (
+              <Check size={20} className="text-white" />
+            )}
+            <span className="text-white">{notification.message}</span>
+            <button
+              onClick={() => setNotification(null)}
+              className="ml-2 hover:text-gray-200"
+            >
+              <X size={18} />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
-        className="max-w-6xl mx-auto bg-black/30 backdrop-blur-xl rounded-2xl p-12 relative"
+        className="max-w-6xl mx-auto bg-black/30 backdrop-blur-xl rounded-2xl p-12 relative border border-white/10"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
@@ -128,12 +216,19 @@ const ProfilePage = () => {
         {/* Edit Button */}
         <div className="absolute top-4 right-4">
           <motion.button
-            onClick={() => setIsEditing(!isEditing)}
-            className="flex items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-colors"
+            onClick={() => (isEditing ? handleCancel() : setIsEditing(true))}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+              isEditing
+                ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                : "bg-purple-600 hover:bg-purple-700 focus:ring-purple-500"
+            }`}
             whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             {isEditing ? (
-              "Cancel"
+              <>
+                <X className="w-5 h-5" /> Cancel
+              </>
             ) : (
               <>
                 <Edit className="w-5 h-5" /> Edit Profile
@@ -144,56 +239,87 @@ const ProfilePage = () => {
 
         <div className="flex flex-col md:flex-row items-center md:items-start gap-12">
           <div className="flex-1 w-full">
-            {/* Name and Main Info */}
-            <div className="flex justify-between items-start mb-8">
+            {/* Profile Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8">
               <div className="w-full">
                 {isEditing ? (
-                  <input
-                    type="text"
-                    name="name"
-                    value={userData.name}
-                    onChange={handleChange}
-                    placeholder="Name"
-                    className="text-4xl font-bold text-white mb-2 bg-transparent border-b-2 border-purple-400 focus:outline-none w-full placeholder-gray-500"
-                  />
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={userData.name}
+                        onChange={handleChange}
+                        placeholder="Your Name"
+                        className="text-4xl font-bold text-white bg-transparent border-b-2 border-purple-400 focus:outline-none w-full placeholder-gray-500 transition-colors focus:border-purple-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Email
+                      </label>
+                      <input
+                        type="email"
+                        value={userData.email}
+                        disabled
+                        className="w-full bg-gray-800/50 text-gray-400 rounded-lg p-2"
+                      />
+                    </div>
+                  </div>
                 ) : (
-                  <h1 className="text-5xl font-bold text-white mb-2">
-                    {userData.name || "Name"}
-                  </h1>
+                  <>
+                    <h1 className="text-5xl font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent mb-2">
+                      {userData.name || "Name"}
+                    </h1>
+                    <p className="text-gray-400">{userData.email}</p>
+                  </>
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full md:w-auto">
                 {isEditing ? (
                   <>
-                    <select
-                      name="branch"
-                      value={userData.branch}
-                      onChange={handleChange}
-                      className="w-full bg-gray-800/50 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    >
-                      <option value="" className="bg-gray-800">
-                        Select Branch
-                      </option>
-                      {branchOptions.map((branch) => (
-                        <option
-                          key={branch}
-                          value={branch}
-                          className="bg-gray-800"
-                        >
-                          {branch}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Branch
+                      </label>
+                      <select
+                        name="branch"
+                        value={userData.branch}
+                        onChange={handleChange}
+                        className="w-full bg-gray-800/50 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="" className="bg-gray-800">
+                          Select Branch
                         </option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      name="graduation_year"
-                      value={userData.graduation_year}
-                      onChange={handleChange}
-                      min="2024"
-                      max="2030"
-                      className="w-full bg-transparent text-white border border-purple-400 rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    />
+                        {branchOptions.map((branch) => (
+                          <option
+                            key={branch}
+                            value={branch}
+                            className="bg-gray-800"
+                          >
+                            {branch}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-400 mb-1">
+                        Graduation Year
+                      </label>
+                      <input
+                        type="number"
+                        name="graduation_year"
+                        value={userData.graduation_year}
+                        onChange={handleChange}
+                        min="2024"
+                        max="2030"
+                        className="w-full bg-gray-800/50 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+                    </div>
                   </>
                 ) : (
                   <>
@@ -216,23 +342,27 @@ const ProfilePage = () => {
                 <motion.div
                   key={stat.label}
                   whileHover={{ scale: 1.05 }}
-                  className="bg-white/5 rounded-xl p-6 text-center relative group hover:bg-white/10 transition-all"
+                  className="bg-white/5 rounded-xl p-6 text-center relative group hover:bg-white/10 transition-all border border-white/5"
                 >
-                  <stat.icon className="w-6 h-6 text-purple-400 mx-auto mb-3" />
+                  <stat.icon className={`w-6 h-6 ${stat.color} mx-auto mb-3`} />
                   {isEditing && !stat.readonly ? (
                     stat.isSelect ? (
                       <select
-                        name="semester"
-                        value={userData.semester}
+                        name={stat.name || stat.label.toLowerCase()}
+                        value={userData[stat.name || stat.label.toLowerCase()]}
                         onChange={handleChange}
                         className="w-full bg-gray-800/50 text-white text-xl font-bold rounded-lg p-2 text-center focus:outline-none focus:ring-2 focus:ring-purple-500"
                       >
                         <option value="" className="bg-gray-800">
-                          Select Semester
+                          Select {stat.label}
                         </option>
-                        {semesterOptions.map((sem) => (
-                          <option key={sem} value={sem} className="bg-gray-800">
-                            {sem}
+                        {(stat.options || semesterOptions).map((option) => (
+                          <option
+                            key={option}
+                            value={option}
+                            className="bg-gray-800"
+                          >
+                            {option}
                           </option>
                         ))}
                       </select>
@@ -247,7 +377,7 @@ const ProfilePage = () => {
                       />
                     )
                   ) : (
-                    <p className="text-purple-400 text-xl font-bold mb-1">
+                    <p className={`${stat.color} text-xl font-bold mb-1`}>
                       {stat.value || stat.label}
                     </p>
                   )}
@@ -258,15 +388,21 @@ const ProfilePage = () => {
 
             {/* Save Button */}
             {isEditing && (
-              <div className="mt-6 flex justify-end">
+              <motion.div
+                className="mt-6 flex justify-end"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
                 <motion.button
                   onClick={handleSubmit}
-                  className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
+                  className="flex items-center gap-2 bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors"
                   whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                 >
+                  <Save className="w-5 h-5" />
                   Save Changes
                 </motion.button>
-              </div>
+              </motion.div>
             )}
 
             {/* Achievements Section */}
@@ -276,22 +412,30 @@ const ProfilePage = () => {
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
             >
-              <h2 className="text-3xl font-bold text-white mb-6">
-                Achievements
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
+                  Achievements
+                </h2>
+                <Award className="text-purple-400 w-8 h-8" />
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {Array.isArray(Achievements) ? (
                   Achievements.map((achievement) => (
                     <motion.div
                       key={achievement.title}
                       whileHover={{ scale: 1.02 }}
-                      className="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all"
+                      className="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all border border-white/5"
                     >
                       <achievement.icon className="w-8 h-8 text-purple-400 mb-4" />
                       <h3 className="text-xl font-semibold text-purple-400 mb-2">
                         {achievement.title}
                       </h3>
                       <p className="text-gray-400">{achievement.description}</p>
+                      {achievement.date && (
+                        <p className="text-sm text-gray-500 mt-2">
+                          {new Date(achievement.date).toLocaleDateString()}
+                        </p>
+                      )}
                     </motion.div>
                   ))
                 ) : (
@@ -299,9 +443,56 @@ const ProfilePage = () => {
                 )}
               </div>
             </motion.div>
+
+            {/* Last Updated Info */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6 }}
+              className="mt-8 text-center text-sm text-gray-500"
+            >
+              Last updated: {new Date().toLocaleString()}
+            </motion.div>
           </div>
         </div>
+
+        {/* Background Decorative Elements */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -left-1/4 -top-1/4 w-1/2 h-1/2 bg-purple-500/10 rounded-full blur-3xl" />
+          <div className="absolute -right-1/4 -bottom-1/4 w-1/2 h-1/2 bg-blue-500/10 rounded-full blur-3xl" />
+        </div>
       </motion.div>
+
+      {/* Mobile Action Buttons */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            className="fixed bottom-0 left-0 right-0 p-4 bg-gray-900/80 backdrop-blur-lg md:hidden"
+          >
+            <div className="flex gap-4">
+              <motion.button
+                onClick={handleCancel}
+                className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white px-4 py-3 rounded-lg"
+                whileTap={{ scale: 0.95 }}
+              >
+                <X className="w-5 h-5" />
+                Cancel
+              </motion.button>
+              <motion.button
+                onClick={handleSubmit}
+                className="flex-1 flex items-center justify-center gap-2 bg-green-600 text-white px-4 py-3 rounded-lg"
+                whileTap={{ scale: 0.95 }}
+              >
+                <Save className="w-5 h-5" />
+                Save
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
