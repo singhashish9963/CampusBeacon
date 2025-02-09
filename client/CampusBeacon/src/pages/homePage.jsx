@@ -10,8 +10,14 @@ import {
   Users,
   Globe,
   HelpCircle,
-  Database,
   Calendar,
+  Book,
+  Coffee,
+  ShoppingBag,
+  Search,
+  Bell,
+  Menu,
+  X,
 } from "lucide-react";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
@@ -20,19 +26,43 @@ import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("home");
   const { isAuthenticated, handleLogout, user, lastLoginTime } = useAuth();
   const navigate = useNavigate();
 
+  // Scroll spy and login status logic...
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
     }
+
+    const handleScroll = () => {
+      const sections = document.querySelectorAll("section[id]");
+      const scrollPosition = window.scrollY + 100;
+      sections.forEach((section) => {
+        const sectionTop = section.offsetTop;
+        const sectionHeight = section.clientHeight;
+        if (
+          scrollPosition >= sectionTop &&
+          scrollPosition < sectionTop + sectionHeight
+        ) {
+          setActiveSection(section.id);
+        }
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const handleLogoutClick = async () => {
-    await handleLogout();
-    navigate("/login");
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth" });
+    }
+    setIsMenuOpen(false);
   };
 
   return (
@@ -40,43 +70,17 @@ const HomePage = () => {
       <div className="fixed inset-0">
         <StarryBackground />
       </div>
-
-      <div className="relative z-10 min-h-screen">
-        <div className="fixed top-6 right-6 z-50 flex items-center gap-4">
-          {isAuthenticated ? (
-            <div className="flex items-center gap-4">
-              <span className="text-white">
-                {user?.email}
-                {lastLoginTime && (
-                  <small className="block text-gray-400">
-                    Last login: {new Date(lastLoginTime).toLocaleString()}
-                  </small>
-                )}
-              </span>
-              <ButtonColourfull
-                text="Logout"
-                type="button"
-                buttonsize="px-6 py-2.5"
-                textsize="text-base"
-                onClick={handleLogoutClick}
-              />
-            </div>
-          ) : (
-            <ButtonColourfull
-              text="Login / Sign Up"
-              type="button"
-              buttonsize="px-6 py-2.5"
-              textsize="text-base"
-              onClick={() => navigate("/login")}
-            />
-          )}
-        </div>
-        <div className="min-h-screen flex items-center justify-center relative">
+      <div className="relative z-10 min-h-screen pt-16">
+        {/* Hero Section */}
+        <section
+          id="home"
+          className="min-h-screen flex items-center justify-center relative"
+        >
           <div className="text-center z-10 px-4">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-5xl md:text-6xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500"
+              className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
             >
               Welcome to CampusBeacon
             </motion.h1>
@@ -84,13 +88,28 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="font-mono text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto"
+              className="font-mono text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto mb-12"
             >
-              A beacon that connects...
+              Your digital companion for campus life
             </motion.p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <ButtonColourfull
+                text="Explore Features"
+                type="button"
+                buttonsize="px-8 py-3"
+                textsize="text-lg"
+                onClick={() => scrollToSection("features")}
+              />
+            </motion.div>
           </div>
-        </div>
-        <section className="min-h-screen relative z-10 py-15">
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="min-h-screen relative z-10 py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -98,54 +117,62 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 Features
               </h2>
               <p className="text-xl text-gray-400 font-mono">
-                We offer various services
+                Everything you need for a connected campus life
               </p>
             </motion.div>
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               <FeatureCard
-                icon={Mail}
-                title="Eatries"
-                description="Discover places to eat around campus"
+                icon={Coffee}
+                title="Eateries"
+                description="Discover amazing places to eat around campus"
                 href="/eatries"
+                gradient="from-amber-500 via-orange-500 to-red-500"
               />
               <FeatureCard
                 icon={Users}
                 title="Hostel Management"
-                description="Seamless hostel allocation and maintenance request system"
-                href="/"
+                description="Seamless hostel allocation and maintenance system"
+                href="/hostel"
+                gradient="from-blue-500 via-indigo-500 to-purple-500"
               />
               <FeatureCard
-                icon={HelpCircle}
+                icon={Search}
                 title="Lost & Found"
                 description="Connect with campus community to find lost items"
                 href="/lost-found"
+                gradient="from-green-500 via-teal-500 to-cyan-500"
               />
               <FeatureCard
-                icon={Globe}
+                icon={ShoppingBag}
                 title="Buy & Sell"
-                description="Campus marketplace for students to trade books and essentials"
+                description="Campus marketplace for books and essentials"
                 href="/marketplace"
+                gradient="from-pink-500 via-rose-500 to-red-500"
               />
               <FeatureCard
-                icon={Calendar}
+                icon={Book}
                 title="Resource Hub"
-                description="Track and manage your attendance across all subjects efficiently"
+                description="Access academic resources and track attendance"
                 href="/resource"
+                gradient="from-violet-500 via-purple-500 to-fuchsia-500"
               />
               <FeatureCard
                 icon={Globe}
                 title="Community"
-                description="Advanced analytics to predict and improve your academic performance"
-                href="/Community"
+                description="Connect with peers and join campus activities"
+                href="/community"
+                gradient="from-cyan-500 via-blue-500 to-indigo-500"
               />
             </div>
           </div>
         </section>
-        <section className="mb-30 relative z-10 py-15">
+
+        {/* Quick Links Section */}
+        <section id="quicklinks" className="relative z-10 py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -153,35 +180,61 @@ const HomePage = () => {
               viewport={{ once: true }}
               className="text-center mb-20"
             >
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
                 Quick Links
               </h2>
               <p className="text-xl text-gray-400 font-mono">
-                Quick accessible links
+                Essential resources at your fingertips
               </p>
             </motion.div>
-
             <QuickLinks />
           </div>
         </section>
-        <section className="min-h-screen relative z-10 py-32 overflow-hidden">
+
+        {/* Clubs Section */}
+        <section id="clubs" className="min-h-screen relative z-10 py-20">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center mb-15"
+              className="text-center mb-20"
             >
-              <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-8">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-8">
                 Clubs and Activities
               </h2>
-              <p className="text-xl text-gray-400 font-mono">Be a Moti</p>
+              <p className="text-xl text-gray-400 font-mono">
+                Find your passion, join the community
+              </p>
             </motion.div>
             <ImageSlider />
           </div>
         </section>
-        <EventsSection />
-        <ChatbotWidget />
+
+        {/* Events Section */}
+        <section id="events">
+          <EventsSection />
+        </section>
+
+        {/* Chatbot Widget */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <ChatbotWidget />
+        </div>
+
+        {/* Scroll to top button */}
+        <motion.button
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className="fixed bottom-6 left-6 z-50 p-3 rounded-full bg-purple-500/20 border border-purple-500/50 text-white hover:bg-purple-500/30 transition-colors"
+        >
+          <motion.div
+            animate={{ y: [0, -4, 0] }}
+            transition={{ repeat: Infinity, duration: 1.5 }}
+          >
+            ↑
+          </motion.div>
+        </motion.button>
       </div>
     </>
   );

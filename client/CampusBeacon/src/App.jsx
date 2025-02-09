@@ -24,6 +24,7 @@ import EmailVerification from "./pages/EmailVerfication.jsx";
 import { ChatbotProvider } from "./contexts/ChatbotContext.jsx";
 import CollegeEateries from "./pages/eatries.jsx";
 import ResourcesPage from "./pages/ResourceHub.jsx";
+
 function App() {
   return (
     <AuthProvider>
@@ -63,25 +64,24 @@ function App() {
                               element={<ResourcesPage />}
                             />
                             <Route path="/about" element={<AboutUs />} />
-
                             <Route
-                              path="eatries"
+                              path="/eatries"
                               element={<CollegeEateries />}
                             />
                             <Route path="/SVBH" element={<SVBH />} />
                             <Route path="/DJGH" element={<DJGH />} />
                             <Route
-                              path="/Community"
+                              path="/community"
                               element={<CommunityPage />}
                             />
                           </Route>
                           <Route
-                            path="*"
-                            element={<Navigate to="/" replace />}
-                          />
-                          <Route
                             path="/contact"
                             element={<ContactsDisplay />}
+                          />
+                          <Route
+                            path="*"
+                            element={<Navigate to="/" replace />}
                           />
                         </Routes>
                       </main>
