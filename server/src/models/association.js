@@ -4,7 +4,8 @@ import BuyAndSell from "./buyandsell.model.js";
 import LostAndFound from "./lostandfound.model.js";
 import Channel from "./channel.model.js";
 import Message from "./message.model.js";
-
+import UserSubjects from "./userSubjects.model.js";
+import { Subject } from "./subject.model.js";
 const initializeAssociations = () => {
 
   User.hasMany(LostAndFound, {
@@ -37,9 +38,14 @@ const initializeAssociations = () => {
   Message.belongsTo(User, {
     foreignKey: "userId",
   });
+
+User.belongsToMany(Subject, { through: UserSubjects });
+Subject.belongsToMany(User, { through: UserSubjects });
+
+
 };
 
 
 initializeAssociations();
 
-export { User, LostAndFound, BuyAndSell, Channel, Message };
+export { User, LostAndFound, BuyAndSell, Channel, Message,UserSubjects,Subject };

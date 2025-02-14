@@ -11,8 +11,9 @@ import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
 import chatBotRoutes from "./src/routes/chatBot.routes.js";
-
-
+import subjectRoutes from "./src/routes/subject.routes.js"
+import attendanceRoutes from "./src/routes/attendance.routes.js"
+import session from "express-session"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -31,7 +32,22 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-// Socket.io setup
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-temporary-secret-key", // You should definitely set this in your .env
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production", // true in production
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
+    name: "sessionId", // Custom name for the session cookie
+  })
+);
+
+// Socket.io setup - AFTER session middleware
 const io = initializeSocket(httpServer);
 app.use((req, res, next) => {
   req.io = io;
@@ -50,6 +66,8 @@ app.use("/api/lost-and-found", lostAndFoundRoutes);
 app.use("/api/buy-and-sell", buyAndSellRoutes);
 app.use("/api/chat", ChatRoutes);
 app.use("/api/chatbot", chatBotRoutes);
+app.use("/api/v1/subjects", subjectRoutes);
+app.use("/api/v1/attendance", attendanceRoutes);
 
 // Initialize services and start server
 const startServer = async () => {

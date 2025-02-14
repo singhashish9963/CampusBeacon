@@ -39,23 +39,22 @@ const EmailVerification = () => {
   };
 
   useEffect(() => {
-    const verifyEmail = async () => {
-      if (hasAttemptedVerification.current) return;
+    if (hasAttemptedVerification.current) return;
 
-      const token = searchParams.get("token");
-      const tokenValidation = validateToken(token);
+    const token = searchParams.get("token");
+    const tokenValidation = validateToken(token);
 
-      if (!tokenValidation.isValid) {
-        setVerificationState({
-          status: "failed",
-          error: tokenValidation.error,
-          isLoading: false,
-        });
-        return;
-      }
-
+    if (!tokenValidation.isValid) {
+      setVerificationState({
+        status: "failed",
+        error: tokenValidation.error,
+        isLoading: false,
+      });
       hasAttemptedVerification.current = true;
+      return;
+    }
 
+    const verifyEmail = async () => {
       try {
         console.log("Starting verification with token:", token);
         const response = await handleEmailVerification(token);
@@ -80,6 +79,7 @@ const EmailVerification = () => {
       }
     };
 
+    hasAttemptedVerification.current = true;
     verifyEmail();
   }, [searchParams, handleEmailVerification]);
 

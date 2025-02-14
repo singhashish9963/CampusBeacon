@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [welcomeMessage, setWelcomeMessage] = useState("");
 
-
   useEffect(() => {
     if (welcomeMessage) {
       const timer = setTimeout(() => {
@@ -34,24 +33,24 @@ export const AuthProvider = ({ children }) => {
       return () => clearTimeout(timer);
     }
   }, [welcomeMessage]);
-const checkAuthStatus = useCallback(async () => {
-  try {
-    const response = await api.get("/users/current");
-    if (response.data?.data?.user) {
-      setUser(response.data.data.user);
-      setIsAuthenticated(true);
-      return true;
-    }
-  } catch (error) {
-    console.error("Auth check failed:", error);
-    setUser(null);
-    setIsAuthenticated(false);
-  } finally {
-    setLoading(false);
-  }
-  return false;
-}, []);
 
+  const checkAuthStatus = useCallback(async () => {
+    try {
+      const response = await api.get("/users/current");
+      if (response.data?.data?.user) {
+        setUser(response.data.data.user);
+        setIsAuthenticated(true);
+        return true;
+      }
+    } catch (error) {
+      console.error("Auth check failed:", error);
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+    return false;
+  }, []);
 
   useEffect(() => {
     checkAuthStatus();
@@ -205,6 +204,11 @@ const checkAuthStatus = useCallback(async () => {
   const handleLogout = useCallback(async () => {
     try {
       await api.post("/users/logout");
+
+      if (window.socket) {
+        window.socket.disconnect();
+        window.socket = null;
+      }
     } catch (error) {
       console.error("Logout error:", error);
     } finally {

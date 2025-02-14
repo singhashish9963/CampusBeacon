@@ -36,14 +36,19 @@ function NavBar() {
     {
       name: "SVBH",
       path: "/SVBH",
-      description: "Saraswati Vishwakarma Boys Hostel",
     },
     {
       name: "DGJH",
       path: "/DJGH",
-      description: "Dr. G.J. Girls Hostel",
     },
   ];
+  const AcadmicsOptions= [
+    {
+      name:"Attendance Manager",
+      path: "/attendance",
+
+    },
+  ]
 
   const handleMouseEnter = (dropdown) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);

@@ -7,10 +7,28 @@ dotenv.config("./.env");
 const initializeSocket = (server) => {
   const io = new Server(server, {
     cors: {
-      origin: process.env.FRONTEND_URL || "https://campusbeacon.onrender.com",
+      origin: process.env.FRONTEND_URL || "http://localhost:5173",
       credentials: true,
+      methods: ["GET", "POST", "PUT", "DELETE"],
+      allowedHeaders: ["Content-Type", "Authorization"],
+    },
+    transports: ["websocket", "polling"],
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    cookie: {
+      name: "io",
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
     },
   });
+
+  // Track active users in channels
+  const channelUsers = new Map();
+
+  const getCurrentUtcTime = () => {
+    return new Date().toISOString().slice(0, 19).replace("T", " ");
+  };
 
   io.use(async (socket, next) => {
     try {
@@ -31,6 +49,7 @@ const initializeSocket = (server) => {
         username: decoded?.username,
       };
 
+      socket.channels = new Set();
       next();
     } catch (error) {
       console.error("Socket authentication error:", error);
@@ -42,53 +61,84 @@ const initializeSocket = (server) => {
     console.log(`User connected: ${socket.user.id}`);
 
     socket.on("join-channel", (channelId) => {
-      socket.join(`channel-${channelId}`);
-      console.log(`${socket.user.id} joined channel ${channelId}`);
+      const roomName = `channel-${channelId}`;
+      socket.join(roomName);
+      socket.channels.add(channelId);
 
-      // Notify other users in the channel (excluding sender)
-      socket.to(`channel-${channelId}`).emit("user-joined", {
+      if (!channelUsers.has(channelId)) {
+        channelUsers.set(channelId, new Set());
+      }
+      channelUsers.get(channelId).add(socket.user.id);
+
+      socket.to(roomName).emit("user-joined", {
         userId: socket.user.id,
-        timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
+        username: socket.user.username,
+        timestamp: getCurrentUtcTime(),
       });
 
-      // Optionally, if you want to broadcast to all users in the channel (including the sender)
-      // io.in(`channel-${channelId}`).emit("new-join", { userId: socket.user.id });
-    });
-
-    socket.on("leave-channel", (channelId) => {
-      socket.leave(`channel-${channelId}`);
-      console.log(`${socket.user.id} left channel ${channelId}`);
-
-      socket.to(`channel-${channelId}`).emit("user-left", {
-        userId: socket.user.id,
-        timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
+      socket.emit("channel-users", {
+        channelId,
+        users: Array.from(channelUsers.get(channelId)),
       });
     });
 
+    socket.on("new-message", (data) => {
+      const timestamp = getCurrentUtcTime();
+      io.to(`channel-${data.channelId}`).emit("new-message", {
+        ...data,
+        userId: socket.user.id,
+        username: socket.user.username,
+        timestamp,
+      });
+    });
+
+    socket.on("update-message", (data) => {
+      const timestamp = getCurrentUtcTime();
+      io.to(`channel-${data.channelId}`).emit("message-updated", {
+        ...data,
+        userId: socket.user.id,
+        username: socket.user.username,
+        timestamp,
+      });
+    });
+
+  socket.on("delete-message", (data) => {
+    const { messageId, channelId, timestamp, userId } = data;
+    io.to(`channel-${channelId}`).emit("message-deleted", {
+      messageId,
+      channelId,
+      timestamp,
+      userId: socket.user.id,
+    });
+  });
     socket.on("typing-start", (channelId) => {
       socket.to(`channel-${channelId}`).emit("user-typing", {
         userId: socket.user.id,
+        username: socket.user.username,
       });
     });
 
     socket.on("typing-stop", (channelId) => {
       socket.to(`channel-${channelId}`).emit("user-stop-typing", {
         userId: socket.user.id,
-      });
-    });
-
-    // Example event: broadcasting a message to all users in a channel (including sender)
-    socket.on("send-channel-message", ({ channelId, message }) => {
-      // Broadcast to everyone in the channel
-      io.in(`channel-${channelId}`).emit("channel-message", {
-        userId: socket.user.id,
-        message,
-        timestamp: new Date().toISOString().slice(0, 19).replace("T", " "),
+        username: socket.user.username,
       });
     });
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.user.id}`);
+
+      socket.channels.forEach((channelId) => {
+        if (channelUsers.has(channelId)) {
+          channelUsers.get(channelId).delete(socket.user.id);
+
+          io.to(`channel-${channelId}`).emit("user-left", {
+            userId: socket.user.id,
+            username: socket.user.username,
+            timestamp: getCurrentUtcTime(),
+          });
+        }
+      });
     });
   });
 
