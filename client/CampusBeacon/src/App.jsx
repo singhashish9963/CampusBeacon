@@ -26,83 +26,86 @@ import CollegeEateries from "./pages/eatries.jsx";
 import ResourcesPage from "./pages/ResourceHub.jsx";
 import AttendanceManager from "./pages/attendancePage.jsx";
 import { AttendanceProvider } from "./contexts/attendanceContext.jsx";
+import { EateriesProvider } from "./contexts/eateriesContext.jsx";
 function App() {
   return (
     <AuthProvider>
       <AttendanceProvider>
         <ChatbotProvider>
-          <ChatContextProvider>
-            <ContactContextProvider>
-              <BuyAndSellProvider>
-                <LostAndFoundProvider>
-                  <ProfileProvider>
-                    <BrowserRouter>
-                      <div className="flex flex-col min-h-screen">
-                        <NavBar />
-                        <main className="flex-grow">
-                          <Routes>
-                            <Route path="/" element={<HomePage />} />
-                            <Route path="/login" element={<LoginSignup />} />
-                            <Route
-                              path="/reset-password"
-                              element={<ResetPassword />}
-                            />
-                            <Route
-                              path="/verify-email"
-                              element={<EmailVerification />}
-                            />
-                            <Route element={<ProtectedRoute />}>
+          <EateriesProvider>
+            <ChatContextProvider>
+              <ContactContextProvider>
+                <BuyAndSellProvider>
+                  <LostAndFoundProvider>
+                    <ProfileProvider>
+                      <BrowserRouter>
+                        <div className="flex flex-col min-h-screen">
+                          <NavBar />
+                          <main className="flex-grow">
+                            <Routes>
+                              <Route path="/" element={<HomePage />} />
+                              <Route path="/login" element={<LoginSignup />} />
                               <Route
-                                path="/profile"
-                                element={<ProfilePage />}
+                                path="/reset-password"
+                                element={<ResetPassword />}
                               />
                               <Route
-                                path="/marketplace"
-                                element={<Marketplace />}
+                                path="/verify-email"
+                                element={<EmailVerification />}
                               />
-                              <Route
-                                path="/lost-found"
-                                element={<LostAndFound />}
-                              />
-                              <Route
-                                path="/resource"
-                                element={<ResourcesPage />}
-                              />
-                              <Route
-                                path="/attendance"
-                                element={<AttendanceManager />}
-                              />
+                              <Route element={<ProtectedRoute />}>
+                                <Route
+                                  path="/profile"
+                                  element={<ProfilePage />}
+                                />
+                                <Route
+                                  path="/marketplace"
+                                  element={<Marketplace />}
+                                />
+                                <Route
+                                  path="/lost-found"
+                                  element={<LostAndFound />}
+                                />
+                                <Route
+                                  path="/resource"
+                                  element={<ResourcesPage />}
+                                />
+                                <Route
+                                  path="/attendance"
+                                  element={<AttendanceManager />}
+                                />
 
-                              <Route path="/about" element={<AboutUs />} />
+                                <Route path="/about" element={<AboutUs />} />
+                                <Route
+                                  path="/eatries"
+                                  element={<CollegeEateries />}
+                                />
+                                <Route path="/SVBH" element={<SVBH />} />
+                                <Route path="/DJGH" element={<DJGH />} />
+                                <Route
+                                  path="/community"
+                                  element={<CommunityPage />}
+                                />
+                              </Route>
                               <Route
-                                path="/eatries"
-                                element={<CollegeEateries />}
+                                path="/contact"
+                                element={<ContactsDisplay />}
                               />
-                              <Route path="/SVBH" element={<SVBH />} />
-                              <Route path="/DJGH" element={<DJGH />} />
                               <Route
-                                path="/community"
-                                element={<CommunityPage />}
+                                path="*"
+                                element={<Navigate to="/" replace />}
                               />
-                            </Route>
-                            <Route
-                              path="/contact"
-                              element={<ContactsDisplay />}
-                            />
-                            <Route
-                              path="*"
-                              element={<Navigate to="/" replace />}
-                            />
-                          </Routes>
-                        </main>
-                        <Footer />
-                      </div>
-                    </BrowserRouter>
-                  </ProfileProvider>
-                </LostAndFoundProvider>
-              </BuyAndSellProvider>
-            </ContactContextProvider>
-          </ChatContextProvider>
+                            </Routes>
+                          </main>
+                          <Footer />
+                        </div>
+                      </BrowserRouter>
+                    </ProfileProvider>
+                  </LostAndFoundProvider>
+                </BuyAndSellProvider>
+              </ContactContextProvider>
+            </ChatContextProvider>
+          </EateriesProvider>
         </ChatbotProvider>
       </AttendanceProvider>
     </AuthProvider>

@@ -14,6 +14,7 @@ import chatBotRoutes from "./src/routes/chatBot.routes.js";
 import subjectRoutes from "./src/routes/subject.routes.js"
 import attendanceRoutes from "./src/routes/attendance.routes.js"
 import session from "express-session"
+import eateriesRoutes from "./src/routes/eateries.routes.js"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -68,6 +69,7 @@ app.use("/api/chat", ChatRoutes);
 app.use("/api/chatbot", chatBotRoutes);
 app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
+app.use("/eateries",eateriesRoutes);
 
 // Initialize services and start server
 const startServer = async () => {
