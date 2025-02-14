@@ -37,16 +37,16 @@ scheduleUnverifiedUserCleanup()
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-temporary-secret-key", // You should definitely set this in your .env
+    secret: process.env.SESSION_SECRET || "your-temporary-secret-key", 
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", // true in production
+      secure: process.env.NODE_ENV === "production", 
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
-    name: "sessionId", // Custom name for the session cookie
+    name: "sessionId", 
   })
 );
 

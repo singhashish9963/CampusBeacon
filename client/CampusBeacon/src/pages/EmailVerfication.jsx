@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
@@ -19,7 +19,11 @@ const EmailVerification = () => {
     isLoading: true,
   });
 
+
   const hasAttemptedVerification = useRef(false);
+
+
+  const token = useMemo(() => searchParams.get("token"), [searchParams]);
 
   const validateToken = (token) => {
     if (!token || typeof token !== "string" || token.trim() === "") {
@@ -39,11 +43,10 @@ const EmailVerification = () => {
   };
 
   useEffect(() => {
+
     if (hasAttemptedVerification.current) return;
 
-    const token = searchParams.get("token");
     const tokenValidation = validateToken(token);
-
     if (!tokenValidation.isValid) {
       setVerificationState({
         status: "failed",
@@ -81,7 +84,7 @@ const EmailVerification = () => {
 
     hasAttemptedVerification.current = true;
     verifyEmail();
-  }, [searchParams, handleEmailVerification]);
+  }, [token, handleEmailVerification]);
 
   useEffect(() => {
     if (authError) {
@@ -164,7 +167,6 @@ const EmailVerification = () => {
             ? "Verification Failed"
             : "Verifying Email..."}
         </h1>
-
         {renderContent()}
       </div>
     </div>
