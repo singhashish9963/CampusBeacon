@@ -15,6 +15,7 @@ import subjectRoutes from "./src/routes/subject.routes.js"
 import attendanceRoutes from "./src/routes/attendance.routes.js"
 import session from "express-session"
 import eateriesRoutes from "./src/routes/eateries.routes.js"
+import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -32,6 +33,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+scheduleUnverifiedUserCleanup()
 
 app.use(
   session({
