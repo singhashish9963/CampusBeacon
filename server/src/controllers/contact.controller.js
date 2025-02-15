@@ -36,10 +36,9 @@ export const createContacts = asyncHandler(async (req, res) => {
         throw new Error("Upload returned null");
       }
 
-      // Cloudinary returns the secure URL as secure_url.
-      image_url = uploadResult.secure_url;
+
+      image_url = uploadResult
       console.log("Cloudinary upload successful:", uploadResult.secure_url);
-      console.log("Image uploaded successfully:", image_url);
     }
   } catch (error) {
     console.error("Image upload error:", error);

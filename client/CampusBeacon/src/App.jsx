@@ -33,6 +33,9 @@ import NotFound from "./pages/utilityPages/404.jsx";
 import ServerError from "./pages/utilityPages/500.jsx";
 import Maintenance from "./pages/utilityPages/Maintenance.jsx";
 import MNNITFactsGenerator from "./pages/utilityPages/factsGenerator.jsx";
+import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
+import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
+
 function App() {
   return (
     <AuthProvider>
@@ -86,6 +89,14 @@ function App() {
                               <Route 
                               path="/facts"
                               element={<MNNITFactsGenerator />}
+                                />
+                              <Route 
+                              path="/explore"
+                              element={<CampusExplorer />}
+                                />
+                              <Route 
+                              path="/time"
+                              element={<MNNITTimeCapsule />}
                                 />
                               <Route element={<ProtectedRoute />}>
                                 <Route
