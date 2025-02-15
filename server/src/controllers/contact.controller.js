@@ -2,8 +2,9 @@ import { Contacts } from "../models/contact.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
-import { uploadImageToCloudinary } from "../utils/cloudinary.js";
+import { uploadImageToCloudinary,deleteImageFromCloudinary,extractCloudinaryPublicId } from "../utils/cloudinary.js";
 import fs from "fs";
+
 
 export const createContacts = asyncHandler(async (req, res) => {
   const { name, email, phone, designation } = req.body;
@@ -11,7 +12,6 @@ export const createContacts = asyncHandler(async (req, res) => {
   if (!name?.trim()) {
     throw new ApiError("Name is required", 400);
   }
-
   if (!designation?.trim()) {
     throw new ApiError("Designation is required", 400);
   }
@@ -27,10 +27,7 @@ export const createContacts = asyncHandler(async (req, res) => {
       }
 
       console.log("Attempting to upload file:", req.file.path);
-      const uploadResult = await uploadImageToCloudinary(
-        req.file.path,
-        "contacts"
-      );
+      const uploadResult = await uploadImageToCloudinary(req.file.path, "contacts");
 
       if (!uploadResult) {
         throw new Error("Upload returned null");
@@ -38,7 +35,7 @@ export const createContacts = asyncHandler(async (req, res) => {
 
 
       image_url = uploadResult
-      console.log("Cloudinary upload successful:", uploadResult.secure_url);
+      console.log("Cloudinary upload successful:", uploadResult);
     }
   } catch (error) {
     console.error("Image upload error:", error);
@@ -69,10 +66,7 @@ export const editContact = asyncHandler(async (req, res) => {
 
   let image_url = contact.image_url;
   if (req.file) {
-    const uploadResult = await uploadImageToCloudinary(
-      req.file.path,
-      "contacts"
-    );
+    const uploadResult = await uploadImageToCloudinary(req.file.path, "contacts");
     image_url = uploadResult?.secure_url || image_url;
   }
 
@@ -95,6 +89,20 @@ export const deleteContact = asyncHandler(async (req, res) => {
   const contact = await Contacts.findByPk(id);
   if (!contact) {
     throw new ApiError("Contact not found", 404);
+  }
+
+  // Delete image from Cloudinary if it exists
+  if (contact.image_url) {
+    const publicId = extractCloudinaryPublicId(contact.image_url);
+    if (publicId) {
+      try {
+        await deleteImageFromCloudinary(publicId);
+        console.log(`Deleted image with public_id: ${publicId} from Cloudinary`);
+      } catch (error) {
+        console.error("Error deleting image from Cloudinary:", error);
+
+      }
+    }
   }
 
   await contact.destroy();

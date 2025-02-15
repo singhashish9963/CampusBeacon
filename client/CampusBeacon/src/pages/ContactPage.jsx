@@ -10,6 +10,7 @@ import {
   Upload,
   Image as ImageIcon,
 } from "lucide-react";
+import { motion } from "framer-motion";
 import { useContact } from "../contexts/contactContext";
 
 const ContactsDisplay = () => {
@@ -33,6 +34,7 @@ const ContactsDisplay = () => {
     phone: "",
   });
   const [dragActive, setDragActive] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchContact();
@@ -103,21 +105,28 @@ const ContactsDisplay = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formFields.name);
-    formDataToSend.append("designation", formFields.designation);
-    formDataToSend.append("email", formFields.email);
-    formDataToSend.append("phone", formFields.phone);
-    if (selectedFile) {
-      formDataToSend.append("image", selectedFile);
+    setIsSubmitting(true);
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("name", formFields.name);
+      formDataToSend.append("designation", formFields.designation);
+      formDataToSend.append("email", formFields.email);
+      formDataToSend.append("phone", formFields.phone);
+      if (selectedFile) {
+        formDataToSend.append("image", selectedFile);
+      }
+      if (editingContact) {
+        await updateContact(editingContact.id, formDataToSend);
+      } else {
+        await createContact(formDataToSend);
+      }
+      handleCloseModal();
+      fetchContact();
+    } catch (error) {
+      console.error("Error submitting form: ", error);
+    } finally {
+      setIsSubmitting(false);
     }
-    if (editingContact) {
-      await updateContact(editingContact.id, formDataToSend);
-    } else {
-      await createContact(formDataToSend);
-    }
-    handleCloseModal();
-    fetchContact();
   };
 
   const handleDelete = async (id) => {
@@ -259,7 +268,9 @@ const ContactsDisplay = () => {
                   id="image-upload"
                   accept="image/*"
                   className="hidden"
-                  onChange={(e) => handleFileChange(e.target.files[0])}
+                  onChange={(e) =>
+                    handleFileChange(e.target.files && e.target.files[0])
+                  }
                 />
                 <label
                   htmlFor="image-upload"
@@ -354,9 +365,33 @@ const ContactsDisplay = () => {
 
               <button
                 type="submit"
-                className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 rounded-lg font-semibold transition-all"
+                disabled={isSubmitting}
+                className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                  isSubmitting
+                    ? "bg-gradient-to-r from-yellow-500 to-red-500 cursor-not-allowed opacity-75"
+                    : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                }`}
               >
-                {editingContact ? "Update Contact" : "Add Contact"}
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center">
+                    <motion.img
+                      src="https://img.icons8.com/emoji/48/rocket.png"
+                      alt="rocket"
+                      className="w-6 h-6"
+                      initial={{ x: 0 }}
+                      animate={{ x: 100 }}
+                      transition={{
+                        duration: 0.3,
+                        ease: "linear",
+                        repeat: Infinity,
+                        repeatType: "loop",
+                      }}
+                    />
+                    <span className="ml-2">Processing...</span>
+                  </div>
+                ) : (
+                  <span>{editingContact ? "Update Contact" : "Add Contact"}</span>
+                )}
               </button>
             </form>
           </div>
