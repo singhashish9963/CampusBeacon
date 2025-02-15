@@ -1,0 +1,17 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Wrench -->
+  <g transform="rotate(45 60 60)">
+    <path d="M40 30c5.523 0 10 4.477 10 10s-4.477 10-10 10-10-4.477-10-10 4.477-10 10-10zM45 45l35 35" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+  </g>
+  
+  <!-- Gear -->
+  <path d="M60 35v-5M60 90v-5M85 60h5M30 60h5" stroke="white" strokeWidth="4" strokeLinecap="round"/>
+  <path d="M60 75c8.284 0 15-6.716 15-15 0-8.284-6.716-15-15-15-8.284 0-15 6.716-15 15 0 8.284 6.716 15 15 15z" stroke="white" strokeWidth="4"/>
+  <path d="M60 40c-11.046 0-20 8.954-20 20s8.954 20 20 20 20-8.954 20-20-8.954-20-20-20z" stroke="white" strokeWidth="4"/>
+  
+  <!-- Sparkles -->
+  <circle cx="25" cy="25" r="2" fill="white"/>
+  <circle cx="95" cy="25" r="2" fill="white"/>
+  <circle cx="25" cy="95" r="2" fill="white"/>
+  <circle cx="95" cy="95" r="2" fill="white"/>
+</svg>

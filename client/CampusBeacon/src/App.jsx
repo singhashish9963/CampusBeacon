@@ -27,6 +27,11 @@ import ResourcesPage from "./pages/ResourceHub.jsx";
 import AttendanceManager from "./pages/attendancePage.jsx";
 import { AttendanceProvider } from "./contexts/attendanceContext.jsx";
 import { EateriesProvider } from "./contexts/eateriesContext.jsx";
+import PrivacyPolicy from "./pages/PrivacyPolicy.jsx";
+import TermsOfService from "./pages/TermsOfService.jsx";
+import NotFound from "./pages/utilityPages/404.jsx";
+import ServerError from "./pages/utilityPages/500.jsx";
+import Maintenance from "./pages/utilityPages/Maintenance.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -53,6 +58,30 @@ function App() {
                                 path="/verify-email"
                                 element={<EmailVerification />}
                               />
+                              <Route
+                                path="/policy"
+                                element={<PrivacyPolicy />}
+                              />
+                              <Route 
+                              path="/about"
+                              element={<AboutUs />}
+                                />
+                              <Route 
+                              path="/terms"
+                              element={<TermsOfService />}
+                                />
+                              <Route 
+                              path="/404"
+                              element={< NotFound/>}
+                                />
+                              <Route 
+                              path="/500"
+                              element={<ServerError/>}
+                                />
+                              <Route 
+                              path="/maintenance"
+                              element={<Maintenance />}
+                                />
                               <Route element={<ProtectedRoute />}>
                                 <Route
                                   path="/profile"
@@ -75,7 +104,6 @@ function App() {
                                   element={<AttendanceManager />}
                                 />
 
-                                <Route path="/about" element={<AboutUs />} />
                                 <Route
                                   path="/eatries"
                                   element={<CollegeEateries />}
