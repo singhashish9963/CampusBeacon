@@ -32,6 +32,7 @@ import TermsOfService from "./pages/TermsOfService.jsx";
 import NotFound from "./pages/utilityPages/404.jsx";
 import ServerError from "./pages/utilityPages/500.jsx";
 import Maintenance from "./pages/utilityPages/Maintenance.jsx";
+import MNNITFactsGenerator from "./pages/utilityPages/factsGenerator.jsx";
 function App() {
   return (
     <AuthProvider>
@@ -81,6 +82,10 @@ function App() {
                               <Route 
                               path="/maintenance"
                               element={<Maintenance />}
+                                />
+                              <Route 
+                              path="/facts"
+                              element={<MNNITFactsGenerator />}
                                 />
                               <Route element={<ProtectedRoute />}>
                                 <Route
