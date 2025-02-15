@@ -11,6 +11,7 @@ import {
   HiLogout,
   HiLogin,
   HiMenu,
+  HiAcademicCap, // Added for academics icon
 } from "react-icons/hi";
 
 function NavBar() {
@@ -36,19 +37,22 @@ function NavBar() {
     {
       name: "SVBH",
       path: "/SVBH",
+      description: "Swami Vivekanand Boys Hostel",
     },
     {
       name: "DGJH",
       path: "/DJGH",
+      description: "Dr. G.J. Hostel",
     },
   ];
-  const AcadmicsOptions= [
-    {
-      name:"Attendance Manager",
-      path: "/attendance",
 
+  const academicsOptions = [
+    {
+      name: "Attendance Manager",
+      path: "/attendance",
+      description: "Track and manage your attendance",
     },
-  ]
+  ];
 
   const handleMouseEnter = (dropdown) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -76,6 +80,45 @@ function NavBar() {
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  const DropdownMenu = ({ title, options, dropdownKey, icon: Icon }) => (
+    <div
+      onMouseEnter={() => handleMouseEnter(dropdownKey)}
+      onMouseLeave={handleMouseLeave}
+      className="relative"
+    >
+      <button className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors relative group">
+        <Icon className="w-5 h-5" />
+        <span>{title}</span>
+        <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
+      </button>
+      <AnimatePresence>
+        {activeDropdown === dropdownKey && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute top-full right-0 mt-2 w-64 bg-black/70 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 z-50"
+          >
+            {options.map((option) => (
+              <Link
+                key={option.name}
+                to={option.path}
+                className="block px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+              >
+                <div className="font-medium">{option.name}</div>
+                {option.description && (
+                  <div className="text-sm text-gray-400">
+                    {option.description}
+                  </div>
+                )}
+              </Link>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 
   return (
     <>
@@ -119,28 +162,59 @@ function NavBar() {
                     <span>{link.name}</span>
                   </Link>
                 ))}
+
                 {isAuthenticated && (
-                  <div className="mt-4 border-t border-white/10 pt-4">
-                    <div className="px-4 py-2 text-sm text-gray-400">
-                      Hostels
-                    </div>
-                    {hostelOptions.map((option) => (
-                      <Link
-                        key={option.name}
-                        to={option.path}
-                        className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
-                      >
-                        <HiOfficeBuilding className="w-6 h-6" />
-                        <div>
-                          <div>{option.name}</div>
-                          <div className="text-sm text-gray-400">
-                            {option.description}
+                  <>
+                    {/* Mobile Hostel Section */}
+                    <div className="mt-4 border-t border-white/10 pt-4">
+                      <div className="px-4 py-2 text-sm text-gray-400">
+                        Hostels
+                      </div>
+                      {hostelOptions.map((option) => (
+                        <Link
+                          key={option.name}
+                          to={option.path}
+                          className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+                        >
+                          <HiOfficeBuilding className="w-6 h-6" />
+                          <div>
+                            <div>{option.name}</div>
+                            {option.description && (
+                              <div className="text-sm text-gray-400">
+                                {option.description}
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Mobile Academics Section */}
+                    <div className="mt-4 border-t border-white/10 pt-4">
+                      <div className="px-4 py-2 text-sm text-gray-400">
+                        Academics
+                      </div>
+                      {academicsOptions.map((option) => (
+                        <Link
+                          key={option.name}
+                          to={option.path}
+                          className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+                        >
+                          <HiAcademicCap className="w-6 h-6" />
+                          <div>
+                            <div>{option.name}</div>
+                            {option.description && (
+                              <div className="text-sm text-gray-400">
+                                {option.description}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </>
                 )}
+
                 <div className="mt-auto">
                   {isAuthenticated ? (
                     <button
@@ -211,41 +285,20 @@ function NavBar() {
                     ))}
 
                     {isAuthenticated && (
-                      <div
-                        onMouseEnter={() => handleMouseEnter("hostel")}
-                        onMouseLeave={handleMouseLeave}
-                        className="relative"
-                      >
-                        <button className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors">
-                          <HiOfficeBuilding className="w-5 h-5" />
-                          <span>Hostel</span>
-                        </button>
-                        <AnimatePresence>
-                          {activeDropdown === "hostel" && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: 10 }}
-                              className="absolute top-full right-0 mt-2 w-64 bg-black/70 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 z-50"
-                            >
-                              {hostelOptions.map((option) => (
-                                <Link
-                                  key={option.name}
-                                  to={option.path}
-                                  className="block px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
-                                >
-                                  <div className="font-medium">
-                                    {option.name}
-                                  </div>
-                                  <div className="text-sm text-gray-400">
-                                    {option.description}
-                                  </div>
-                                </Link>
-                              ))}
-                            </motion.div>
-                          )}
-                        </AnimatePresence>
-                      </div>
+                      <>
+                        <DropdownMenu
+                          title="Hostel"
+                          options={hostelOptions}
+                          dropdownKey="hostel"
+                          icon={HiOfficeBuilding}
+                        />
+                        <DropdownMenu
+                          title="Academics"
+                          options={academicsOptions}
+                          dropdownKey="academics"
+                          icon={HiAcademicCap}
+                        />
+                      </>
                     )}
 
                     {isAuthenticated ? (

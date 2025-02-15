@@ -93,37 +93,4 @@ const AttendanceStats = sequelize.define(
   }
 );
 
-// Define relationships
-User.hasMany(UserAttendance, {
-  foreignKey: "user_id",
-  onDelete: "CASCADE",
-});
-UserAttendance.belongsTo(User, {
-  foreignKey: "user_id",
-});
-
-Subject.hasMany(UserAttendance, {
-  foreignKey: "subject_id",
-  onDelete: "CASCADE",
-});
-UserAttendance.belongsTo(Subject, {
-  foreignKey: "subject_id",
-});
-
-User.hasMany(AttendanceStats, {
-  foreignKey: "user_id",
-  onDelete: "CASCADE",
-});
-AttendanceStats.belongsTo(User, {
-  foreignKey: "user_id",
-});
-
-Subject.hasMany(AttendanceStats, {
-  foreignKey: "subject_id",
-  onDelete: "CASCADE",
-});
-AttendanceStats.belongsTo(Subject, {
-  foreignKey: "subject_id",
-});
-
 export { UserAttendance, AttendanceStats };

@@ -5,27 +5,16 @@ import {
   updateAttendance,
   deleteAttendance,
   getAttendanceRecords,
-  getAttendancePercentage,
-  getMonthlyReport,
-  getUserAttendanceAdmin,
+  getAttendanceStats,
 } from "../controllers/attendance.controller.js";
 
 const router = express.Router();
 
-// Update the records route to accept year and month parameters
-router.get("/records/:subjectId", authMiddleware, getAttendanceRecords);
-router.get(
-  "/records/:subjectId/:year/:month",
-  authMiddleware,
-  getAttendanceRecords
-);
-
-// ... other routes remain the same
-router.post("/mark", authMiddleware, markAttendance);
-router.put("/update/:attendanceId", authMiddleware, updateAttendance);
-router.delete("/delete/:attendanceId", authMiddleware, deleteAttendance);
-router.get("/percentage/:subjectId", authMiddleware, getAttendancePercentage);
-router.get("/report/:subjectId/:month/:year", authMiddleware, getMonthlyReport);
-router.get("/admin/user/:userId", authMiddleware, getUserAttendanceAdmin);
+// Fix routes to match controller documentation
+router.post("/", authMiddleware, markAttendance); // POST /api/attendance
+router.put("/:attendanceId", authMiddleware, updateAttendance); // PUT /api/attendance/:attendanceId
+router.get("/:subjectId/:year/:month", authMiddleware, getAttendanceRecords); // GET /api/attendance/:subjectId/:year/:month
+router.get("/stats/:subjectId", authMiddleware, getAttendanceStats); // GET /api/attendance/stats/:subjectId
+router.delete("/:attendanceId", authMiddleware, deleteAttendance); // DELETE /api/attendance/:attendanceId
 
 export default router;

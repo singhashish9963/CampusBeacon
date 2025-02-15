@@ -2,13 +2,18 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useAttendance } from "../../contexts/attendanceContext";
 
+// Define the API_URL visibly instead of using process.env
+const API_URL = "http://localhost:5000/api/v1";
+
 const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
   const { addUserSubject, loading, error } = useAttendance();
   const [formError, setFormError] = useState(null);
 
+  // Added subjectId property
   const [formData, setFormData] = useState({
+    subjectId: initialData?.id || "",
     name: initialData?.name || "",
-    code: initialData?.code || "", // Added for backend
+    code: initialData?.code || "",
     goal: initialData?.goal || 75,
     icon: initialData?.icon || "📚",
     totalClasses: initialData?.totalClasses || 0,
@@ -26,6 +31,12 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
   }, [formError]);
 
   const validateForm = () => {
+    // If not editing (i.e. adding new subject), subjectId is required.
+    if (!initialData && !formData.subjectId.trim()) {
+      setFormError("Subject ID is required");
+      return false;
+    }
+
     if (!formData.name.trim()) {
       setFormError("Subject name is required");
       return false;
@@ -53,6 +64,7 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
     try {
       if (!validateForm()) return;
 
+      // Format numeric fields
       const formattedData = {
         ...formData,
         goal: parseInt(formData.goal) || 0,
@@ -60,9 +72,11 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
         attendedClasses: parseInt(formData.attendedClasses) || 0,
       };
 
-      // If editing existing subject
-      if (initialData) {
-        const response = await fetch(`/api/subjects/${initialData.id}`, {
+      // If editing an existing subject OR a subjectId is provided manually, update the subject
+      if (initialData || formData.subjectId.trim()) {
+        // Use formData.subjectId if provided, otherwise fallback to initialData.id
+        const sid = formData.subjectId.trim() || initialData.id;
+        const response = await fetch(`${API_URL}/subjects/${sid}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -74,15 +88,16 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
         if (!response.ok) {
           throw new Error("Failed to update subject");
         }
-      }
-      // If adding new subject
-      else {
-        const response = await fetch("/api/v1/subjects/add", {
+      } else {
+        // If adding a new subject
+        const userId = localStorage.getItem("userId");
+        const response = await fetch(`${API_URL}/subjects/user/${userId}/add`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           credentials: "include",
+          // Pass subjectId along with other details in the request body
           body: JSON.stringify(formattedData),
         });
 
@@ -90,9 +105,9 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
           throw new Error("Failed to add subject");
         }
 
-        // Add subject to user's list after creation
+        // After a successful add, update the user's subject list
         const data = await response.json();
-        await addUserSubject(localStorage.getItem("userId"), data.data.id);
+        await addUserSubject(userId, data.data.subjectId || data.data.id);
       }
 
       onSubmit(formattedData);
@@ -124,13 +139,29 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
       )}
 
       <div className="space-y-4">
+        {/* Subject ID Input */}
+        <div>
+          <label className="block text-gray-400 mb-2">Subject ID</label>
+          <input
+            type="text"
+            value={formData.subjectId}
+            onChange={(e) =>
+              setFormData({ ...formData, subjectId: e.target.value })
+            }
+            className="w-full px-4 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+            placeholder="Enter subject ID"
+          />
+        </div>
+
         {/* Subject Name Input */}
         <div>
           <label className="block text-gray-400 mb-2">Subject Name *</label>
           <input
             type="text"
             value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, name: e.target.value })
+            }
             className="w-full px-4 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             placeholder="Enter subject name"
             required
@@ -143,7 +174,9 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
           <input
             type="text"
             value={formData.code}
-            onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, code: e.target.value })
+            }
             className="w-full px-4 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             placeholder="Enter subject code"
             required
@@ -189,7 +222,9 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
             min="0"
             max="100"
             value={formData.goal}
-            onChange={(e) => setFormData({ ...formData, goal: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, goal: e.target.value })
+            }
             className="w-full px-4 py-2 rounded-lg bg-purple-500/10 border border-purple-500/30 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
             required
           />
@@ -205,10 +240,10 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFormData({ ...formData, icon })}
-                className={`p-2 rounded-lg text-xl ${
+                className={`p-2 border rounded-lg ${
                   formData.icon === icon
-                    ? "bg-purple-500 text-white"
-                    : "bg-purple-500/10 hover:bg-purple-500/20 text-white"
+                    ? "bg-purple-500 text-white border-purple-600"
+                    : "bg-purple-500/10 text-white border-purple-500/30"
                 }`}
               >
                 {icon}
@@ -216,39 +251,24 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Form Actions */}
-        <div className="flex gap-3 justify-end mt-6">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg bg-gray-500/20 text-gray-300 hover:bg-gray-500/30"
-            disabled={loading}
-          >
-            Cancel
-          </motion.button>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleSubmit}
-            className={`px-4 py-2 rounded-lg ${
-              loading
-                ? "bg-purple-500/50 cursor-not-allowed"
-                : "bg-purple-500 hover:bg-purple-600"
-            } text-white`}
-            disabled={loading}
-          >
-            {loading
-              ? "Processing..."
-              : initialData
-              ? "Save Changes"
-              : "Add Subject"}
-          </motion.button>
-        </div>
-
-        {/* Required Fields Note */}
-        <p className="text-gray-400 text-sm mt-4">* Required fields</p>
+      {/* Action Buttons */}
+      <div className="flex justify-end gap-4 mt-6">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 rounded-lg bg-gray-700 text-white hover:bg-gray-600"
+          disabled={loading}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSubmit}
+          className="px-4 py-2 rounded-lg bg-purple-500 text-white hover:bg-purple-600"
+          disabled={loading}
+        >
+          {initialData ? "Update" : "Add Subject"}
+        </button>
       </div>
     </motion.div>
   );

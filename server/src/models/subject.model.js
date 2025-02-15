@@ -1,6 +1,5 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
-import User from "../models/user.model.js";
 
 export const Subject = sequelize.define(
   "subjects",
@@ -13,11 +12,12 @@ export const Subject = sequelize.define(
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
     code: {
       type: DataTypes.STRING,
       unique: true,
+      allowNull: false,
     },
     icon: {
       type: DataTypes.STRING,
@@ -29,17 +29,5 @@ export const Subject = sequelize.define(
     tableName: "subjects",
   }
 );
-
-Subject.belongsToMany(User, {
-  through: "user_subjects",
-  foreignKey: "subjectId",
-  onDelete: "CASCADE",
-});
-
-User.belongsToMany(Subject, {
-  through: "user_subjects",
-  foreignKey: "userId",
-  onDelete: "CASCADE",
-});
 
 export default Subject;

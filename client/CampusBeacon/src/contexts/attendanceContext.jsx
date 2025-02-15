@@ -17,23 +17,19 @@ export const AttendanceProvider = ({ children }) => {
   const [subjects, setSubjects] = useState([]);
   const [attendanceRecords, setAttendanceRecords] = useState([]);
 
-  // API base URL
   const API_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+ "http://localhost:5000/api/v1";
 
-  // Utility function to handle API errors
   const handleError = (error) => {
     setError(error.response?.data?.message || "Something went wrong");
     setTimeout(() => setError(null), 3000);
   };
 
-  // Get all subjects
+  // Get all subjects (public route)
   const fetchSubjects = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/subjects`, {
-        withCredentials: true,
-      });
+      const response = await axios.get(`${API_URL}/subjects`);
       setSubjects(response.data.data);
       return response.data.data;
     } catch (error) {
@@ -48,7 +44,7 @@ export const AttendanceProvider = ({ children }) => {
   const fetchUserSubjects = useCallback(async (userId) => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_URL}/subjects/${userId}`, {
+      const response = await axios.get(`${API_URL}/subjects/user/${userId}`, {
         withCredentials: true,
       });
       return response.data.data;
@@ -65,7 +61,7 @@ export const AttendanceProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${API_URL}/subjects/${userId}/add`,
+        `${API_URL}/subjects/user/${userId}/add`,
         { subjectId },
         { withCredentials: true }
       );
@@ -82,11 +78,10 @@ export const AttendanceProvider = ({ children }) => {
   const removeUserSubject = useCallback(async (userId, subjectId) => {
     try {
       setLoading(true);
-      await axios.post(
-        `${API_URL}/subjects/${userId}/remove`,
-        { subjectId },
-        { withCredentials: true }
-      );
+      await axios.delete(`${API_URL}/subjects/user/${userId}/remove`, {
+        data: { subjectId },
+        withCredentials: true,
+      });
       return true;
     } catch (error) {
       handleError(error);
@@ -101,7 +96,7 @@ export const AttendanceProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await axios.post(
-        `${API_URL}/attendance/mark`,
+        `${API_URL}/attendance`,
         { subjectId, date, status },
         { withCredentials: true }
       );
@@ -119,7 +114,7 @@ export const AttendanceProvider = ({ children }) => {
     try {
       setLoading(true);
       const response = await axios.put(
-        `${API_URL}/attendance/update/${attendanceId}`,
+        `${API_URL}/attendance/${attendanceId}`,
         { status },
         { withCredentials: true }
       );
@@ -136,7 +131,7 @@ export const AttendanceProvider = ({ children }) => {
   const deleteAttendance = useCallback(async (attendanceId) => {
     try {
       setLoading(true);
-      await axios.delete(`${API_URL}/attendance/delete/${attendanceId}`, {
+      await axios.delete(`${API_URL}/attendance/${attendanceId}`, {
         withCredentials: true,
       });
       return true;
@@ -148,15 +143,17 @@ export const AttendanceProvider = ({ children }) => {
     }
   }, []);
 
-  // Get attendance records for a subject
-  const getAttendanceRecords = useCallback(async (subjectId) => {
+  // Get attendance records for a subject (with optional year and month)
+  const getAttendanceRecords = useCallback(async (subjectId, year, month) => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `${API_URL}/attendance/records/${subjectId}`,
-        { withCredentials: true }
-      );
-      return response.data.data || [];
+      const url =
+        year && month
+          ? `${API_URL}/attendance/${subjectId}/${year}/${month}`
+          : `${API_URL}/attendance/${subjectId}`;
+      const response = await axios.get(url, { withCredentials: true });
+      setAttendanceRecords(response.data.data);
+      return response.data.data;
     } catch (error) {
       handleError(error);
       return [];
@@ -165,35 +162,22 @@ export const AttendanceProvider = ({ children }) => {
     }
   }, []);
 
-  // Get attendance percentage
-  const getAttendancePercentage = useCallback(async (subjectId) => {
+  // Get attendance stats
+  const getAttendanceStats = useCallback(async (subjectId) => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${API_URL}/attendance/percentage/${subjectId}`,
-        { withCredentials: true }
-      );
-      return response.data.data.percentage;
-    } catch (error) {
-      handleError(error);
-      return 0;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // Get monthly report
-  const getMonthlyReport = useCallback(async (subjectId, month, year) => {
-    try {
-      setLoading(true);
-      const response = await axios.get(
-        `${API_URL}/attendance/report/${subjectId}/${month}/${year}`,
+        `${API_URL}/attendance/stats/${subjectId}`,
         { withCredentials: true }
       );
       return response.data.data;
     } catch (error) {
       handleError(error);
-      return [];
+      return {
+        percentage: 0,
+        totalClasses: 0,
+        totalPresent: 0,
+      };
     } finally {
       setLoading(false);
     }
@@ -212,8 +196,7 @@ export const AttendanceProvider = ({ children }) => {
     updateAttendance,
     deleteAttendance,
     getAttendanceRecords,
-    getAttendancePercentage,
-    getMonthlyReport,
+    getAttendanceStats,
   };
 
   return (

@@ -6,8 +6,10 @@ import Channel from "./channel.model.js";
 import Message from "./message.model.js";
 import UserSubjects from "./userSubjects.model.js";
 import { Subject } from "./subject.model.js";
-const initializeAssociations = () => {
+import { UserAttendance, AttendanceStats } from "./attendance.model.js";
 
+const initializeAssociations = () => {
+  // Existing associations
   User.hasMany(LostAndFound, {
     foreignKey: "userId",
     onDelete: "CASCADE",
@@ -30,7 +32,6 @@ const initializeAssociations = () => {
     foreignKey: "channelId",
   });
 
-
   User.hasMany(Message, {
     foreignKey: "userId",
     onDelete: "CASCADE",
@@ -39,13 +40,53 @@ const initializeAssociations = () => {
     foreignKey: "userId",
   });
 
-User.belongsToMany(Subject, { through: UserSubjects });
-Subject.belongsToMany(User, { through: UserSubjects });
+  // User-Subject associations
+  User.belongsToMany(Subject, { through: UserSubjects });
+  Subject.belongsToMany(User, { through: UserSubjects });
 
+  // Attendance associations
+  User.hasMany(UserAttendance, {
+    foreignKey: "user_id",
+    onDelete: "CASCADE",
+  });
+  UserAttendance.belongsTo(User, {
+    foreignKey: "user_id",
+  });
 
+  Subject.hasMany(UserAttendance, {
+    foreignKey: "subject_id",
+    onDelete: "CASCADE",
+  });
+  UserAttendance.belongsTo(Subject, {
+    foreignKey: "subject_id",
+  });
+
+  // Stats associations
+  User.hasMany(AttendanceStats, {
+    foreignKey: "user_id",
+    onDelete: "CASCADE",
+  });
+  AttendanceStats.belongsTo(User, {
+    foreignKey: "user_id",
+  });
+
+  Subject.hasMany(AttendanceStats, {
+    foreignKey: "subject_id",
+    onDelete: "CASCADE",
+  });
+  AttendanceStats.belongsTo(Subject, {
+    foreignKey: "subject_id",
+  });
 };
-
 
 initializeAssociations();
 
-export { User, LostAndFound, BuyAndSell, Channel, Message,UserSubjects,Subject };
+export {
+  User,
+  LostAndFound,
+  BuyAndSell,
+  Channel,
+  Message,
+  UserSubjects,
+  Subject,
+};

@@ -1,8 +1,6 @@
 import sequelize from "../db/db.js";
 import { DataTypes } from "sequelize";
 
-
-
 const UserSubjects = sequelize.define(
   "user_subjects",
   {
@@ -17,8 +15,5 @@ const UserSubjects = sequelize.define(
     tableName: "user_subjects",
   }
 );
-
-
-
 
 export default UserSubjects;

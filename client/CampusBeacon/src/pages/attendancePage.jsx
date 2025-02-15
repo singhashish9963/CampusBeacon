@@ -18,6 +18,7 @@ import Notification from "../components/AttendancePage/Notification";
 import LoadingOverlay from "../components/AttendancePage/LoadingOverlay";
 import BackgroundAnimation from "../components/AttendancePage/BackgroundAnimation";
 import { useAttendance } from "../contexts/attendanceContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const AttendanceManager = () => {
   const {
@@ -29,7 +30,10 @@ const AttendanceManager = () => {
     removeUserSubject,
     markAttendance: markAttendanceAPI,
     getAttendanceRecords,
+    getAttendanceStats,
   } = useAttendance();
+
+  const { user } = useAuth(); // Get current user from auth context
 
   // Local States
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -38,9 +42,11 @@ const AttendanceManager = () => {
   const [showSubjectModal, setShowSubjectModal] = useState(false);
   const [editSubjectData, setEditSubjectData] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState("2025-02-12");
+  const [selectedDate, setSelectedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
-  const [currentDateTime, setCurrentDateTime] = useState("2025-02-13 14:41:59");
+  const [attendanceStats, setAttendanceStats] = useState({});
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [trendData, setTrendData] = useState([]);
 
@@ -48,77 +54,72 @@ const AttendanceManager = () => {
   const y = useMotionValue(0);
   const rotate = useTransform(y, [-100, 100], [-10, 10]);
 
-  // Achievements state
-  const [achievements, setAchievements] = useState([
-    {
-      id: 1,
-      title: "Perfect Week",
-      description: "100% attendance for a week",
-      unlocked: false,
-    },
-    {
-      id: 2,
-      title: "Study Champion",
-      description: "Maintain 90% attendance in all subjects",
-      unlocked: false,
-    },
-    {
-      id: 3,
-      title: "Consistency King",
-      description: "10-day attendance streak",
-      unlocked: false,
-    },
-  ]);
-
-  // Card tilt effect options
-  const defaultOptions = {
-    reverse: false,
-    max: 35,
-    perspective: 1000,
-    scale: 1.05,
-    speed: 1000,
-    transition: true,
-    axis: null,
-    reset: true,
-    easing: "cubic-bezier(.03,.98,.52,.99)",
-  };
-
   // Initialize and fetch data
   useEffect(() => {
     fetchSubjects();
-    updateDateTime();
-    const timer = setInterval(updateDateTime, 1000);
-    return () => clearInterval(timer);
-  }, []);
+  }, [fetchSubjects]);
 
-  // Update date time
-  const updateDateTime = () => {
-    const now = new Date();
-    setCurrentDateTime(now.toISOString().replace("T", " ").split(".")[0]);
-  };
-
-  // Update trend data when subjects change
+  // Fetch attendance stats when subject is selected
   useEffect(() => {
-    updateTrendData();
-  }, [subjects]);
+    if (selectedSubjectId) {
+      const fetchStats = async () => {
+        try {
+          const stats = await getAttendanceStats(selectedSubjectId);
+          setAttendanceStats((prev) => ({
+            ...prev,
+            [selectedSubjectId]: stats,
+          }));
+        } catch (error) {
+          setNotification({
+            type: "error",
+            message: "Failed to fetch attendance statistics",
+          });
+        }
+      };
+      fetchStats();
+    }
+  }, [selectedSubjectId, getAttendanceStats]);
 
-  // Fetch and update trend data
+  // Update trend data when selected subject changes
+  useEffect(() => {
+    if (selectedSubjectId) {
+      updateTrendData();
+    }
+  }, [selectedSubjectId]);
+
   const updateTrendData = async () => {
     try {
       const months = Array.from({ length: 6 }, (_, i) => {
         const d = new Date();
         d.setMonth(d.getMonth() - i);
         return {
-          month: d.toLocaleString("default", { month: "short" }),
+          month: d.getMonth() + 1,
           year: d.getFullYear(),
         };
       }).reverse();
 
       const data = await Promise.all(
         months.map(async ({ month, year }) => {
-          const records = await getAttendanceRecords(month, year);
-          const attendance = calculateAverageAttendance(records);
-          return { month: `${month}`, attendance };
+          const records = await getAttendanceRecords(
+            selectedSubjectId,
+            year,
+            month
+          );
+          const monthName = new Date(year, month - 1).toLocaleString(
+            "default",
+            { month: "short" }
+          );
+          const presentCount = records.filter(
+            (r) => r.status === "Present"
+          ).length;
+          const totalCount = records.length;
+          const attendance =
+            totalCount > 0 ? (presentCount / totalCount) * 100 : 0;
+
+          return {
+            month: monthName,
+            attendance: parseFloat(attendance.toFixed(2)),
+          };
         })
       );
 
@@ -131,83 +132,77 @@ const AttendanceManager = () => {
     }
   };
 
-  // Utility Functions
   const calculateStats = (subject) => {
-    const attendance =
-      subject.totalClasses > 0
-        ? (subject.attendedClasses / subject.totalClasses) * 100
-        : 0;
+    const stats = attendanceStats[subject.id] || {
+      percentage: 0,
+      totalClasses: 0,
+      totalPresent: 0,
+    };
 
-    const toGoal = subject.goal - attendance;
+    const requiredPercentage = 75; // Minimum required attendance
+    const currentPercentage = stats.percentage;
     const classesNeeded = Math.ceil(
-      (subject.goal * subject.totalClasses - 100 * subject.attendedClasses) /
-        (100 - subject.goal)
+      (requiredPercentage * stats.totalClasses - 100 * stats.totalPresent) /
+        (100 - requiredPercentage)
     );
 
-    let statusVal = "danger";
-    if (attendance >= 75) statusVal = "good";
-    else if (attendance >= 60) statusVal = "warning";
-
     return {
-      attendancePercent: attendance || 0,
-      streak: subject.streak,
-      status: statusVal,
+      attendancePercent: currentPercentage,
+      status:
+        currentPercentage >= 75
+          ? "good"
+          : currentPercentage >= 60
+          ? "warning"
+          : "danger",
       needed: classesNeeded > 0 ? classesNeeded : 0,
     };
   };
 
-  // Handle subject form submission
   const handleSubmitSubjectForm = async (formData) => {
+    if (!user?.id) {
+      setNotification({
+        type: "error",
+        message: "User not authenticated",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
-      if (editSubjectData) {
-        // Update existing subject
-        await fetch(`/api/v1/subjects/${editSubjectData.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        });
-      } else {
-        // Add new subject
-        const response = await fetch("/api/v1/subjects/add", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify(formData),
-        });
-        const data = await response.json();
-        await addUserSubject(data.data.id);
-      }
-
+      await addUserSubject(user.id, formData.id);
+      setShowSubjectModal(false);
+      await fetchSubjects();
       setNotification({
         type: "success",
-        message: `Subject ${
-          editSubjectData ? "updated" : "added"
-        } successfully!`,
+        message: "Subject added successfully!",
       });
-      setShowSubjectModal(false);
-      fetchSubjects();
     } catch (error) {
       setNotification({
         type: "error",
-        message: error.message || "Failed to save subject",
+        message: error.message || "Failed to add subject",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle subject removal
-  const handleRemoveSubject = async (id) => {
+  const handleRemoveSubject = async (subjectId) => {
+    if (!user?.id) {
+      setNotification({
+        type: "error",
+        message: "User not authenticated",
+      });
+      return;
+    }
+
     try {
       setLoading(true);
-      await removeUserSubject(id);
+      await removeUserSubject(user.id, subjectId);
+      await fetchSubjects();
       setNotification({
         type: "success",
         message: "Subject removed successfully!",
       });
-      fetchSubjects();
     } catch (error) {
       setNotification({
         type: "error",
@@ -218,16 +213,16 @@ const AttendanceManager = () => {
     }
   };
 
-  // Handle attendance marking
   const markAttendanceHandler = async (subjectId, date, status) => {
     try {
       setLoading(true);
       await markAttendanceAPI(subjectId, date, status);
+      await getAttendanceStats(subjectId); // Refresh stats
+      await updateTrendData(); // Refresh trend data
       setNotification({
         type: "success",
         message: `Attendance marked as ${status} successfully!`,
       });
-      fetchSubjects();
     } catch (error) {
       setNotification({
         type: "error",
@@ -243,7 +238,7 @@ const AttendanceManager = () => {
       <BackgroundAnimation />
 
       <div className="max-w-7xl mx-auto relative z-10">
-        <Header currentUser="ayush-jadaun" currentDateTime={currentDateTime} />
+        <Header currentUser={user?.name || "Guest"} />
         <Navigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {/* Modals & Overlays */}
@@ -266,6 +261,7 @@ const AttendanceManager = () => {
             <Notification
               type={notification?.type || "error"}
               message={notification?.message || contextError}
+              onClose={() => setNotification(null)}
             />
           )}
         </AnimatePresence>
@@ -283,12 +279,7 @@ const AttendanceManager = () => {
                 subjects={subjects}
                 calculateStats={calculateStats}
                 onAddSubject={() => setShowSubjectModal(true)}
-                onEditSubject={(subject) => {
-                  setEditSubjectData(subject);
-                  setShowSubjectModal(true);
-                }}
                 onRemoveSubject={handleRemoveSubject}
-                defaultOptions={defaultOptions}
                 trendData={trendData}
               />
             )}
@@ -302,15 +293,15 @@ const AttendanceManager = () => {
                 selectedSubjectId={selectedSubjectId}
                 setSelectedSubjectId={setSelectedSubjectId}
                 markAttendance={markAttendanceHandler}
+                attendanceRecords={attendanceRecords}
               />
             )}
-            {activeTab === "achievements" && (
-              <AchievementsView
-                achievements={achievements}
-                defaultOptions={defaultOptions}
+            {activeTab === "settings" && (
+              <SettingsView
+                subjects={subjects}
+                attendanceStats={attendanceStats}
               />
             )}
-            {activeTab === "settings" && <SettingsView subjects={subjects} />}
           </motion.div>
         </AnimatePresence>
       </div>

@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddleware from "../middlewares/auth.middleware.js"
+import authMiddleware from "../middlewares/auth.middleware.js";
 import {
   getAllSubjects,
   getUserSubjects,
@@ -12,13 +12,13 @@ import {
 
 const router = express.Router();
 
-router.get("/", authMiddleware, getAllSubjects); 
-router.get("/:userId", authMiddleware, getUserSubjects); 
-router.post("/:userId/add", authMiddleware, addUserSubject); 
-router.post("/:userId/remove", authMiddleware, removeUserSubject); 
-
-router.post("/add", authMiddleware, addSubject);
-router.put("/:subjectId", authMiddleware, editSubject);
-router.delete("/:subjectId", authMiddleware, deleteSubject);
+// Fix routes to match controller documentation
+router.get("/", getAllSubjects); // GET /api/subjects (Public route - removed authMiddleware)
+router.get("/user/:userId", authMiddleware, getUserSubjects); // GET /api/subjects/user/:userId
+router.post("/user/:userId/add", authMiddleware, addUserSubject); // POST /api/subjects/user/:userId/add
+router.delete("/user/:userId/remove", authMiddleware, removeUserSubject); // Changed to DELETE method
+router.post("/", authMiddleware, addSubject); // POST /api/subjects
+router.put("/:subjectId", authMiddleware, editSubject); // PUT /api/subjects/:subjectId
+router.delete("/:subjectId", authMiddleware, deleteSubject); // DELETE /api/subjects/:subjectId
 
 export default router;

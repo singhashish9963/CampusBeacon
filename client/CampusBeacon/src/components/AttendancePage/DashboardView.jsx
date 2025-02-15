@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Award, TrendingUp, Target, AlertTriangle } from "lucide-react";
-import { Tilt } from "react-tilt";
 import SubjectCard from "./SubjectCard";
 import StatsCard from "./StatsCard";
 import AttendanceChart from "./AttendanceChart";
@@ -48,11 +47,9 @@ const DashboardView = ({
   // Calculate attendance percentage
   const calculateMonthlyAttendance = (records) => {
     if (!records || records.length === 0) return 0;
-
     const presentClasses = records.filter(
       (record) => record.status === "Present"
     ).length;
-
     return parseFloat(((presentClasses / records.length) * 100).toFixed(1));
   };
 
@@ -145,7 +142,7 @@ const DashboardView = ({
   // Fetch trend data when subjects change
   useEffect(() => {
     fetchAttendanceTrend();
-  }, [subjects]);
+  }, [subjects, getAttendanceRecords]);
 
   // Calculate dashboard statistics
   const calculateDashboardStats = () => {

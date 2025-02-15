@@ -1,35 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Edit2, Trash2, AlertTriangle } from "lucide-react";
 import { Tilt } from "react-tilt";
 import { useAttendance } from "../../contexts/attendanceContext";
 
 const SubjectCard = ({ subject, stats, onEdit, onRemove, defaultOptions }) => {
-  const { getAttendancePercentage, removeUserSubject } = useAttendance();
+  const { removeUserSubject } = useAttendance();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [currentAttendance, setCurrentAttendance] = useState(
-    stats.attendancePercent
-  );
-  const [lastUpdated, setLastUpdated] = useState(null);
 
-  // Format the current UTC time
+  // Use the current UTC time for display
   const currentTime = new Date().toISOString().replace("T", " ").split(".")[0];
-
-  useEffect(() => {
-    fetchAttendanceData();
-  }, [subject.id]);
-
-  const fetchAttendanceData = async () => {
-    try {
-      const percentage = await getAttendancePercentage(subject.id);
-      setCurrentAttendance(percentage);
-      setLastUpdated(currentTime);
-    } catch (err) {
-      setError("Failed to fetch attendance data");
-      setTimeout(() => setError(null), 3000);
-    }
-  };
 
   const handleRemove = async () => {
     try {
@@ -103,11 +84,6 @@ const SubjectCard = ({ subject, stats, onEdit, onRemove, defaultOptions }) => {
                 <div className="text-xs text-gray-500">
                   Code: {subject.code}
                 </div>
-                {lastUpdated && (
-                  <div className="text-xs text-gray-500">
-                    Last updated: {lastUpdated}
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -120,7 +96,7 @@ const SubjectCard = ({ subject, stats, onEdit, onRemove, defaultOptions }) => {
                 : "bg-red-500/20 text-red-400"
             }`}
           >
-            {currentAttendance.toFixed(1)}%
+            {stats.attendancePercent.toFixed(1)}%
           </div>
         </div>
 
@@ -128,7 +104,7 @@ const SubjectCard = ({ subject, stats, onEdit, onRemove, defaultOptions }) => {
           <div className="h-2 rounded-full bg-purple-500/20">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${currentAttendance}%` }}
+              animate={{ width: `${stats.attendancePercent}%` }}
               transition={{ duration: 1, ease: "easeOut" }}
               className={`h-full rounded-full ${
                 stats.status === "good"

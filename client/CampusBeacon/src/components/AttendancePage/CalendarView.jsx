@@ -24,7 +24,6 @@ const CalendarView = ({
     markAttendance: markAttendanceAPI,
     getAttendanceRecords,
     loading,
-    error,
   } = useAttendance();
 
   const [currentDateTime, setCurrentDateTime] = useState("2025-02-13 14:37:42");
@@ -68,18 +67,14 @@ const CalendarView = ({
     };
 
     fetchMonthlyAttendance();
-  }, [selectedSubjectId, currentMonth]);
+  }, [selectedSubjectId, currentMonth, getAttendanceRecords]);
 
   // Current date logic
   const currentDate = new Date("2025-02-13");
 
-  const isCurrentDate = (dateString) => {
-    return dateString === currentDate.toISOString().split("T")[0];
-  };
-
-  const isPastDate = (dateString) => {
-    return new Date(dateString) < currentDate;
-  };
+  const isCurrentDate = (dateString) =>
+    dateString === currentDate.toISOString().split("T")[0];
+  const isPastDate = (dateString) => new Date(dateString) < currentDate;
 
   // Calendar generation logic
   const startOfMonth = new Date(
