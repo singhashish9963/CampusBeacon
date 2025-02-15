@@ -3,7 +3,7 @@ import { Op } from "sequelize";
 import User from "../models/user.model.js";
 import sequelize from "../db/db.js";
 
-// Ensure database connection
+
 sequelize
     .authenticate()
     .then(() => console.log("Database connected"))
