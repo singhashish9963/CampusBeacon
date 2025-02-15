@@ -19,6 +19,10 @@ export const Subject = sequelize.define(
       unique: true,
       allowNull: false,
     },
+    credit:{
+      type:DataTypes.INTEGER,
+      allowNull:true
+    },
     icon: {
       type: DataTypes.STRING,
       defaultValue: "📚",
