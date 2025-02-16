@@ -51,7 +51,6 @@ export const AttendanceProvider = ({ children }) => {
     async (userId) => {
       try {
         setLoading(true);
-        // Make sure the endpoint matches your backend (check plural/singular naming)
         const response = await axios.get(`${API_URL}/user-subjects`, {
           params: { userId },
           withCredentials: true,
@@ -125,7 +124,6 @@ export const AttendanceProvider = ({ children }) => {
       try {
         if (!currentUser?.id) throw new Error("User is not authenticated");
         setLoading(true);
-        // Ensure endpoint name is correct (user-subjects vs. user-subject)
         await axios.post(
           `${API_URL}/user-subjects`,
           { userId: currentUser.id, subjectId },
@@ -149,7 +147,6 @@ export const AttendanceProvider = ({ children }) => {
       try {
         if (!currentUser?.id) throw new Error("User is not authenticated");
         setLoading(true);
-        // Ensure endpoint name is correct (user-subjects vs. user-subject)
         await axios.delete(`${API_URL}/user-subjects`, {
           data: { userId: currentUser.id, subjectId },
           withCredentials: true,
@@ -169,7 +166,6 @@ export const AttendanceProvider = ({ children }) => {
   // Mark attendance for the current user on a given subject and date
   const markAttendance = useCallback(
     async (subjectId, date, status) => {
-      // Adjust status conversion to ensure proper formatting
       const standardizedStatus =
         status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
       try {
@@ -272,7 +268,6 @@ export const AttendanceProvider = ({ children }) => {
     async (subjectId) => {
       try {
         setLoading(true);
-        // Confirm your backend defines this endpoint correctly.
         const response = await axios.get(
           `${API_URL}/attendance/stats/${subjectId}`,
           { withCredentials: true }
@@ -280,7 +275,7 @@ export const AttendanceProvider = ({ children }) => {
         const stats = response.data.data;
         return {
           ...stats,
-          formattedPercentage: `${stats.percentage.toFixed(2)}%`,
+          formattedPercentage: `${stats.percentage?.toFixed(2) || "0.00"}%`,
           isAtRisk: stats.percentage < 75,
           needsImprovement: stats.percentage < 85,
         };
@@ -301,6 +296,59 @@ export const AttendanceProvider = ({ children }) => {
     [API_URL]
   );
 
+  // NEW: Create or update attendance stats based on form data.
+  // This function maps "attendedClasses" from the form to "totalPresent"
+  // as expected by your backend stats endpoints.
+  const saveAttendanceStatsFromForm = useCallback(
+    async (formData) => {
+      try {
+        if (!currentUser?.id) {
+          throw new Error("User is not authenticated");
+        }
+        // Map attendedClasses to totalPresent
+        const payload = {
+          userId: currentUser.id,
+          subjectId: formData.subjectId,
+          totalClasses: parseInt(formData.totalClasses) || 0,
+          totalPresent: parseInt(formData.attendedClasses) || 0,
+        };
+
+        // Check if stats exist for this subject by calling GET /stats/:id
+        const statsResponse = await axios.get(
+          `${API_URL}/attendance/stats/${formData.subjectId}`,
+          { withCredentials: true }
+        );
+        // If the backend returned default stats, assume no stats exist yet.
+        if (
+          statsResponse.data.data &&
+          statsResponse.data.data.totalClasses === 0 &&
+          statsResponse.data.data.totalPresent === 0
+        ) {
+          // Create new attendance stats
+          const createResponse = await axios.post(
+            `${API_URL}/attendance/stats`,
+            payload,
+            { withCredentials: true }
+          );
+          return createResponse.data.data;
+        } else {
+          // Otherwise, update existing stats. Assuming the ID is available in statsResponse.data.data.id
+          const statsId = statsResponse.data.data.id;
+          const updateResponse = await axios.put(
+            `${API_URL}/attendance/stats/${statsId}`,
+            payload,
+            { withCredentials: true }
+          );
+          return updateResponse.data.data;
+        }
+      } catch (error) {
+        handleError(error);
+        return null;
+      }
+    },
+    [API_URL, currentUser]
+  );
+
   const contextValue = {
     loading,
     error,
@@ -318,6 +366,7 @@ export const AttendanceProvider = ({ children }) => {
     deleteAttendance,
     getAttendanceRecords,
     getAttendanceStats,
+    saveAttendanceStatsFromForm, // NEW function available for form calls.
     handleError,
   };
 

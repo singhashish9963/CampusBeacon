@@ -14,7 +14,6 @@ export const createAttendance = async (req, res) => {
       });
     }
 
-    // Using the correct key names (userId, subjectId) that match your model definition.
     const attendance = await UserAttendance.create({
       userId: userId,
       subjectId: subjectId,
@@ -166,13 +165,12 @@ export const createAttendanceStats = async (req, res) => {
 };
 
 // Get attendance statistics by ID
-// Updated to return default stats if record is not found.
+// If no stats record is found, default statistics are returned.
 export const getAttendanceStatsById = async (req, res) => {
   try {
     const { id } = req.params;
     const stats = await AttendanceStats.findByPk(id);
     if (!stats) {
-      // Return default attendance statistics when no record is found.
       return res.status(200).json({
         message:
           "Attendance statistics not found. Returning default statistics.",
