@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Plus, Award, TrendingUp, Target, AlertTriangle } from "lucide-react";
 import SubjectCard from "./SubjectCard";
 import StatsCard from "./StatsCard";
 import AttendanceChart from "./AttendanceChart";
 import TimeDisplay from "./TimeDisplay";
-import { useAttendance } from "../../contexts/attendanceContext";
+import { useAttendanceContext } from "../../contexts/attendanceContext";
 
 const DashboardView = ({
   subjects,
@@ -15,26 +15,29 @@ const DashboardView = ({
   onRemoveSubject,
   defaultOptions,
 }) => {
-  const { getAttendanceRecords, loading, error } = useAttendance();
-  const [currentDateTime, setCurrentDateTime] = useState("2025-02-13 15:38:00");
+  const {
+    getAttendanceRecords,
+    loading,
+    error,
+    currentDateTime,
+    currentUser,
+    refreshUserSubjects,
+  } = useAttendanceContext();
+
   const [trendData, setTrendData] = useState([]);
   const [fetchError, setFetchError] = useState(null);
 
-  // Update current time every second
-  useEffect(() => {
-    const updateDateTime = () => {
-      const now = new Date();
-      const formatted = now.toISOString().replace("T", " ").split(".")[0];
-      setCurrentDateTime(formatted);
-    };
-
-    updateDateTime();
-    const timer = setInterval(updateDateTime, 1000);
-    return () => clearInterval(timer);
+  // Calculate monthly attendance data
+  const calculateMonthlyData = useCallback((records) => {
+    if (!records || records.length === 0) return 0;
+    const presentClasses = records.filter(
+      (record) => record.status === "Present"
+    ).length;
+    return parseFloat(((presentClasses / records.length) * 100).toFixed(1));
   }, []);
 
   // Filter records by month and year
-  const filterRecordsByMonth = (records, month, year) => {
+  const filterRecordsByMonth = useCallback((records, month, year) => {
     if (!records) return [];
     return records.filter((record) => {
       const recordDate = new Date(record.date);
@@ -42,21 +45,24 @@ const DashboardView = ({
         recordDate.getMonth() === month - 1 && recordDate.getFullYear() === year
       );
     });
-  };
+  }, []);
 
-  // Calculate attendance percentage
-  const calculateMonthlyAttendance = (records) => {
-    if (!records || records.length === 0) return 0;
-    const presentClasses = records.filter(
-      (record) => record.status === "Present"
-    ).length;
-    return parseFloat(((presentClasses / records.length) * 100).toFixed(1));
-  };
+  // Get default trend data
+  const getDefaultTrendData = useCallback(() => {
+    return Array.from({ length: 6 }, (_, i) => {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      return {
+        month: date.toLocaleString("default", { month: "short" }),
+        attendance: 0,
+      };
+    }).reverse();
+  }, []);
 
   // Fetch attendance trend data
-  const fetchAttendanceTrend = async () => {
+  const fetchAttendanceTrend = useCallback(async () => {
     try {
-      // Generate last 6 months
+      // Generate last 6 months data points
       const lastSixMonths = Array.from({ length: 6 }, (_, i) => {
         const date = new Date();
         date.setMonth(date.getMonth() - i);
@@ -67,7 +73,7 @@ const DashboardView = ({
         };
       }).reverse();
 
-      if (!subjects || subjects.length === 0) {
+      if (!subjects?.length) {
         setTrendData(
           lastSixMonths.map(({ month }) => ({
             month,
@@ -77,24 +83,15 @@ const DashboardView = ({
         return;
       }
 
-      // Fetch all attendance records for each subject
+      // Fetch records for all subjects
       const allSubjectsRecords = await Promise.all(
         subjects.map(async (subject) => {
           try {
             const records = await getAttendanceRecords(subject.id);
-            return {
-              subjectId: subject.id,
-              records: records || [],
-            };
+            return { subjectId: subject.id, records: records || [] };
           } catch (error) {
-            console.error(
-              `Error fetching records for subject ${subject.name}:`,
-              error
-            );
-            return {
-              subjectId: subject.id,
-              records: [],
-            };
+            console.error(`Error fetching records for ${subject.name}:`, error);
+            return { subjectId: subject.id, records: [] };
           }
         })
       );
@@ -107,7 +104,7 @@ const DashboardView = ({
         allSubjectsRecords.forEach(({ records }) => {
           const monthlyRecords = filterRecordsByMonth(records, monthNum, year);
           if (monthlyRecords.length > 0) {
-            totalAttendance += calculateMonthlyAttendance(monthlyRecords);
+            totalAttendance += calculateMonthlyData(monthlyRecords);
             validSubjects++;
           }
         });
@@ -125,28 +122,19 @@ const DashboardView = ({
     } catch (error) {
       console.error("Error calculating trend data:", error);
       setFetchError("Failed to load attendance trend data");
-
-      // Set default trend data
-      const defaultTrend = Array.from({ length: 6 }, (_, i) => {
-        const date = new Date();
-        date.setMonth(date.getMonth() - i);
-        return {
-          month: date.toLocaleString("default", { month: "short" }),
-          attendance: 0,
-        };
-      }).reverse();
-      setTrendData(defaultTrend);
+      setTrendData(getDefaultTrendData());
     }
-  };
-
-  // Fetch trend data when subjects change
-  useEffect(() => {
-    fetchAttendanceTrend();
-  }, [subjects, getAttendanceRecords]);
+  }, [
+    subjects,
+    getAttendanceRecords,
+    filterRecordsByMonth,
+    calculateMonthlyData,
+    getDefaultTrendData,
+  ]);
 
   // Calculate dashboard statistics
-  const calculateDashboardStats = () => {
-    if (!subjects || subjects.length === 0) {
+  const calculateDashboardStats = useCallback(() => {
+    if (!subjects?.length) {
       return {
         bestSubject: null,
         averageAttendance: 0,
@@ -176,20 +164,17 @@ const DashboardView = ({
         (subject) => calculateStats(subject).attendancePercent >= subject.goal
       ).length;
 
-      return {
-        bestSubject,
-        averageAttendance,
-        goalsMet,
-      };
+      return { bestSubject, averageAttendance, goalsMet };
     } catch (error) {
       console.error("Error calculating dashboard stats:", error);
-      return {
-        bestSubject: null,
-        averageAttendance: 0,
-        goalsMet: 0,
-      };
+      return { bestSubject: null, averageAttendance: 0, goalsMet: 0 };
     }
-  };
+  }, [subjects, calculateStats]);
+
+  // Fetch trend data when subjects change
+  useEffect(() => {
+    fetchAttendanceTrend();
+  }, [fetchAttendanceTrend]);
 
   const { bestSubject, averageAttendance, goalsMet } =
     calculateDashboardStats();
@@ -197,16 +182,19 @@ const DashboardView = ({
   return (
     <div className="space-y-6">
       {/* Error Display */}
-      {(error || fetchError) && (
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-lg flex items-center gap-2"
-        >
-          <AlertTriangle className="w-5 h-5" />
-          <span>{error || fetchError}</span>
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {(error || fetchError) && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-red-500/20 border border-red-500/30 text-red-400 p-4 rounded-lg flex items-center gap-2"
+          >
+            <AlertTriangle className="w-5 h-5" />
+            <span>{error || fetchError}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Add Subject Button */}
       <div className="flex justify-between items-center mb-6">
@@ -224,7 +212,7 @@ const DashboardView = ({
         </motion.button>
       </div>
 
-      {/* Quick Stats */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <StatsCard
           icon={Award}
@@ -239,7 +227,6 @@ const DashboardView = ({
           colorClass="from-green-500/20 to-green-600/20 border border-green-500/30"
           loading={loading}
         />
-
         <StatsCard
           icon={TrendingUp}
           title="Average Attendance"
@@ -248,7 +235,6 @@ const DashboardView = ({
           colorClass="from-blue-500/20 to-blue-600/20 border border-blue-500/30"
           loading={loading}
         />
-
         <StatsCard
           icon={Target}
           title="Goals Met"
@@ -258,7 +244,7 @@ const DashboardView = ({
         />
       </div>
 
-      {/* Attendance Trend Chart */}
+      {/* Attendance Chart */}
       <AttendanceChart data={trendData} loading={loading} />
 
       {/* Subject Cards */}
@@ -289,7 +275,10 @@ const DashboardView = ({
       </div>
 
       {/* Time Display */}
-      <TimeDisplay currentTime={currentDateTime} currentUser="ayush-jadaun" />
+      <TimeDisplay
+        currentTime={currentDateTime}
+        currentUser={currentUser?.login}
+      />
     </div>
   );
 };

@@ -1,20 +1,31 @@
 import express from "express";
-import authMiddleware from "../middlewares/auth.middleware.js";
 import {
-  markAttendance,
+  createAttendance,
+  getAttendanceById,
+  getAllAttendances,
   updateAttendance,
   deleteAttendance,
-  getAttendanceRecords,
-  getAttendanceStats,
+  createAttendanceStats,
+  getAttendanceStatsById,
+  getAllAttendanceStats,
+  updateAttendanceStats,
+  deleteAttendanceStats,
 } from "../controllers/attendance.controller.js";
 
 const router = express.Router();
 
-// Fix routes to match controller documentation
-router.post("/", authMiddleware, markAttendance); // POST /api/attendance
-router.put("/:attendanceId", authMiddleware, updateAttendance); // PUT /api/attendance/:attendanceId
-router.get("/:subjectId/:year/:month", authMiddleware, getAttendanceRecords); // GET /api/attendance/:subjectId/:year/:month
-router.get("/stats/:subjectId", authMiddleware, getAttendanceStats); // GET /api/attendance/stats/:subjectId
-router.delete("/:attendanceId", authMiddleware, deleteAttendance); // DELETE /api/attendance/:attendanceId
+// Attendance endpoints
+router.post("/attendance", createAttendance);
+router.get("/attendance", getAllAttendances);
+router.get("/attendance/:id", getAttendanceById);
+router.put("/attendance/:id", updateAttendance);
+router.delete("/attendance/:id", deleteAttendance);
+
+// Attendance statistics endpoints
+router.post("/stats", createAttendanceStats);
+router.get("/stats", getAllAttendanceStats);
+router.get("/stats/:id", getAttendanceStatsById);
+router.put("/stats/:id", updateAttendanceStats);
+router.delete("/stats/:id", deleteAttendanceStats);
 
 export default router;

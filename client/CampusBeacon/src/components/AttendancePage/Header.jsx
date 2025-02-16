@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useAttendance } from "../../contexts/attendanceContext";
+import { useAttendanceContext } from "../../contexts/attendanceContext";
 
 const Header = ({ currentUser }) => {
   const [currentDateTime, setCurrentDateTime] = useState("2025-02-13 14:39:18");
-  const { error } = useAttendance();
+  const { error } = useAttendanceContext();
 
   // Update current time every second
   useEffect(() => {
@@ -14,13 +14,10 @@ const Header = ({ currentUser }) => {
       setCurrentDateTime(formatted);
     };
 
-    // Update immediately
+    // Update immediately and set up interval
     updateDateTime();
-
-    // Set up interval
     const timer = setInterval(updateDateTime, 1000);
 
-    // Cleanup
     return () => clearInterval(timer);
   }, []);
 

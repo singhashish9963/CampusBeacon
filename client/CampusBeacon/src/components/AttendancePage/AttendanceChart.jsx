@@ -12,7 +12,7 @@ import {
   ReferenceLine,
 } from "recharts";
 import { Loader } from "lucide-react";
-import { useAttendance } from "../../contexts/attendanceContext";
+import { useAttendanceContext } from "../../contexts/attendanceContext";
 
 const AttendanceChart = ({ data, loading }) => {
   const [currentDateTime, setCurrentDateTime] = useState("2025-02-13 14:40:25");

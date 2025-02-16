@@ -11,11 +11,13 @@ import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
 import chatBotRoutes from "./src/routes/chatBot.routes.js";
-import subjectRoutes from "./src/routes/subject.routes.js"
-import attendanceRoutes from "./src/routes/attendance.routes.js"
-import session from "express-session"
-import eateriesRoutes from "./src/routes/eateries.routes.js"
+import subjectRoutes from "./src/routes/subject.routes.js";
+import attendanceRoutes from "./src/routes/attendance.routes.js";
+import userSubjectsRoutes from "./src/routes/userSubject.routes.js";
+import eateriesRoutes from "./src/routes/eateries.routes.js";
+import session from "express-session";
 import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
+
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -33,20 +35,20 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
-scheduleUnverifiedUserCleanup()
+scheduleUnverifiedUserCleanup();
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "your-temporary-secret-key", 
+    secret: process.env.SESSION_SECRET || "your-temporary-secret-key",
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === "production", 
+      secure: process.env.NODE_ENV === "production",
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     },
-    name: "sessionId", 
+    name: "sessionId",
   })
 );
 
@@ -71,7 +73,9 @@ app.use("/api/chat", ChatRoutes);
 app.use("/api/chatbot", chatBotRoutes);
 app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
-app.use("/eateries",eateriesRoutes);
+// Updated mount path to plural to match client expectations.
+app.use("/api/v1/user-subjects", userSubjectsRoutes);
+app.use("/eateries", eateriesRoutes);
 
 // Initialize services and start server
 const startServer = async () => {
@@ -79,7 +83,6 @@ const startServer = async () => {
     console.log("Connecting to database...");
     await connectDb();
     console.log("Database connected successfully");
-
 
     httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

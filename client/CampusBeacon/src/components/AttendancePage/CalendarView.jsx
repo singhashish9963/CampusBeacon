@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   Loader,
 } from "lucide-react";
-import { useAttendance } from "../../contexts/attendanceContext";
+import { useAttendanceContext } from "../../contexts/attendanceContext";
 
 const CalendarView = ({
   currentMonth,
@@ -24,7 +24,8 @@ const CalendarView = ({
     markAttendance: markAttendanceAPI,
     getAttendanceRecords,
     loading,
-  } = useAttendance();
+    currentUser,
+  } = useAttendanceContext();
 
   const [currentDateTime, setCurrentDateTime] = useState("2025-02-13 14:37:42");
   const [markedDates, setMarkedDates] = useState({});
@@ -69,7 +70,7 @@ const CalendarView = ({
     fetchMonthlyAttendance();
   }, [selectedSubjectId, currentMonth, getAttendanceRecords]);
 
-  // Current date logic
+  // Current date logic (using a fixed current date for demonstration)
   const currentDate = new Date("2025-02-13");
 
   const isCurrentDate = (dateString) =>
@@ -97,22 +98,29 @@ const CalendarView = ({
       .map((_, i) => i + 1),
   ];
 
-  // Handle attendance marking
+  // Handle attendance marking (ensure status is standardized before sending)
   const handleMarkAttendance = async (status) => {
     if (!selectedSubjectId || !selectedDate) return;
 
     setProcessingDate(selectedDate);
+    // Standardize status ("present" -> "Present", etc.)
+    const standardizedStatus =
+      status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
     try {
-      await markAttendanceAPI(selectedSubjectId, selectedDate, status);
+      await markAttendanceAPI(
+        selectedSubjectId,
+        selectedDate,
+        standardizedStatus
+      );
 
       setMarkedDates((prev) => ({
         ...prev,
-        [selectedDate]: status,
+        [selectedDate]: standardizedStatus,
       }));
 
       setNotification({
         type: "success",
-        message: `Attendance marked as ${status} successfully`,
+        message: `Attendance marked as ${standardizedStatus} successfully`,
       });
     } catch (err) {
       setNotification({
@@ -238,11 +246,12 @@ const CalendarView = ({
                 p-2 rounded-lg transition-all relative
                 ${loading ? "opacity-50 cursor-not-allowed" : ""}
                 ${
-                  markedStatus === "present"
+                  markedStatus === "present" || markedStatus === "Present"
                     ? "border-2 border-green-500/50"
-                    : markedStatus === "absent"
+                    : markedStatus === "absent" || markedStatus === "Absent"
                     ? "border-2 border-red-500/50"
-                    : markedStatus === "cancelled"
+                    : markedStatus === "cancelled" ||
+                      markedStatus === "Cancelled"
                     ? "border-2 border-yellow-500/50"
                     : ""
                 }
@@ -338,7 +347,7 @@ const CalendarView = ({
       <div className="mt-6 pt-4 border-t border-purple-500/20">
         <div className="flex justify-between items-center text-gray-400 text-sm">
           <span>Current Time (UTC): {currentDateTime}</span>
-          <span>User: ayush-jadaun</span>
+          <span>User: {currentUser?.login || "Unknown"}</span>
         </div>
       </div>
     </motion.div>

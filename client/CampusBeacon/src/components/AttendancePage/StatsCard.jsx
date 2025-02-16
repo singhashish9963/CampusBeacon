@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useAttendance } from "../../contexts/attendanceContext";
+import { useAttendanceContext } from "../../contexts/attendanceContext";
 
 const StatsCard = ({ icon: Icon, title, value, colorClass, type }) => {
-  const { loading } = useAttendance();
+  const { loading } = useAttendanceContext();
   const [currentDateTime, setCurrentDateTime] = useState("2025-02-13 14:35:07");
   const [currentUser] = useState("ayush-jadaun");
   const [animatedValue, setAnimatedValue] = useState(0);
@@ -19,11 +19,11 @@ const StatsCard = ({ icon: Icon, title, value, colorClass, type }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Animate value changes
+  // Animate value changes when 'value' changes
   useEffect(() => {
     if (typeof value === "number") {
       const numeric = parseFloat(value);
-      const duration = 1000; // 1 second
+      const duration = 1000; // animation duration in milliseconds
       const steps = 60;
       const increment = numeric / steps;
       let current = 0;
@@ -46,9 +46,7 @@ const StatsCard = ({ icon: Icon, title, value, colorClass, type }) => {
     if (loading) return "Loading...";
 
     if (typeof value === "number") {
-      return typeof animatedValue === "number"
-        ? `${animatedValue.toFixed(1)}${type === "percentage" ? "%" : ""}`
-        : value;
+      return `${animatedValue.toFixed(1)}${type === "percentage" ? "%" : ""}`;
     }
 
     return value;

@@ -17,7 +17,7 @@ import Navigation from "../components/AttendancePage/Navigation";
 import Notification from "../components/AttendancePage/Notification";
 import LoadingOverlay from "../components/AttendancePage/LoadingOverlay";
 import BackgroundAnimation from "../components/AttendancePage/BackgroundAnimation";
-import { useAttendance } from "../contexts/attendanceContext";
+import { useAttendanceContext } from "../contexts/attendanceContext";
 import { useAuth } from "../contexts/AuthContext";
 
 const AttendanceManager = () => {
@@ -31,7 +31,7 @@ const AttendanceManager = () => {
     markAttendance: markAttendanceAPI,
     getAttendanceRecords,
     getAttendanceStats,
-  } = useAttendance();
+  } = useAttendanceContext();
 
   const { user } = useAuth(); // Get current user from auth context
 

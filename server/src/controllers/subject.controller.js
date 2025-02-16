@@ -1,204 +1,262 @@
-import { Subject } from "../models/subject.model.js";
-import asyncHandler from "../utils/asyncHandler.js";
-import ApiResponse from "../utils/apiResponse.js";
-import ApiError from "../utils/apiError.js";
-import User from "../models/user.model.js";
 import UserSubjects from "../models/userSubjects.model.js";
+import Subject from "../models/subject.model.js";
 
-/**
- * @desc    Get all subjects for dropdown
- * @route   GET /api/subjects
- * @access  Public
- */
-export const getAllSubjects = asyncHandler(async (req, res) => {
-  const subjects = await Subject.findAll({
-    attributes: ["id", "name", "code", "icon"],
-    order: [["name", "ASC"]],
-  });
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, subjects, "Subjects retrieved successfully"));
-});
-
-/**
- * @desc    Get subjects for a specific user
- * @route   GET /api/subjects/user/:userId
- * @access  Private
- */
-export const getUserSubjects = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
-
-  const user = await User.findByPk(userId, {
-    include: {
-      model: Subject,
-      through: { attributes: [] },
-      attributes: ["id", "name", "code", "icon"],
-    },
-  });
-
-  if (!user) {
-    throw new ApiError("User not found", 404);
+// Create a new subject
+export const createSubject = async (req, res) => {
+  try {
+    const { name, code, credit, icon } = req.body;
+    const subject = await Subject.create({
+      name,
+      code,
+      credit,
+      icon,
+    });
+    res.status(201).json({
+      message: "Subject created successfully",
+      data: subject,
+    });
+  } catch (error) {
+    console.error("Error creating subject:", error);
+    res.status(500).json({
+      message: "An error occurred while creating the subject",
+      error: error.message,
+    });
   }
+};
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        user.subjects,
-        "User subjects retrieved successfully"
-      )
-    );
-});
-
-/**
- * @desc    Add a subject to user's selection
- * @route   POST /api/subjects/user/:userId/add
- * @access  Private
- */
-export const addUserSubject = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
-  const { subjectId } = req.body;
-
-  if (!subjectId) {
-    throw new ApiError("Subject ID is required", 400);
-  }
-
-  // Check if both user and subject exist
-  const [user, subject] = await Promise.all([
-    User.findByPk(userId),
-    Subject.findByPk(subjectId),
-  ]);
-
-  if (!user) throw new ApiError("User not found", 404);
-  if (!subject) throw new ApiError("Subject not found", 404);
-
-  const [userSubject, created] = await UserSubjects.findOrCreate({
-    where: { userId, subjectId },
-  });
-
-  if (!created) {
-    throw new ApiError("Subject already added to user", 400);
-  }
-
-  return res
-    .status(201)
-    .json(
-      new ApiResponse(
-        201,
-        { userId, subjectId },
-        "Subject added to user successfully"
-      )
-    );
-});
-
-/**
- * @desc    Remove a subject from user's selection
- * @route   DELETE /api/subjects/user/:userId/remove
- * @access  Private
- */
-export const removeUserSubject = asyncHandler(async (req, res) => {
-  const { userId } = req.params;
-  const { subjectId } = req.body;
-
-  if (!subjectId) {
-    throw new ApiError("Subject ID is required", 400);
-  }
-
-  const deleted = await UserSubjects.destroy({
-    where: { userId, subjectId },
-  });
-
-  if (!deleted) {
-    throw new ApiError("Subject not found for the user", 404);
-  }
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, null, "Subject removed from user successfully"));
-});
-
-/**
- * @desc    Add a new subject (Admin only)
- * @route   POST /api/subjects
- * @access  Admin
- */
-export const addSubject = asyncHandler(async (req, res) => {
-  const { name, code, icon } = req.body;
-
-  if (!name?.trim() || !code?.trim()) {
-    throw new ApiError("Subject name and code are required", 400);
-  }
-
-  const existingSubject = await Subject.findOne({
-    where: { code },
-  });
-
-  if (existingSubject) {
-    throw new ApiError("Subject with this code already exists", 400);
-  }
-
-  const newSubject = await Subject.create({
-    name,
-    code,
-    icon: icon || "📚", // Use default icon if not provided
-  });
-
-  return res
-    .status(201)
-    .json(new ApiResponse(201, newSubject, "Subject created successfully"));
-});
-
-/**
- * @desc    Update a subject (Admin only)
- * @route   PUT /api/subjects/:subjectId
- * @access  Admin
- */
-export const editSubject = asyncHandler(async (req, res) => {
-  const { subjectId } = req.params;
-  const { name, code, icon } = req.body;
-
-  const subject = await Subject.findByPk(subjectId);
-  if (!subject) {
-    throw new ApiError("Subject not found", 404);
-  }
-
-  if (code && code !== subject.code) {
-    const existingSubject = await Subject.findOne({ where: { code } });
-    if (existingSubject) {
-      throw new ApiError("Subject with this code already exists", 400);
+// Get subject by ID
+export const getSubjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subject = await Subject.findByPk(id);
+    if (!subject) {
+      return res.status(404).json({
+        message: "Subject not found",
+      });
     }
+    res.status(200).json({
+      message: "Subject retrieved successfully",
+      data: subject,
+    });
+  } catch (error) {
+    console.error("Error retrieving subject:", error);
+    res.status(500).json({
+      message: "An error occurred while retrieving the subject",
+      error: error.message,
+    });
   }
+};
 
-  const updatedSubject = await subject.update({
-    name: name || subject.name,
-    code: code || subject.code,
-    icon: icon || subject.icon,
-  });
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, updatedSubject, "Subject updated successfully"));
-});
-
-/**
- * @desc    Delete a subject (Admin only)
- * @route   DELETE /api/subjects/:subjectId
- * @access  Admin
- */
-export const deleteSubject = asyncHandler(async (req, res) => {
-  const { subjectId } = req.params;
-
-  const deleted = await Subject.destroy({
-    where: { id: subjectId },
-  });
-
-  if (!deleted) {
-    throw new ApiError("Subject not found", 404);
+// Get all subjects
+export const getAllSubjects = async (req, res) => {
+  try {
+    const subjects = await Subject.findAll();
+    res.status(200).json({
+      message: "Subjects retrieved successfully",
+      data: subjects,
+    });
+  } catch (error) {
+    console.error("Error retrieving subjects:", error);
+    res.status(500).json({
+      message: "An error occurred while retrieving subjects",
+      error: error.message,
+    });
   }
+};
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, null, "Subject deleted successfully"));
-});
+// Update subject by ID
+export const updateSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, credit, icon } = req.body;
+
+    const subject = await Subject.findByPk(id);
+    if (!subject) {
+      return res.status(404).json({
+        message: "Subject not found",
+      });
+    }
+
+    subject.name = name !== undefined ? name : subject.name;
+    subject.code = code !== undefined ? code : subject.code;
+    subject.credit = credit !== undefined ? credit : subject.credit;
+    subject.icon = icon !== undefined ? icon : subject.icon;
+
+    await subject.save();
+
+    res.status(200).json({
+      message: "Subject updated successfully",
+      data: subject,
+    });
+  } catch (error) {
+    console.error("Error updating subject:", error);
+    res.status(500).json({
+      message: "An error occurred while updating the subject",
+      error: error.message,
+    });
+  }
+};
+
+// Delete subject by ID
+export const deleteSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const subject = await Subject.findByPk(id);
+    if (!subject) {
+      return res.status(404).json({
+        message: "Subject not found",
+      });
+    }
+    await subject.destroy();
+    res.status(200).json({
+      message: "Subject deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    res.status(500).json({
+      message: "An error occurred while deleting the subject",
+      error: error.message,
+    });
+  }
+};
+
+// Create a new UserSubject (assign a subject to a user)
+export const createUserSubject = async (req, res) => {
+  const { userId, subjectId } = req.body;
+  try {
+    // First, check if the subject exists in the subjects table
+    const subject = await Subject.findByPk(subjectId);
+    if (!subject) {
+      return res.status(400).json({
+        success: false,
+        message: `Subject with id ${subjectId} does not exist.`,
+      });
+    }
+
+    // Optionally, check if the assignment already exists
+    const existingAssignment = await UserSubjects.findOne({
+      where: { userId, subjectId },
+    });
+    if (existingAssignment) {
+      return res.status(400).json({
+        success: false,
+        message: "User subject assignment already exists.",
+      });
+    }
+
+    // Create the user subject assignment
+    const userSubject = await UserSubjects.create({
+      userId,
+      subjectId,
+    });
+
+    return res.status(201).json({
+      success: true,
+      data: userSubject,
+    });
+  } catch (error) {
+    console.error("Error creating user subject assignment:", error);
+    return res.status(500).json({
+      success: false,
+      message:
+        error.message ||
+        "An error occurred while creating the user subject assignment",
+    });
+  }
+};
+
+// Get a UserSubject by its ID
+export const getUserSubjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userSubject = await UserSubjects.findByPk(id);
+    if (!userSubject) {
+      return res.status(404).json({
+        message: "User subject assignment not found",
+      });
+    }
+    return res.status(200).json({
+      message: "User subject assignment retrieved successfully",
+      data: userSubject,
+    });
+  } catch (error) {
+    console.error("Error fetching user subject assignment:", error);
+    return res.status(500).json({
+      message: "An error occurred while retrieving the user subject assignment",
+      error: error.message,
+    });
+  }
+};
+
+// Get all UserSubject records
+export const getAllUserSubjects = async (req, res) => {
+  try {
+    const userSubjects = await UserSubjects.findAll();
+    return res.status(200).json({
+      message: "User subject assignments retrieved successfully",
+      data: userSubjects,
+    });
+  } catch (error) {
+    console.error("Error retrieving user subject assignments:", error);
+    return res.status(500).json({
+      message: "An error occurred while retrieving user subject assignments",
+      error: error.message,
+    });
+  }
+};
+
+// Update a UserSubject by its ID
+export const updateUserSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, subjectId } = req.body;
+
+    const userSubject = await UserSubjects.findByPk(id);
+    if (!userSubject) {
+      return res.status(404).json({
+        message: "User subject assignment not found",
+      });
+    }
+
+    // Update fields if provided
+    userSubject.userId = userId !== undefined ? userId : userSubject.userId;
+    userSubject.subjectId =
+      subjectId !== undefined ? subjectId : userSubject.subjectId;
+
+    await userSubject.save();
+
+    return res.status(200).json({
+      message: "User subject assignment updated successfully",
+      data: userSubject,
+    });
+  } catch (error) {
+    console.error("Error updating user subject assignment:", error);
+    return res.status(500).json({
+      message: "An error occurred while updating the user subject assignment",
+      error: error.message,
+    });
+  }
+};
+
+// Delete a UserSubject by its ID
+export const deleteUserSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userSubject = await UserSubjects.findByPk(id);
+    if (!userSubject) {
+      return res.status(404).json({
+        message: "User subject assignment not found",
+      });
+    }
+    await userSubject.destroy();
+    return res.status(200).json({
+      message: "User subject assignment deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting user subject assignment:", error);
+    return res.status(500).json({
+      message: "An error occurred while deleting the user subject assignment",
+      error: error.message,
+    });
+  }
+};
