@@ -1,0 +1,10 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Warning Light Base -->
+  <circle cx="24" cy="24" r="20" fill="#FF4444" fillOpacity="0.2"/>
+  <circle cx="24" cy="24" r="16" fill="#FF4444" fillOpacity="0.4"/>
+  <circle cx="24" cy="24" r="12" fill="#FF4444"/>
+  
+  <!-- Light Rays -->
+  <path d="M24 4V0M24 48v-4M4 24H0M48 24h-4" stroke="#FF4444" strokeWidth="2"/>
+  <path d="M9.6 9.6L6.8 6.8M38.4 38.4l-2.8-2.8M38.4 9.6l2.8-2.8M9.6 38.4l-2.8 2.8" stroke="#FF4444" strokeWidth="2"/>
+</svg>

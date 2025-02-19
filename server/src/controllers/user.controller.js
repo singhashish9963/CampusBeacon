@@ -23,6 +23,17 @@ const getCurrentUTCDateTime = () => {
 
 /*
 =============================
+        Extract Registration Number and Graduation Year 
+=============================
+*/
+const extractRegistrationDetails = (email) => {
+  const registrationNumber = email.match(/\d{8}/)[0];
+  const graduationYear = parseInt(registrationNumber.substring(0, 4)) + 4;
+  return { registrationNumber, graduationYear };
+};
+
+/*
+=============================
         Register User 
 =============================
 */
@@ -32,12 +43,17 @@ export const registerUser = asyncHandler(async (req, res, next) => {
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) return next(new ApiError("User already exists", 400));
 
+  const { registrationNumber, graduationYear } =
+    extractRegistrationDetails(email);
+
   const hashedPassword = await bcrypt.hash(password, 10);
 
   // Create user with default isVerified to false (assuming your model handles this default)
   const newUser = await User.create({
     email,
     password: hashedPassword,
+    registration_number: registrationNumber,
+    graduation_year: graduationYear,
     isVerified: false,
   });
 
@@ -159,14 +175,7 @@ export const getCurrentUser = asyncHandler(async (req, res, next) => {
 */
 export const updateUser = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
-  const {
-    name,
-    registration_number,
-    semester,
-    branch,
-    hostel,
-    graduation_year,
-  } = req.body;
+  const { name, semester, branch, hostel } = req.body;
   // Find user by id to update that info only
   const user = await User.findByPk(userId);
   if (!user) {
@@ -174,12 +183,9 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   }
   // Update only the fields that are provided
   if (name !== undefined) user.name = name;
-  if (registration_number !== undefined)
-    user.registration_number = registration_number;
   if (semester !== undefined) user.semester = semester;
   if (branch !== undefined) user.branch = branch;
   if (hostel !== undefined) user.hostel = hostel;
-  if (graduation_year !== undefined) user.graduation_year = graduation_year;
 
   await user.save();
   console.log(
@@ -336,11 +342,15 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
   const email = payload.email;
   let user = await User.findOne({ where: { email } });
   if (!user) {
+    const { registrationNumber, graduationYear } =
+      extractRegistrationDetails(email);
     // Create a new user using details from Google.
     user = await User.create({
       email,
       name: payload.name,
       password: await bcrypt.hash(Math.random().toString(36), 10),
+      registration_number: registrationNumber,
+      graduation_year: graduationYear,
       isVerified: true, // Since Google auth already verifies the email.
     });
     console.log(`New user created via Google Auth for ${email}`);
@@ -377,17 +387,15 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
 ==============================
        Email Verification
 ==============================
+*/
 
- */
 export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
-
 
   const user = await User.findOne({ where: { email } });
   if (!user) {
     return next(new ApiError("User not found", 404));
   }
-
 
   const token = jwt.sign(
     { id: user.id, email: user.email },
@@ -395,11 +403,9 @@ export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
     { expiresIn: "1h" }
   );
 
-  
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
   try {
-
     await sendEmail({
       to: user.email,
       subject: "Verify Your Email Address",
@@ -440,10 +446,8 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     return next(new ApiError("User not found", 404));
   }
 
-
   user.isVerified = true;
   await user.save();
-
 
   const authToken = jwt.sign(
     { id: user.id, email: user.email },
@@ -458,7 +462,6 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     maxAge: 60 * 60 * 1000,
   });
 
-
   res.status(200).json(
     new ApiResponse(
       200,
@@ -467,7 +470,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
           id: user.id,
           email: user.email,
           name: user.name,
-          isVerified: true, 
+          isVerified: true,
         },
       },
       "Email verified successfully. You are now logged in."

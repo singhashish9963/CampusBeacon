@@ -5,11 +5,12 @@ import {
   addQuestionAnswer,
   trainModel,
 } from "../controllers/chatbot.controller.js";
+import filterInputMiddleware from "../middlewares/filter.middleware.js";
 
 const router = Router();
 
 
-router.post("/ask", askQuestion);
+router.post("/ask",filterInputMiddleware, askQuestion);
 
 
 router.post("/add", addQuestionAnswer);

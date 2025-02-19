@@ -17,7 +17,6 @@ const manager = new NlpManager({
   modelFileName: MODEL_FILE,
 });
 
-
 class AdvancedLanguageProcessor {
   constructor() {
     this.corpus = this.loadCorpus();
@@ -25,12 +24,14 @@ class AdvancedLanguageProcessor {
     this.wordVectors = new Map();
     this.entityPatterns = this.initializeEntityPatterns();
     this.synonyms = this.initializeSynonyms();
+    this.sentimentCache = new Map(); // Cache sentiment analysis results
   }
 
   loadCorpus() {
     try {
       return JSON.parse(fs.readFileSync(CORPUS_FILE, "utf8"));
-    } catch {
+    } catch (error) {
+      console.warn("Corpus file not found or invalid. Using default corpus.");
       return {
         phrases: [
           {
@@ -104,7 +105,7 @@ class AdvancedLanguageProcessor {
               "Yes, we employ industry-standard security measures to keep your data safe. Please see our Privacy Policy for more details.",
             category: "privacy",
           },
-  
+
           {
             question: "What campus events are coming up?",
             answer:
@@ -134,11 +135,16 @@ class AdvancedLanguageProcessor {
 
   initializeEntityPatterns() {
     return {
-      date: /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b/i,
+      date:
+        /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b/i,
       email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/,
       phone: /\b\d{3}[-.)]\d{3}[-.)]\d{4}\b/,
       time: /\b(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:am|pm)\b/i,
       url: /https?:\/\/[^\s]+/,
+      // Added patterns for common campus-related entities
+      courseCode: /\b[A-Z]{2,4}\s?\d{3,4}\b/, // e.g., "CS 101" or "ENG2020"
+      buildingName: /\b[A-Z][a-z]+ Hall\b/, // e.g., "Main Hall", "Science Hall"
+      professorName: /\b(Prof|Dr)\.\s[A-Z][a-z]+ [A-Z][a-z]+\b/, // e.g., "Prof. John Doe"
     };
   }
 
@@ -146,9 +152,13 @@ class AdvancedLanguageProcessor {
     return new Map([
       ["hello", ["hi", "hey", "greetings", "howdy"]],
       ["help", ["assist", "support", "aid", "guide"]],
-      ["event", ["activity", "program", "gathering", "meeting"]],
+      ["event", ["activity", "program", "gathering", "meeting", "session"]],
       ["register", ["signup", "enroll", "join", "subscribe"]],
       ["cancel", ["delete", "remove", "unsubscribe", "quit"]],
+      // Added synonyms for campus-related terms
+      ["campus", ["university", "college", "school"]],
+      ["forum", ["discussion", "board", "community"]],
+      ["resource", ["material", "tool", "document"]],
     ]);
   }
 
@@ -225,8 +235,66 @@ class AdvancedLanguageProcessor {
     if (context.length > 5) context.shift();
     this.contextMemory.set(sessionId, context);
   }
-}
 
+  // Sentiment analysis function (basic)
+  analyzeSentiment(text) {
+    if (this.sentimentCache.has(text)) {
+      return this.sentimentCache.get(text);
+    }
+
+    const positiveWords = ["good", "great", "excellent", "wonderful", "amazing", "helpful", "best", "easy"];
+    const negativeWords = ["bad", "terrible", "awful", "horrible", "difficult", "worst", "hard", "broken"];
+
+    let positiveScore = 0;
+    let negativeScore = 0;
+
+    const words = text.toLowerCase().split(/\W+/);
+    words.forEach(word => {
+      if (positiveWords.includes(word)) {
+        positiveScore++;
+      } else if (negativeWords.includes(word)) {
+        negativeScore++;
+      }
+    });
+
+    const score = positiveScore - negativeScore;
+    let sentiment = "neutral";
+
+    if (score > 0) {
+      sentiment = "positive";
+    } else if (score <0) {
+      sentiment = "negative";
+    }
+
+    const result = { score, sentiment };
+    this.sentimentCache.set(text, result); // Cache the result
+    return result;
+  }
+
+  // Enhanced Context Analysis
+  enhancedContextAnalysis(question, sessionId) {
+    const context = this.contextMemory.get(sessionId) || [];
+    const recentQuestions = context.slice(-3); // Consider the last 3 questions
+
+    let combinedText = question + " " + recentQuestions.join(" ");
+    const combinedVector = this.generateWordVector(combinedText);
+
+    let bestMatch = null;
+    let bestSimilarity = 0;
+
+    for (const phrase of this.corpus.phrases) {
+      const phraseVector = this.generateWordVector(phrase.question);
+      const similarity = this.cosineSimilarity(combinedVector, phraseVector);
+
+      if (similarity > bestSimilarity) {
+        bestSimilarity = similarity;
+        bestMatch = phrase;
+      }
+    }
+
+    return { bestMatch, bestSimilarity };
+  }
+}
 
 const processor = new AdvancedLanguageProcessor();
 
@@ -234,13 +302,27 @@ export const processQuestion = async (question, sessionId = "default") => {
   try {
     processor.updateContext(sessionId, question);
 
+    // Enhanced Context Analysis
+    const { bestMatch, bestSimilarity } = processor.enhancedContextAnalysis(question, sessionId);
 
     const nlpResult = await manager.process("en", question);
 
-
     const entities = processor.extractEntities(question);
+    const sentiment = processor.analyzeSentiment(question);
 
     const contextualMatches = processor.findContextualMatches(question);
+
+    // Prioritize Enhanced Context Analysis
+    if (bestSimilarity > 0.7) {
+      return {
+        answer: bestMatch.answer,
+        similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
+        category: "contextual",
+        confidence: bestSimilarity,
+        entities,
+        sentiment,
+      };
+    }
 
     if (nlpResult.score > 0.7 && nlpResult.answer) {
       return {
@@ -249,9 +331,9 @@ export const processQuestion = async (question, sessionId = "default") => {
         category: nlpResult.intent,
         confidence: nlpResult.score,
         entities,
+        sentiment,
       };
     }
-
 
     if (contextualMatches.length > 0 && contextualMatches[0].similarity > 0.6) {
       return {
@@ -260,9 +342,9 @@ export const processQuestion = async (question, sessionId = "default") => {
         category: "contextual",
         confidence: contextualMatches[0].similarity,
         entities,
+        sentiment,
       };
     }
-
 
     return {
       answer:
@@ -271,6 +353,7 @@ export const processQuestion = async (question, sessionId = "default") => {
       category: "unknown",
       confidence: 0.3,
       entities,
+      sentiment,
     };
   } catch (error) {
     console.error("Error processing question:", error);
@@ -280,27 +363,24 @@ export const processQuestion = async (question, sessionId = "default") => {
       category: "error",
       confidence: 0,
       entities: {},
+      sentiment: { score: 0, sentiment: "neutral" },
     };
   }
 };
 
-
 export const addQnAPair = async (question, answer, category = "general") => {
   try {
-
     processor.corpus.phrases.push({
       question,
       answer,
       category,
     });
 
- 
     await fs.promises.writeFile(
       CORPUS_FILE,
       JSON.stringify(processor.corpus, null, 2)
     );
 
-   
     manager.addDocument("en", question, category);
     manager.addAnswer("en", category, answer);
 
@@ -310,7 +390,6 @@ export const addQnAPair = async (question, answer, category = "general") => {
     return false;
   }
 };
-
 
 export const trainAndSave = async () => {
   try {
@@ -323,14 +402,11 @@ export const trainAndSave = async () => {
   }
 };
 
-
 (async () => {
   try {
-
     if (fs.existsSync(MODEL_FILE)) {
       await manager.load(MODEL_FILE);
     } else {
-
       for (const phrase of processor.corpus.phrases) {
         manager.addDocument("en", phrase.question, phrase.category);
         manager.addAnswer("en", phrase.category, phrase.answer);

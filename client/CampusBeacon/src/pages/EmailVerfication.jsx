@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
@@ -20,8 +20,9 @@ const EmailVerification = () => {
   });
 
   const hasAttemptedVerification = useRef(false);
+  const tokenRef = useRef(searchParams.get("token"));
 
-  const validateToken = (token) => {
+  const validateToken = useCallback((token) => {
     if (!token || typeof token !== "string" || token.trim() === "") {
       return {
         isValid: false,
@@ -32,30 +33,30 @@ const EmailVerification = () => {
       isValid: true,
       error: null,
     };
-  };
+  }, []);
 
-  const handleNavigateHome = () => {
+  const handleNavigateHome = useCallback(() => {
     navigate("/");
-  };
+  }, [navigate]);
 
+  // Main verification effect - run once
   useEffect(() => {
-    const verifyEmail = async () => {
-      if (hasAttemptedVerification.current) return;
+    if (hasAttemptedVerification.current) return;
 
-      const token = searchParams.get("token");
-      const tokenValidation = validateToken(token);
+    const token = tokenRef.current;
+    const tokenValidation = validateToken(token);
 
-      if (!tokenValidation.isValid) {
-        setVerificationState({
-          status: "failed",
-          error: tokenValidation.error,
-          isLoading: false,
-        });
-        return;
-      }
-
+    if (!tokenValidation.isValid) {
+      setVerificationState({
+        status: "failed",
+        error: tokenValidation.error,
+        isLoading: false,
+      });
       hasAttemptedVerification.current = true;
+      return;
+    }
 
+    const verifyEmail = async () => {
       try {
         console.log("Starting verification with token:", token);
         const response = await handleEmailVerification(token);
@@ -80,9 +81,18 @@ const EmailVerification = () => {
       }
     };
 
+    hasAttemptedVerification.current = true;
     verifyEmail();
-  }, [searchParams, handleEmailVerification]);
+  }, []); // Empty dependency array to ensure it only runs once
 
+  // Reset attempt on unmount (in case component remounts)
+  useEffect(() => {
+    return () => {
+      hasAttemptedVerification.current = false;
+    };
+  }, []);
+
+  // Handle auth errors
   useEffect(() => {
     if (authError) {
       setVerificationState((prev) => ({
@@ -93,6 +103,7 @@ const EmailVerification = () => {
     }
   }, [authError]);
 
+  // Handle navigation after successful verification
   useEffect(() => {
     let timer;
     if (
@@ -105,7 +116,7 @@ const EmailVerification = () => {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [verificationState.status, isAuthenticated, user, navigate]);
+  }, [verificationState.status, isAuthenticated, user, handleNavigateHome]);
 
   const renderContent = () => {
     if (verificationState.isLoading) {
@@ -164,7 +175,6 @@ const EmailVerification = () => {
             ? "Verification Failed"
             : "Verifying Email..."}
         </h1>
-
         {renderContent()}
       </div>
     </div>

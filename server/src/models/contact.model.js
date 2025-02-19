@@ -25,7 +25,7 @@ export const Contacts = sequelize.define("Contact", {
         allowNull: false,
     },
     image_url: {
-        type: DataTypes.STRING,
+        type: DataTypes.TEXT,
         allowNull: true,
     }
 }, {

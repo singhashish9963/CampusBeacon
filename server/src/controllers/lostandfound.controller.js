@@ -2,7 +2,11 @@ import LostAndFound from "../models/lostandfound.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import ApiResponse from "../utils/apiResponse.js";
-import { uploadImageToCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadImageToCloudinary,
+  deleteImageFromCloudinary,
+  extractCloudinaryPublicId,
+} from "../utils/cloudinary.js";
 
 export const createLostItem = asyncHandler(async (req, res) => {
   const { item_name, description, location_found, date_found, owner_contact } =
@@ -12,17 +16,14 @@ export const createLostItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item name is required", 400);
   }
 
-
   if (!req.user || !req.user.id) {
     throw new ApiError("User not authenticated", 401);
   }
 
   let image_url = null;
   if (req.file) {
-
     image_url = await uploadImageToCloudinary(req.file.path, "lost-and-found");
   }
-
 
   const newItem = await LostAndFound.create({
     item_name,
@@ -31,7 +32,7 @@ export const createLostItem = asyncHandler(async (req, res) => {
     date_found: date_found || new Date(),
     owner_contact,
     image_url,
-    userId: req.user.id, 
+    userId: req.user.id,
   });
 
   return res
@@ -51,16 +52,27 @@ export const updateLostItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item not found", 404);
   }
 
-
   if (req.user && item.userId !== req.user.id) {
     throw new ApiError("User is not authorized to update this item", 403);
   }
 
   let image_url = item.image_url;
   if (req.file) {
+    // Delete the old image from Cloudinary if it exists
+    if (item.image_url) {
+      const publicId = extractCloudinaryPublicId(item.image_url);
+      if (publicId) {
+        try {
+          await deleteImageFromCloudinary(publicId);
+          console.log(`Deleted old image with public_id: ${publicId} from Cloudinary`);
+        } catch (error) {
+          console.error("Error deleting old image from Cloudinary:", error);
+          // Optionally, you can decide to throw an error here.
+        }
+      }
+    }
     image_url = await uploadImageToCloudinary(req.file.path, "lost-and-found");
   }
-
 
   item.item_name = item_name || item.item_name;
   item.description = description || item.description;
@@ -86,9 +98,22 @@ export const deleteLostItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item not found", 404);
   }
 
-
   if (req.user && item.userId !== req.user.id) {
     throw new ApiError("User is not authorized to delete this item", 403);
+  }
+
+  // Delete image from Cloudinary if it exists
+  if (item.image_url) {
+    const publicId = extractCloudinaryPublicId(item.image_url);
+    if (publicId) {
+      try {
+        await deleteImageFromCloudinary(publicId);
+        console.log(`Deleted image with public_id: ${publicId} from Cloudinary`);
+      } catch (error) {
+        console.error("Error deleting image from Cloudinary:", error);
+        // Optionally, decide whether to continue or throw an error.
+      }
+    }
   }
 
   await item.destroy();

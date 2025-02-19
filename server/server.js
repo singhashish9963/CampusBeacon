@@ -11,7 +11,12 @@ import initializeSocket from "./src/config/socket.js";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
 import chatBotRoutes from "./src/routes/chatBot.routes.js";
-
+import subjectRoutes from "./src/routes/subject.routes.js";
+import attendanceRoutes from "./src/routes/attendance.routes.js";
+import userSubjectsRoutes from "./src/routes/userSubject.routes.js";
+import eateriesRoutes from "./src/routes/eateries.routes.js";
+import session from "express-session";
+import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
 
 dotenv.config({ path: "./.env" });
 
@@ -30,8 +35,24 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+scheduleUnverifiedUserCleanup();
 
-// Socket.io setup
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-temporary-secret-key",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === "production",
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
+    name: "sessionId",
+  })
+);
+
+// Socket.io setup - AFTER session middleware
 const io = initializeSocket(httpServer);
 app.use((req, res, next) => {
   req.io = io;
@@ -50,14 +71,17 @@ app.use("/api/lost-and-found", lostAndFoundRoutes);
 app.use("/api/buy-and-sell", buyAndSellRoutes);
 app.use("/api/chat", ChatRoutes);
 app.use("/api/chatbot", chatBotRoutes);
+app.use("/api/v1/subjects", subjectRoutes);
+app.use("/api/v1/attendance", attendanceRoutes);
 
-// Initialize services and start server
+app.use("/api/v1/user-subjects", userSubjectsRoutes);
+app.use("/eateries", eateriesRoutes);
+
 const startServer = async () => {
   try {
     console.log("Connecting to database...");
     await connectDb();
     console.log("Database connected successfully");
-
 
     httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);

@@ -3,7 +3,11 @@ import User from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
-import { uploadImageToCloudinary } from "../utils/cloudinary.js";
+import {
+  uploadImageToCloudinary,
+  deleteImageFromCloudinary,
+  extractCloudinaryPublicId,
+} from "../utils/cloudinary.js";
 
 export const createBuyAndSellItem = asyncHandler(async (req, res) => {
   const {
@@ -38,7 +42,6 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
   let image_url = null;
   if (req.file) {
     try {
-   
       const uploadedUrl = await uploadImageToCloudinary(req.file.path);
       if (!uploadedUrl) {
         throw new ApiError("Failed to upload image", 500);
@@ -51,7 +54,6 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     }
   }
 
-
   try {
     if (req.file && !image_url) {
       throw new ApiError("Image upload failed", 500);
@@ -62,7 +64,7 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
       description,
       date_bought: date_bought || new Date(),
       owner_contact,
-      image_url, 
+      image_url,
       userId,
       item_condition,
       price,
@@ -111,7 +113,23 @@ export const updateBuyAndSellItem = asyncHandler(async (req, res) => {
   }
 
   let image_url = item.image_url;
+
   if (req.file) {
+    if (item.image_url) {
+      const publicId = extractCloudinaryPublicId(item.image_url);
+      if (publicId) {
+        try {
+          await deleteImageFromCloudinary(publicId);
+          console.log(
+            `Deleted old image with public_id: ${publicId} from Cloudinary`
+          );
+        } catch (error) {
+          console.error("Error deleting old image from Cloudinary:", error);
+
+        }
+      }
+    }
+    // Upload the new image
     image_url = await uploadImageToCloudinary(req.file.path, "buy-and-sell");
   }
 
@@ -139,6 +157,22 @@ export const deleteBuyAndSellItem = asyncHandler(async (req, res) => {
 
   if (item.userId !== req.user?.id) throw new ApiError("Unauthorized", 403);
 
+  // Delete image from Cloudinary if it exists
+  if (item.image_url) {
+    const publicId = extractCloudinaryPublicId(item.image_url);
+    if (publicId) {
+      try {
+        await deleteImageFromCloudinary(publicId);
+        console.log(
+          `Deleted image with public_id: ${publicId} from Cloudinary`
+        );
+      } catch (error) {
+        console.error("Error deleting image from Cloudinary:", error);
+        // Optionally, decide whether to continue or throw an error.
+      }
+    }
+  }
+
   await item.destroy();
   return res
     .status(200)
@@ -148,9 +182,7 @@ export const deleteBuyAndSellItem = asyncHandler(async (req, res) => {
 export const getBuyAndSellItem = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const item = await BuyAndSell.findByPk(id)
- 
-
+  const item = await BuyAndSell.findByPk(id);
   if (!item) throw new ApiError("Item not found", 404);
 
   return res
@@ -160,7 +192,7 @@ export const getBuyAndSellItem = asyncHandler(async (req, res) => {
 
 export const getAllBuyAndSellItems = asyncHandler(async (req, res) => {
   const items = await BuyAndSell.findAll({
-    order: [["createdAt", "DESC"]]
+    order: [["createdAt", "DESC"]],
   });
 
   return res

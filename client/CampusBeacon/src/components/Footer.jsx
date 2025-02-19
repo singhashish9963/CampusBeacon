@@ -245,7 +245,7 @@ const Footer = () => {
             </motion.p>
             <div className="flex space-x-6">
               <a
-                href="/privacy"
+                href="/policy"
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
                 Privacy Policy

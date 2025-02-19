@@ -9,7 +9,7 @@ import {
 } from "../controllers/lostandfound.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js"
 const router = express.Router();
-
+import filterInputMiddleware from "../middlewares/filter.middleware.js";
 
 const upload = multer({ dest: "./public/temp" });
 
@@ -19,6 +19,7 @@ router.put(
   "/lost-items/:id",
   upload.single("image"),
   authMiddleware,
+  filterInputMiddleware,
   updateLostItem
 );
 router.delete("/lost-items/:id", authMiddleware, deleteLostItem);

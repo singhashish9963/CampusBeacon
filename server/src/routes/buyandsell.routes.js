@@ -9,7 +9,7 @@ import {
   getUserItems,
 } from "../controllers/buyandsell.controller.js"
 import authMiddleware from "../middlewares/auth.middleware.js"
-
+import filterInputMiddleware from "../middlewares/filter.middleware.js";
 
 const router = express.Router();
 
@@ -25,10 +25,10 @@ router.get("/items/:id",authMiddleware, getBuyAndSellItem);
 
 
 router.route("/items")
-  .post(upload.single("image"),authMiddleware, createBuyAndSellItem);
+  .post(upload.single("image"),authMiddleware,filterInputMiddleware, createBuyAndSellItem);
 
 router.route("/items/:id")
-  .put(upload.single("image"),authMiddleware, updateBuyAndSellItem)
+  .put(upload.single("image"),authMiddleware,filterInputMiddleware, updateBuyAndSellItem)
   .delete(authMiddleware,deleteBuyAndSellItem);
 
 router.get("/user/items",authMiddleware, getUserItems); 

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Calendar, 
-  Book, 
-  Hash, 
-  Star, 
-  Edit, 
+import {
+  Calendar,
+  Book,
+  Hash,
+  Star,
+  Edit,
   Home,
   User,
   Mail,
@@ -13,12 +13,13 @@ import {
   AlertCircle,
   Save,
   X,
-  Check
+  Check,
 } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
 import Achievements from "../components/ProfilePage/achievements";
 import { useProfile } from "../contexts/profileContext";
 import LoadingScreen from "../components/LoadingScreen";
+
 
 const ProfilePage = () => {
   const { user, loading, error, updateUser } = useProfile();
@@ -29,7 +30,6 @@ const ProfilePage = () => {
     name: "",
     email: "",
     branch: "",
-    registration_number: "",
     semester: "",
     graduation_year: 2025,
     hostel: "",
@@ -77,7 +77,6 @@ const ProfilePage = () => {
         name: user.name || "",
         email: user.email || "",
         branch: user.branch || "",
-        registration_number: user.registration_number || "",
         semester: user.semester || "",
         graduation_year: user.graduation_year || 2025,
         hostel: user.hostel || "",
@@ -112,8 +111,6 @@ const ProfilePage = () => {
       const formData = {
         name: userData.name,
         branch: userData.branch,
-        graduation_year: userData.graduation_year,
-        registration_number: userData.registration_number,
         semester: userData.semester,
         hostel: userData.hostel,
       };
@@ -139,6 +136,17 @@ const ProfilePage = () => {
       </div>
     );
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800">
+        <div className="bg-red-500/10 text-red-500 p-4 rounded-lg flex items-center">
+          <AlertCircle className="mr-2" />
+          User not found.
+        </div>
+      </div>
+    );
+  }
+
   const stats = [
     {
       label: "Attendance",
@@ -163,9 +171,10 @@ const ProfilePage = () => {
     },
     {
       label: "Registration",
-      value: userData.registration_number,
+      value: user.registration_number,
       icon: Hash,
       name: "registration_number",
+      readonly: true,
       color: "text-purple-400",
     },
     {
@@ -305,20 +314,6 @@ const ProfilePage = () => {
                           </option>
                         ))}
                       </select>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-400 mb-1">
-                        Graduation Year
-                      </label>
-                      <input
-                        type="number"
-                        name="graduation_year"
-                        value={userData.graduation_year}
-                        onChange={handleChange}
-                        min="2024"
-                        max="2030"
-                        className="w-full bg-gray-800/50 text-white rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                      />
                     </div>
                   </>
                 ) : (
