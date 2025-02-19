@@ -73,11 +73,10 @@ app.use("/api/chat", ChatRoutes);
 app.use("/api/chatbot", chatBotRoutes);
 app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
-// Updated mount path to plural to match client expectations.
+
 app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/eateries", eateriesRoutes);
 
-// Initialize services and start server
 const startServer = async () => {
   try {
     console.log("Connecting to database...");
