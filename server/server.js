@@ -15,6 +15,7 @@ import subjectRoutes from "./src/routes/subject.routes.js";
 import attendanceRoutes from "./src/routes/attendance.routes.js";
 import userSubjectsRoutes from "./src/routes/userSubject.routes.js";
 import eateriesRoutes from "./src/routes/eateries.routes.js";
+import hostelsRoutes from "./src/routes/hostel.routes.js"
 import session from "express-session";
 import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
 
@@ -73,6 +74,7 @@ app.use("/api/chat", ChatRoutes);
 app.use("/api/chatbot", chatBotRoutes);
 app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
+app.use("/api/hostels",hostelsRoutes);
 
 app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/eateries", eateriesRoutes);
