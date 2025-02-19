@@ -21,7 +21,7 @@ import { ContactContextProvider } from "./contexts/contactContext.jsx";
 import { ChatContextProvider } from "./contexts/chatContext.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
-import { ChatbotProvider } from "./contexts/ChatbotContext.jsx";
+import { ChatbotProvider } from "./contexts/ChatBotContext.jsx";
 import CollegeEateries from "./pages/eatries.jsx";
 import ResourcesPage from "./pages/ResourceHub.jsx";
 import AttendanceManager from "./pages/attendancePage.jsx";
@@ -66,38 +66,29 @@ function App() {
                                 path="/policy"
                                 element={<PrivacyPolicy />}
                               />
-                              <Route 
-                              path="/about"
-                              element={<AboutUs />}
-                                />
-                              <Route 
-                              path="/terms"
-                              element={<TermsOfService />}
-                                />
-                              <Route 
-                              path="/404"
-                              element={< NotFound/>}
-                                />
-                              <Route 
-                              path="/500"
-                              element={<ServerError/>}
-                                />
-                              <Route 
-                              path="/maintenance"
-                              element={<Maintenance />}
-                                />
-                              <Route 
-                              path="/facts"
-                              element={<MNNITFactsGenerator />}
-                                />
-                              <Route 
-                              path="/explore"
-                              element={<CampusExplorer />}
-                                />
-                              <Route 
-                              path="/time"
-                              element={<MNNITTimeCapsule />}
-                                />
+                              <Route path="/about" element={<AboutUs />} />
+                              <Route
+                                path="/terms"
+                                element={<TermsOfService />}
+                              />
+                              <Route path="/404" element={<NotFound />} />
+                              <Route path="/500" element={<ServerError />} />
+                              <Route
+                                path="/maintenance"
+                                element={<Maintenance />}
+                              />
+                              <Route
+                                path="/facts"
+                                element={<MNNITFactsGenerator />}
+                              />
+                              <Route
+                                path="/explore"
+                                element={<CampusExplorer />}
+                              />
+                              <Route
+                                path="/time"
+                                element={<MNNITTimeCapsule />}
+                              />
                               <Route element={<ProtectedRoute />}>
                                 <Route
                                   path="/profile"
