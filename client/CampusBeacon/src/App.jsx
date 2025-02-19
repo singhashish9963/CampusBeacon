@@ -21,7 +21,7 @@ import { ContactContextProvider } from "./contexts/contactContext.jsx";
 import { ChatContextProvider } from "./contexts/chatContext.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
-import { ChatbotProvider } from "./contexts/ChatBotContext.jsx";
+import { ChatbotProvider } from "./contexts/chatBotContext.jsx";
 import CollegeEateries from "./pages/eatries.jsx";
 import ResourcesPage from "./pages/ResourceHub.jsx";
 import AttendanceManager from "./pages/attendancePage.jsx";
