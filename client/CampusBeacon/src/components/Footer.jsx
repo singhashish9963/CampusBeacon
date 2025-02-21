@@ -229,6 +229,38 @@ const Footer = () => {
                   </a>
                 </div>
               </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                className="group"
+              >
+                <h4 className="text-lg font-semibold text-white mb-1">
+                  Shreeya Shrivastava
+                </h4>
+                <p className="text-sm text-gray-400 mb-2">
+                  Full Stack Developer
+                </p>
+                <div className="flex space-x-4">
+                  <a
+                    href="#"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    <FaGithub size={18} />
+                  </a>
+                  <a
+                    href="#"
+                    className="text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    <FaLinkedin size={18} />
+                  </a>
+                  <a
+                    href="mailto:#"
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                  >
+                    <FaEnvelope size={18} />
+                  </a>
+                </div>
+              </motion.div>
             </div>
           </div>
         </div>
