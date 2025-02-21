@@ -48,18 +48,6 @@ const AboutUs = () => {
           email: "mailto:your@email.com",
         },
       },
-      {
-        name: "Shreeya Shrivastava",
-        role: "Backend Developer",
-        image: "#",
-        bio: "She will add her3e",
-        skills: ["Add yourself"],
-        social: {
-          github: "https://github.com/yourusername",
-          linkedin: "https://linkedin.com/in/yourusername",
-          email: "mailto:your@email.com",
-        },
-      },
     ],
     []
   );
