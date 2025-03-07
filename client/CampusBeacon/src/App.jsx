@@ -35,6 +35,8 @@ import Maintenance from "./pages/utilityPages/Maintenance.jsx";
 import MNNITFactsGenerator from "./pages/utilityPages/factsGenerator.jsx";
 import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
 import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
+import { HostelProvider } from "./contexts/HOSTEL CONTEXT/hostelContext.jsx";
+import HostelList from "./pages/HostelPages/HostelList.jsx";
 
 function App() {
   return (
@@ -46,6 +48,7 @@ function App() {
               <ContactContextProvider>
                 <BuyAndSellProvider>
                   <LostAndFoundProvider>
+                    <HostelProvider>
                     <ProfileProvider>
                       <BrowserRouter>
                         <div className="flex flex-col min-h-screen">
@@ -115,6 +118,10 @@ function App() {
                                   path="/eatries"
                                   element={<CollegeEateries />}
                                 />
+                                  <Route
+                                  path="/hotels"
+                                  element={<HostelList/>}
+                                />
                                 <Route path="/SVBH" element={<SVBH />} />
                                 <Route path="/DJGH" element={<DJGH />} />
                                 <Route
@@ -136,6 +143,7 @@ function App() {
                         </div>
                       </BrowserRouter>
                     </ProfileProvider>
+                    </HostelProvider>
                   </LostAndFoundProvider>
                 </BuyAndSellProvider>
               </ContactContextProvider>
