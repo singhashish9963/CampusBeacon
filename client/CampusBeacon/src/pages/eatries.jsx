@@ -15,6 +15,7 @@ import {
 import { IoFastFoodOutline } from "react-icons/io5";
 import { useEateries } from "../contexts/eateriesContext";
 
+
 const StarRating = ({ rating, setRating }) => {
   return (
     <div className="flex space-x-2">
