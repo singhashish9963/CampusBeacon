@@ -173,7 +173,7 @@ const HomePage = () => {
                 title="Ride Sharing"
                 description="Share Rides and save Price"
                 href="/rides"
-                gradient="from-cyan-500 via-blue-500 to-indigo-500"
+                gradient="from-amber-800 via-orange-700 to-orange-900"
               />
             </div>
           </div>
