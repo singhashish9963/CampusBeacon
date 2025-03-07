@@ -8,6 +8,7 @@ import UserSubjects from "./userSubjects.model.js";
 import { Subject } from "./subject.model.js";
 import { UserAttendance, AttendanceStats } from "./attendance.model.js";
 import Rides from "./ride.model.js";
+
 const initializeAssociations = () => {
   // User - LostAndFound associations
   User.hasMany(LostAndFound, {

@@ -3,6 +3,7 @@ import User from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
+import { Op } from "sequelize";
 
 export const createRide = asyncHandler(async (req, res) => {
   const {
@@ -15,7 +16,7 @@ export const createRide = asyncHandler(async (req, res) => {
     phoneNumber,
   } = req.body;
 
-
+  // Validation
   if (!pickupLocation?.trim() || !dropLocation?.trim()) {
     throw new ApiError("Pickup and drop locations are required", 400);
   }
@@ -24,7 +25,7 @@ export const createRide = asyncHandler(async (req, res) => {
     throw new ApiError("Departure date and time is required", 400);
   }
 
-  if (totalSeats < 1) {
+  if (!totalSeats || totalSeats < 1) {
     throw new ApiError("Total seats must be at least 1", 400);
   }
 
@@ -44,7 +45,7 @@ export const createRide = asyncHandler(async (req, res) => {
       dropLocation,
       departureDateTime,
       totalSeats,
-      availableSeats: totalSeats, 
+      availableSeats: totalSeats,
       estimatedCost,
       description,
       phoneNumber,
@@ -88,6 +89,7 @@ export const updateRide = asyncHandler(async (req, res) => {
     );
   }
 
+  // Ensure we don't reduce seats below what's already taken
   if (totalSeats && totalSeats < ride.totalSeats - ride.availableSeats) {
     throw new ApiError(
       "Cannot reduce total seats below number of seats already taken",
@@ -149,45 +151,62 @@ export const getRide = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, ride, "Ride retrieved successfully"));
 });
 
+// Improved error handling and logging in getAllRides
 export const getAllRides = asyncHandler(async (req, res) => {
-  const rides = await Rides.findAll({
-    where: {
-      status: "OPEN",
-      departureDateTime: {
-        [Op.gt]: new Date(), 
+  console.log("Getting all rides..."); // Debug log
+  try {
+    const rides = await Rides.findAll({
+      where: {
+        status: "OPEN",
+        departureDateTime: {
+          [Op.gt]: new Date(),
+        },
       },
-    },
-    order: [["departureDateTime", "ASC"]],
-    include: [
-      {
-        model: User,
-        as: "creator",
-        attributes: ["id", "name", "email"],
-      },
-    ],
-  });
+      order: [["departureDateTime", "ASC"]],
+      include: [
+        {
+          model: User,
+          as: "creator",
+          attributes: ["id", "name", "email"],
+        },
+      ],
+    });
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, rides, "All rides retrieved successfully"));
+    console.log(`Found ${rides.length} rides`); // Debug log
+    return res
+      .status(200)
+      .json(new ApiResponse(200, rides, "All rides retrieved successfully"));
+  } catch (error) {
+    console.error("Error in getAllRides:", error); // Debug log
+    throw new ApiError("Error retrieving rides: " + error.message, 500);
+  }
 });
 
 export const getUserRides = asyncHandler(async (req, res) => {
   const userId = req.params.userId || req.user?.id;
 
-  const rides = await Rides.findAll({
-    where: { creatorId: userId },
-    order: [["departureDateTime", "ASC"]],
-    include: [
-      {
-        model: User,
-        as: "creator",
-        attributes: ["id", "name", "email"],
-      },
-    ],
-  });
+  if (!userId) {
+    throw new ApiError("User ID is required", 400);
+  }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, rides, "User's rides retrieved successfully"));
+  try {
+    const rides = await Rides.findAll({
+      where: { creatorId: userId },
+      order: [["departureDateTime", "ASC"]],
+      include: [
+        {
+          model: User,
+          as: "creator",
+          attributes: ["id", "name", "email"],
+        },
+      ],
+    });
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, rides, "User's rides retrieved successfully"));
+  } catch (error) {
+    console.error("Error in getUserRides:", error);
+    throw new ApiError("Error retrieving user rides: " + error.message, 500);
+  }
 });

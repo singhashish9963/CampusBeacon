@@ -12,20 +12,14 @@ import filterInputMiddleware from "../middlewares/filter.middleware.js";
 
 const router = express.Router();
 
-// Public routes with auth middleware
-router.get("/rides", authMiddleware, getAllRides);
-router.get("/rides/:id", authMiddleware, getRide);
-
-// Protected routes with both auth and filter middleware
-router.route("/rides").post(authMiddleware, filterInputMiddleware, createRide);
-
-router
-  .route("/rides/:id")
-  .put(authMiddleware, filterInputMiddleware, updateRide)
-  .delete(authMiddleware, deleteRide);
-
-// User specific routes
+// The order of routes is important - more specific routes first
+// Fixed route order to prevent parameter routes from capturing other routes
+router.get("/", authMiddleware, getAllRides);
 router.get("/user/rides", authMiddleware, getUserRides);
 router.get("/user/:userId/rides", authMiddleware, getUserRides);
+router.get("/:id", authMiddleware, getRide);
+router.post("/", authMiddleware, filterInputMiddleware, createRide);
+router.put("/:id", authMiddleware, filterInputMiddleware, updateRide);
+router.delete("/:id", authMiddleware, deleteRide);
 
 export default router;

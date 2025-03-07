@@ -1,10 +1,16 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import axios from "axios";
 
 const RidesContext = createContext(undefined);
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/rides",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -18,75 +24,12 @@ export const RidesProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [currentRide, setCurrentRide] = useState(null);
 
-  const createRide = useCallback(async (formData) => {
+  // Fetch all rides - fixed to remove trailing slash
+  const getAllRides = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.post("/rides", formData);
-
-      if (response.data.success) {
-        setRides((prev) => [...prev, response.data.data]);
-        setUserRides((prev) => [...prev, response.data.data]);
-        return response.data.data;
-      }
-      throw new Error(response.data.message);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || "Error creating ride";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const updateRide = useCallback(async (id, formData) => {
-    try {
-      setLoading(true);
-      const response = await api.put(`/rides/${id}`, formData);
-
-      if (response.data.success) {
-        setRides((prev) =>
-          prev.map((ride) => (ride.id === id ? response.data.data : ride))
-        );
-        setUserRides((prev) =>
-          prev.map((ride) => (ride.id === id ? response.data.data : ride))
-        );
-        return response.data.data;
-      }
-      throw new Error(response.data.message);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || "Error updating ride";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const deleteRide = useCallback(async (id) => {
-    try {
-      setLoading(true);
-      const response = await api.delete(`/rides/${id}`);
-
-      if (response.data.success) {
-        setRides((prev) => prev.filter((ride) => ride.id !== id));
-        setUserRides((prev) => prev.filter((ride) => ride.id !== id));
-      } else {
-        throw new Error(response.data.message);
-      }
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || "Error deleting ride";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const getAllRides = useCallback(async (filters = {}) => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams(filters);
-      const response = await api.get(`/rides?${params}`);
+      console.log("Fetching all rides..."); // Debug log
+      const response = await api.get("/rides"); // Removed trailing slash for consistency
 
       if (response.data.success) {
         const sortedRides = response.data.data.sort(
@@ -98,6 +41,7 @@ export const RidesProvider = ({ children }) => {
       }
       throw new Error(response.data.message);
     } catch (err) {
+      console.error("Error in getAllRides:", err); // Debug log
       const errorMessage =
         err.response?.data?.message || "Error fetching rides";
       setError(errorMessage);
@@ -107,10 +51,12 @@ export const RidesProvider = ({ children }) => {
     }
   }, []);
 
+  // Get user rides - fixed to match backend route
   const getUserRides = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get("/rides/user/rides");
+      console.log("Fetching user rides..."); // Debug log
+      const response = await api.get("/rides/user/rides"); // Matches the backend route order
 
       if (response.data.success) {
         const sortedRides = response.data.data.sort(
@@ -122,6 +68,7 @@ export const RidesProvider = ({ children }) => {
       }
       throw new Error(response.data.message);
     } catch (err) {
+      console.error("Error in getUserRides:", err); // Debug log
       const errorMessage =
         err.response?.data?.message || "Error fetching user rides";
       setError(errorMessage);
@@ -131,6 +78,83 @@ export const RidesProvider = ({ children }) => {
     }
   }, []);
 
+  // Create ride
+  const createRide = useCallback(
+    async (formData) => {
+      try {
+        setLoading(true);
+        const response = await api.post("/rides", formData);
+
+        if (response.data.success) {
+          setRides((prev) => [...prev, response.data.data]);
+          setUserRides((prev) => [...prev, response.data.data]);
+          await getAllRides(); // Refresh the rides list
+          return response.data.data;
+        }
+        throw new Error(response.data.message);
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.message || "Error creating ride";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAllRides]
+  );
+
+  // Update ride
+  const updateRide = useCallback(
+    async (id, formData) => {
+      try {
+        setLoading(true);
+        const response = await api.put(`/rides/${id}`, formData);
+
+        if (response.data.success) {
+          await getAllRides(); // Refresh all rides
+          await getUserRides(); // Refresh user rides
+          return response.data.data;
+        }
+        throw new Error(response.data.message);
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.message || "Error updating ride";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAllRides, getUserRides]
+  );
+
+  // Delete ride
+  const deleteRide = useCallback(
+    async (id) => {
+      try {
+        setLoading(true);
+        const response = await api.delete(`/rides/${id}`);
+
+        if (response.data.success) {
+          await getAllRides(); // Refresh all rides
+          await getUserRides(); // Refresh user rides
+        } else {
+          throw new Error(response.data.message);
+        }
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.message || "Error deleting ride";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [getAllRides, getUserRides]
+  );
+
+  // Get single ride
   const getRideById = useCallback(async (id) => {
     try {
       setLoading(true);
@@ -150,70 +174,19 @@ export const RidesProvider = ({ children }) => {
     }
   }, []);
 
-  // Join a ride
-  const joinRide = useCallback(async (rideId) => {
-    try {
-      setLoading(true);
-      const response = await api.post(`/rides/${rideId}/join`);
-
-      if (response.data.success) {
-        setRides((prev) =>
-          prev.map((ride) =>
-            ride.id === rideId
-              ? {
-                  ...ride,
-                  availableSeats: ride.availableSeats - 1,
-                  participants: [
-                    ...(ride.participants || []),
-                    response.data.data,
-                  ],
-                }
-              : ride
-          )
-        );
-        return response.data.data;
+  // Initial data fetch
+  useEffect(() => {
+    const fetchInitialData = async () => {
+      try {
+        await getAllRides();
+        await getUserRides();
+      } catch (err) {
+        console.error("Error fetching initial data:", err);
       }
-      throw new Error(response.data.message);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || "Error joining ride";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    };
 
-  // Leave a ride
-  const leaveRide = useCallback(async (rideId) => {
-    try {
-      setLoading(true);
-      const response = await api.post(`/rides/${rideId}/leave`);
-
-      if (response.data.success) {
-        setRides((prev) =>
-          prev.map((ride) =>
-            ride.id === rideId
-              ? {
-                  ...ride,
-                  availableSeats: ride.availableSeats + 1,
-                  participants: (ride.participants || []).filter(
-                    (p) => p.id !== response.data.data.id
-                  ),
-                }
-              : ride
-          )
-        );
-        return response.data.data;
-      }
-      throw new Error(response.data.message);
-    } catch (err) {
-      const errorMessage = err.response?.data?.message || "Error leaving ride";
-      setError(errorMessage);
-      throw new Error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    fetchInitialData();
+  }, [getAllRides, getUserRides]);
 
   const clearError = useCallback(() => setError(null), []);
 
@@ -229,8 +202,6 @@ export const RidesProvider = ({ children }) => {
     getAllRides,
     getUserRides,
     getRideById,
-    joinRide,
-    leaveRide,
     clearError,
   };
 
