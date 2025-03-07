@@ -7,6 +7,12 @@ import Message from "./message.model.js";
 import UserSubjects from "./userSubjects.model.js";
 import { Subject } from "./subject.model.js";
 import { UserAttendance, AttendanceStats } from "./attendance.model.js";
+import { Menu } from "./hostels.model.js";
+import { Hostel } from "./hostels.model.js";
+import { Official } from "./hostels.model.js";
+import {Complaint} from './hostels.model.js';
+import {Notification} from "./hostels.model.js";
+import {Branch, Year, StudyMaterial} from "./resources.model.js";
 
 const initializeAssociations = () => {
   // User - LostAndFound associations
@@ -81,7 +87,31 @@ const initializeAssociations = () => {
     foreignKey: "subject_id",
   });
 
- 
+  Hostel.hasMany(Menu, { foreignKey: "hostel_id", onDelete: "CASCADE" });
+  Menu.belongsTo(Hostel, { foreignKey: "hostel_id" });
+  
+  Hostel.hasMany(Official, { foreignKey: "hostel_id" });
+  Official.belongsTo(Hostel, { foreignKey: "hostel_id" });
+  
+  Hostel.hasMany(Complaint, { foreignKey: "hostel_id" });
+  Complaint.belongsTo(Hostel, { foreignKey: "hostel_id" });
+  
+  Official.hasMany(Complaint, { foreignKey: "official_id" });
+  Complaint.belongsTo(Official, { foreignKey: "official_id" });
+  
+  Hostel.hasMany(Notification, { foreignKey: "hostel_id" });
+  Notification.belongsTo(Hostel, { foreignKey: "hostel_id" });
+  
+
+  Branch.hasMany(Year, { foreignKey: "branch_id", onDelete: "CASCADE" });
+Year.belongsTo(Branch, { foreignKey: "branch_id" });
+
+Year.hasMany(StudyMaterial, { foreignKey: "year_id", onDelete: "CASCADE" });
+Branch.hasMany(StudyMaterial, { foreignKey: "branch_id", onDelete: "CASCADE" });
+
+StudyMaterial.belongsTo(Branch, { foreignKey: "branch_id" });
+StudyMaterial.belongsTo(Year, { foreignKey: "year_id" });
+
 };
 
 initializeAssociations();
