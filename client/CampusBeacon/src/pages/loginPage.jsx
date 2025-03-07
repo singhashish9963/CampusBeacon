@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const LoginSignup = () => {
   const {
@@ -19,47 +21,82 @@ const LoginSignup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  // Handle authentication toast and navigation
   useEffect(() => {
+    // Debug log
+    console.log("Auth state:", isAuthenticated, "Welcome message:", welcomeMessage);
+    
     if (isAuthenticated) {
-      navigate("/");
-    }
-  }, [isAuthenticated, navigate]);
-
-  useEffect(() => {
-    if (welcomeMessage && isAuthenticated) {
+      // Explicitly call toast without depending on welcomeMessage
+      console.log("User authenticated, showing toast");
       const timer = setTimeout(() => {
+        console.log("Navigating to home page");
         navigate("/");
       }, 2000);
       return () => clearTimeout(timer);
     }
-  }, [welcomeMessage, isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate]);
 
+  // Handle error toast separately
   useEffect(() => {
     if (authError) {
+      console.log("Auth error detected:", authError);
       setError(authError);
+      
+      toast.error(authError, {
+        position: "top-right",
+        autoClose: 5000,
+      });
     }
   }, [authError]);
 
   const handleFormSubmit = async (e, type) => {
     e.preventDefault();
+    console.log(`Form submitted: ${type}`);
     setError(null);
     setIsLoading(true);
+
+    // Show a toast immediately on form submission
+    toast.info(`Processing ${type} request...`, {
+      position: "top-right",
+      autoClose: 2000,
+    });
 
     try {
       if (type === "forgotPassword") {
         const email = e.target.email.value;
         await handleForgetPassword(email);
+        toast.info("Password reset link sent to your email", {
+          position: "top-center",
+          autoClose: 4000,
+        });
         setAuthMode("default");
       } else {
+        // Explicitly show a toast before making the API call
+        console.log(`Attempting ${type}`);
+        
         const response = await handleSubmit(e, type);
+        
+        console.log("Response:", response);
+        
         if (response?.success) {
           console.log("Authentication successful");
+          // Toast on successful response
+          toast.success(type === "signUp" ? "Account created successfully!" : "Login successful!", {
+            position: "top-center",
+            autoClose: 2000,
+          });
         } else {
           throw new Error(response?.message || "Authentication failed");
         }
       }
     } catch (err) {
+      console.error("Error during form submission:", err);
       setError(err.message || "An error occurred");
+      toast.error(err.message || "An error occurred", {
+        position: "top-right",
+        autoClose: 5000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -94,11 +131,35 @@ const LoginSignup = () => {
         type="submit"
         disabled={isLoading}
       />
+      
+      {/* Debug button to test if toasts work at all */}
+      <button
+        type="button"
+        onClick={debugToast}
+        className="w-full p-2 mt-2 text-purple-300 text-sm"
+      >
+        Test Notification
+      </button>
     </form>
   );
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center p-4">
+      {/* Toast Container */}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        style={{ zIndex: 9999 }}
+      />
+      
       <AnimatePresence mode="wait">
         {authMode === "default" ? (
           <motion.div
@@ -220,9 +281,9 @@ const LoginSignup = () => {
         )}
       </AnimatePresence>
 
-      {/* Welcome Message Overlay */}
+      {/* Keep welcome message overlay as a fallback */}
       <AnimatePresence>
-        {welcomeMessage && (
+        {welcomeMessage && isAuthenticated && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
