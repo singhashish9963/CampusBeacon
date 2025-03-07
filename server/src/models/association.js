@@ -7,6 +7,7 @@ import Message from "./message.model.js";
 import UserSubjects from "./userSubjects.model.js";
 import { Subject } from "./subject.model.js";
 import { UserAttendance, AttendanceStats } from "./attendance.model.js";
+import Rides from "./ride.model.js";
 
 const initializeAssociations = () => {
   // User - LostAndFound associations
@@ -81,7 +82,16 @@ const initializeAssociations = () => {
     foreignKey: "subject_id",
   });
 
- 
+  // User - Ride associations
+  User.hasMany(Rides, {
+    foreignKey: "creatorId",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  });
+  Rides.belongsTo(User, {
+    foreignKey: "creatorId",
+    as: "creator",
+  });
 };
 
 initializeAssociations();
@@ -96,4 +106,5 @@ export {
   Subject,
   UserAttendance,
   AttendanceStats,
+  Rides,
 };

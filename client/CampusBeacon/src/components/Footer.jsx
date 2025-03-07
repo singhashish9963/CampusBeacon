@@ -229,6 +229,7 @@ const Footer = () => {
                   </a>
                 </div>
               </motion.div>
+             
             </div>
           </div>
         </div>
