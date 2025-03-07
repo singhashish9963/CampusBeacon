@@ -4,7 +4,7 @@ import LoginSignup from "./pages/loginPage.jsx";
 import NavBar from "./components/NavBar.jsx";
 import Footer from "./components/Footer.jsx";
 import HomePage from "./pages/homePage.jsx";
-import { AuthProvider } from "./contexts/authContext.jsx";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
 import ProfilePage from "./pages/profilePage.jsx";
 import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
