@@ -35,9 +35,7 @@ import Maintenance from "./pages/utilityPages/Maintenance.jsx";
 import MNNITFactsGenerator from "./pages/utilityPages/factsGenerator.jsx";
 import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
 import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
-
 import { HostelProvider } from "./contexts/HOSTEL CONTEXT/hostelContext.jsx";
-import HostelList from "./pages/HostelPages/HostelList.jsx";
 
 import RideShare from "./pages/rideShare.jsx";
 import RidesProvider from "./contexts/ridesContext.jsx";
@@ -46,59 +44,6 @@ function App() {
   return (
     <AuthProvider>
       <AttendanceProvider>
-
-        <ChatbotProvider>
-          <EateriesProvider>
-            <ChatContextProvider>
-              <ContactContextProvider>
-                <BuyAndSellProvider>
-                  <LostAndFoundProvider>
-                    <HostelProvider>
-                    <ProfileProvider>
-                      <BrowserRouter>
-                        <div className="flex flex-col min-h-screen">
-                          <NavBar />
-                          <main className="flex-grow">
-                            <Routes>
-                              <Route path="/" element={<HomePage />} />
-                              <Route path="/login" element={<LoginSignup />} />
-                              <Route
-                                path="/reset-password"
-                                element={<ResetPassword />}
-                              />
-                              <Route
-                                path="/verify-email"
-                                element={<EmailVerification />}
-                              />
-                              <Route
-                                path="/policy"
-                                element={<PrivacyPolicy />}
-                              />
-                              <Route path="/about" element={<AboutUs />} />
-                              <Route
-                                path="/terms"
-                                element={<TermsOfService />}
-                              />
-                              <Route path="/404" element={<NotFound />} />
-                              <Route path="/500" element={<ServerError />} />
-                              <Route
-                                path="/maintenance"
-                                element={<Maintenance />}
-                              />
-                              <Route
-                                path="/facts"
-                                element={<MNNITFactsGenerator />}
-                              />
-                              <Route
-                                path="/explore"
-                                element={<CampusExplorer />}
-                              />
-                              <Route
-                                path="/time"
-                                element={<MNNITTimeCapsule />}
-                              />
-                              <Route element={<ProtectedRoute />}>
-
         <RidesProvider>
           <ChatbotProvider>
             <EateriesProvider>
@@ -187,23 +132,18 @@ function App() {
                                     element={<CommunityPage />}
                                   />
                                 </Route>
-                                <Route
-                                  path="/contact"
-                                  element={<ContactsDisplay />}
+                              <Route
+                                path="/contact"
+                                element={<ContactsDisplay />}
+                              />
+  
+                              <Route path="/SVBH" element={<SVBH />} />
+                              <Route path="/DJGH" element={<DJGH />} />
 
-                                  <Route
-                                  path="/hotels"
-                                  element={<HostelList/>}
-                                />
-                                <Route path="/SVBH" element={<SVBH />} />
-                                <Route path="/DJGH" element={<DJGH />} />
-
-                                <Route
-                                  path="*"
-                                  element={<Navigate to="/" replace />}
-                                />
-
-                              </Route>
+                              <Route
+                                path="*"
+                                element={<Navigate to="/" replace />}
+                              />
                               <Route
                                 path="/contact"
                                 element={<ContactsDisplay />}
@@ -214,20 +154,6 @@ function App() {
                               />
                             </Routes>
                           </main>
-                          <Footer />
-                        </div>
-                      </BrowserRouter>
-                    </ProfileProvider>
-                    </HostelProvider>
-                  </LostAndFoundProvider>
-                </BuyAndSellProvider>
-              </ContactContextProvider>
-            </ChatContextProvider>
-          </EateriesProvider>
-        </ChatbotProvider>
-
-                              </Routes>
-                            </main>
                             <Footer />
                           </div>
                         </BrowserRouter>
@@ -239,7 +165,6 @@ function App() {
             </EateriesProvider>
           </ChatbotProvider>
         </RidesProvider>
-
       </AttendanceProvider>
     </AuthProvider>
   );

@@ -39,7 +39,17 @@ const Eateries = sequelize.define(
     },
     menuImageUrl: {
       type: DataTypes.STRING,
-      allowNull: true, // This field will store the Cloudinary image URL
+      allowNull: true,
+    },
+    totalRatings: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
+    ratingSum: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
     },
   },
   {
