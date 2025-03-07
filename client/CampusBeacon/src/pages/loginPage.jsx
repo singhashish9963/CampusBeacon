@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
@@ -27,8 +27,7 @@ const LoginSignup = () => {
     console.log("Auth state:", isAuthenticated, "Welcome message:", welcomeMessage);
     
     if (isAuthenticated) {
-      // Explicitly call toast without depending on welcomeMessage
-      console.log("User authenticated, showing toast");
+      // Navigation after authentication
       const timer = setTimeout(() => {
         console.log("Navigating to home page");
         navigate("/");
@@ -81,9 +80,8 @@ const LoginSignup = () => {
         
         if (response?.success) {
           console.log("Authentication successful");
-          // Toast on successful response
           toast.success(type === "signUp" ? "Account created successfully!" : "Login successful!", {
-            position: "top-center",
+            position: "top-right",
             autoClose: 2000,
           });
         } else {
@@ -131,15 +129,6 @@ const LoginSignup = () => {
         type="submit"
         disabled={isLoading}
       />
-      
-      {/* Debug button to test if toasts work at all */}
-      <button
-        type="button"
-        onClick={debugToast}
-        className="w-full p-2 mt-2 text-purple-300 text-sm"
-      >
-        Test Notification
-      </button>
     </form>
   );
   
@@ -304,4 +293,4 @@ const LoginSignup = () => {
   );
 };
 
-export default LoginSignup;
+export default LoginSignup; 
