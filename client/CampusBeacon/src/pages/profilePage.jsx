@@ -263,7 +263,7 @@ const ProfilePage = () => {
                         value={userData.name}
                         onChange={handleChange}
                         placeholder="Your Name"
-                        className="text-4xl font-bold text-white bg-transparent border-b-2 border-purple-400 focus:outline-none w-full placeholder-gray-500 transition-colors focus:border-purple-500"
+                        className="text-3xl font-bold text-white bg-transparent border-b-2 border-purple-400 focus:outline-none w-full placeholder-gray-500 transition-colors focus:border-purple-500"
                       />
                     </div>
                     <div>
@@ -274,13 +274,13 @@ const ProfilePage = () => {
                         type="email"
                         value={userData.email}
                         disabled
-                        className="w-full bg-gray-800/50 text-gray-400 rounded-lg p-2"
+                        className="w-full bg-gray-800/50 text-gray-400 rounded-lg p-5"
                       />
                     </div>
                   </div>
                 ) : (
                   <>
-                    <h1 className="text-5xl font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent mb-2">
+                    <h1 className="text-5xl pb-3 font-mono font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent mb-2">
                       {userData.name || "Name"}
                     </h1>
                     <p className="text-gray-400">{userData.email}</p>
