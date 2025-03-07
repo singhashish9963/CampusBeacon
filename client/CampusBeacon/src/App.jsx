@@ -36,7 +36,6 @@ import MNNITFactsGenerator from "./pages/utilityPages/factsGenerator.jsx";
 import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
 import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
 import { HostelProvider } from "./contexts/HOSTEL CONTEXT/hostelContext.jsx";
-import HostelList from "./pages/HostelPages/HostelList.jsx";
 
 function App() {
   return (

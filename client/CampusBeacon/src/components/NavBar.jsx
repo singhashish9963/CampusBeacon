@@ -46,6 +46,56 @@ function NavBar() {
       path: "/DJGH",
       description: "Dr. G.J. Hostel",
     },
+    {
+      name: "PG Hostel",
+      path: "/PGHostel",
+      description : "Post Graduate Hostel"     
+    },
+    {
+      name: "KNGH",
+      path: "/KNGH",
+      description : "Kamla Nehru Girls Hostel"     
+    },
+    {
+      name: "SNGH",
+      path: "/SNGH",
+      description : "Sarojini Naidu Girls Hostel"     
+    },
+    {
+      name: "IGH",
+      path: "/IGH",
+      description : "International House (B-block) and Bachelor’s Flat"     
+    },
+    {
+      name: "RN TAGORE HOSTEL",
+      path: "/RNTH",
+      description : "RABINDRANATH TAGORE BOYS HOSTEL"     
+    },
+    {
+      name: "CV RAMAN HOSTEL",
+      path: "/CVRH",
+      description : "Chandrasekhara Venkata Raman Boys Hostel"     
+    },
+    {
+      name: "M.M MALAVIYA HOSTEL",
+      path: "/MMMH",
+      description : "Madan Mohan Malviya Boys Hostel"     
+    },
+    {
+      name: "B.G Tilak Hostel",
+      path: "/BGTH",
+      description : "Bal Gangadhar Tilak Boys Hostel"     
+    },
+    {
+      name: "S.V. Patel Hostel",
+      path: "/SVTH",
+      description : "Sardar Vallabh Bhai Patel Boys Hostel"     
+    },
+    {
+      name: "P.D Tandon Hostel",
+      path: "/PDTH",
+      description : "Pandit Deen Dayal Tandon Boys Hostel"     
+    }
   ];
 
   const academicsOptions = [
