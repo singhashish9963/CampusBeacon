@@ -18,7 +18,7 @@ import eateriesRoutes from "./src/routes/eateries.routes.js";
 import hostelsRoutes from "./src/routes/hostel.routes.js"
 import session from "express-session";
 import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
-
+import ridesRoutes from "./src/routes/ride.routes.js"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -75,7 +75,7 @@ app.use("/api/chatbot", chatBotRoutes);
 app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/hostels",hostelsRoutes);
-
+app.use("/api/rides",ridesRoutes);
 app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/eateries", eateriesRoutes);
 

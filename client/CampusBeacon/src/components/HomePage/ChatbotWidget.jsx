@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Rocket, Stars, Moon, Send, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useChatbot } from "../../contexts/ChatBotContext";
+import { useChatbot } from "../../contexts/chatBotContext";
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);

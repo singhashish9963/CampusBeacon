@@ -126,4 +126,5 @@ export {
   Subject,
   UserAttendance,
   AttendanceStats,
+  Rides,
 };

@@ -18,10 +18,11 @@ import {
   Bell,
   Menu,
   X,
+  Car,
 } from "lucide-react";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useAuth } from "../contexts/authContext.jsx";
 import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
 
 const HomePage = () => {
@@ -165,6 +166,13 @@ const HomePage = () => {
                 title="Community"
                 description="Connect with peers and join campus activities"
                 href="/community"
+                gradient="from-cyan-500 via-blue-500 to-indigo-500"
+              />
+              <FeatureCard
+                icon={Car}
+                title="Ride Sharing"
+                description="Share Rides and save Price"
+                href="/rides"
                 gradient="from-cyan-500 via-blue-500 to-indigo-500"
               />
             </div>
