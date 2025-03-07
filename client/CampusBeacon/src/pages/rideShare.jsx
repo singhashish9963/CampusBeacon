@@ -1,16 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Car,
-  Plus,
-  Edit,
-  Trash2,
-  MapPin,
-} from "lucide-react";
+import { Car, Plus, Edit, Trash2, MapPin } from "lucide-react";
 import { useRides } from "../contexts/ridesContext";
 import { useAuth } from "../contexts/authContext";
 import RideCard from "../components/rides/RideCard";
-import RideForm from "../components/rides/RideForm"
+import RideForm from "../components/rides/RideForm";
 import { formatDateTime, isRideActive } from "../utils/dateUtils";
 
 const RideShare = () => {
@@ -37,6 +31,55 @@ const RideShare = () => {
       );
     }
   }, [rides, searchTerm]);
+
+  // Handle edit button click
+  const handleEdit = (ride) => {
+    console.log("Editing ride:", ride);
+    // Format the date for the form
+    const formattedRide = {
+      ...ride,
+      departureDateTime: new Date(ride.departureDateTime)
+        .toISOString()
+        .slice(0, 16),
+    };
+    setEditingRide(formattedRide);
+    setIsFormOpen(true);
+  };
+
+  // Handle form submission for both create and edit
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (editingRide) {
+        console.log("Updating ride:", editingRide.id, formData);
+        await updateRide(editingRide.id, {
+          ...formData,
+          creatorId: currentUser.id,
+        });
+        setEditingRide(null);
+      } else {
+        console.log("Creating new ride:", formData);
+        await createRide({
+          ...formData,
+          creatorId: currentUser.id,
+        });
+      }
+      setIsFormOpen(false);
+    } catch (error) {
+      console.error("Error submitting ride:", error);
+
+    }
+  };
+
+
+  const handleDelete = async (id) => {
+    try {
+      await deleteRide(id);
+      setConfirmDelete(null);
+    } catch (error) {
+      console.error("Error deleting ride:", error);
+
+    }
+  };
 
   if (loading) {
     return (
@@ -68,24 +111,6 @@ const RideShare = () => {
       </div>
     );
   }
-
-  const handleFormSubmit = async (formData) => {
-    if (editingRide) {
-      await updateRide(editingRide.id, formData);
-      setEditingRide(null);
-    } else {
-      await createRide({
-        ...formData,
-        creatorId: currentUser.id,
-      });
-    }
-    setIsFormOpen(false);
-  };
-
-  const handleDelete = async (id) => {
-    await deleteRide(id);
-    setConfirmDelete(null);
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-black to-purple-900 p-8">
@@ -127,6 +152,7 @@ const RideShare = () => {
             </div>
           </div>
         </div>
+
         {/* Rides Grid */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -148,7 +174,7 @@ const RideShare = () => {
               <RideCard
                 ride={ride}
                 currentUser={currentUser}
-                onEdit={setEditingRide}
+                onEdit={handleEdit} // Use the new handleEdit function
                 onDelete={setConfirmDelete}
               />
             </motion.div>
@@ -177,6 +203,7 @@ const RideShare = () => {
             )}
           </motion.div>
         )}
+
         {/* Modals */}
         <AnimatePresence>
           {/* Form Modal */}
@@ -186,7 +213,10 @@ const RideShare = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
-              onClick={() => setIsFormOpen(false)}
+              onClick={() => {
+                setIsFormOpen(false);
+                setEditingRide(null);
+              }}
             >
               <motion.div
                 initial={{ scale: 0.9, y: 20 }}
