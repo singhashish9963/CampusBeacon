@@ -30,7 +30,7 @@ function NavBar() {
         { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
         { name: "Buy & Sell", path: "/marketplace", icon: HiShoppingBag },
         { name: "Profile", path: "/profile", icon: HiUser },
-        { name: "Hostels", path: "/hostels", icon: HiUser },
+        { name: "Hostel", path: "/hostels", icon: HiUser }
          
       ]
     : [{ name: "Home", path: "/", icon: HiHome }];

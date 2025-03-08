@@ -4,7 +4,6 @@ import { Car, AlertTriangle } from "lucide-react";
 import { useRides } from "../contexts/ridesContext";
 import { useAuth } from "../contexts/AuthContext";
 import { formatDateTime, isRideActive } from "../utils/dateUtils";
-
 import RideHeader from "../components/rides/RideHeader";
 import RideFilters from "../components/rides/RideFilters";
 import RideGrid from "../components/rides/RideGrid";
