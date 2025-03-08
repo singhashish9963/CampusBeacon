@@ -5,6 +5,7 @@ import NavBar from "./components/NavBar.jsx";
 import Footer from "./components/Footer.jsx";
 import HomePage from "./pages/homePage.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import AuthContext from "./contexts/AuthContext.jsx";
 import ProfilePage from "./pages/profilePage.jsx";
 import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
@@ -36,7 +37,6 @@ import MNNITFactsGenerator from "./pages/utilityPages/factsGenerator.jsx";
 import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
 import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
 import { HostelProvider } from "./contexts/HOSTEL CONTEXT/hostelContext.jsx";
-
 import RideShare from "./pages/rideShare.jsx";
 import RidesProvider from "./contexts/ridesContext.jsx";
 
