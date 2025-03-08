@@ -13,7 +13,7 @@ import { Official } from "./hostels.model.js";
 import {Complaint} from './hostels.model.js';
 import {Notification} from "./hostels.model.js";
 import {Branch, Year, StudyMaterial} from "./resources.model.js";
-
+import Rides from "./ride.model.js";
 const initializeAssociations = () => {
   // User - LostAndFound associations
   User.hasMany(LostAndFound, {
@@ -113,6 +113,17 @@ StudyMaterial.belongsTo(Branch, { foreignKey: "branch_id" });
 StudyMaterial.belongsTo(Year, { foreignKey: "year_id" });
 
 };
+// User - Rides associations
+User.hasMany(Rides, {
+  foreignKey: "creatorId",
+  as: "rides",
+  onDelete: "CASCADE",
+});
+
+Rides.belongsTo(User, {
+  foreignKey: "creatorId",
+  as: "creator",
+});
 
 initializeAssociations();
 
@@ -126,4 +137,5 @@ export {
   Subject,
   UserAttendance,
   AttendanceStats,
+  Rides,
 };
