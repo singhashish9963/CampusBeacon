@@ -18,7 +18,7 @@ import { useNavigate } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import { useBuyAndSell } from "../contexts/buyandsellContext";
 import { useAuth } from "../contexts/AuthContext";
-import CommunityPage from "./communityPage";
+
 
 const Marketplace = () => {
   const navigate = useNavigate();
