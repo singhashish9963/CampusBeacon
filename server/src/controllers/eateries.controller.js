@@ -115,3 +115,27 @@ export const getAllEateries = asyncHandler(async (req, res) => {
       new ApiResponse(200, eateries, "All eateries retrieved successfully")
     );
 });
+
+export const rateEatery = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { rating } = req.body;
+
+  if (!rating || rating < 1 || rating > 5) {
+    throw new ApiError("Invalid rating. Must be between 1 and 5", 400);
+  }
+
+  const eatery = await Eateries.findByPk(id);
+  if (!eatery) {
+    throw new ApiError("Eatery not found", 404);
+  }
+
+  eatery.ratingSum = (eatery.ratingSum || 0) + rating;
+  eatery.totalRatings = (eatery.totalRatings || 0) + 1;
+  eatery.rating = eatery.ratingSum / eatery.totalRatings;
+
+  await eatery.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, eatery, "Rating submitted successfully"));
+});

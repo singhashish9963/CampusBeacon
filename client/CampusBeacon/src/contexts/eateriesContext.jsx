@@ -13,7 +13,7 @@ export const EateriesProvider = ({ children }) => {
   const [selectedEatery, setSelectedEatery] = useState(null);
 
   // Base URL can be configured based on your environment
-  const API_URL =  "http://localhost:5000";
+  const API_URL = "http://localhost:5000";
 
   // Fetch all eateries
   const fetchEateries = async () => {
@@ -141,38 +141,28 @@ export const EateriesProvider = ({ children }) => {
     }
   };
 
-  // Submit a rating for an eatery
   const submitRating = async (eateryId, rating) => {
-    setEateries((prev) =>
-      prev.map((eatery) => {
-        if (eatery.id === eateryId) {
-          const newRatings = [...eatery.ratings, rating];
-          const newAverage =
-            newRatings.reduce((a, b) => a + b) / newRatings.length;
-          return {
-            ...eatery,
-            ratings: newRatings,
-            averageRating: Number(newAverage.toFixed(1)),
-          };
-        }
-        return eatery;
-      })
-    );
-
-    // You might want to send this rating to your backend
     try {
-      const eatery = eateries.find((e) => e.id === eateryId);
-      if (eatery) {
-        await updateEatery(eateryId, {
-          ...eatery,
-          rating: eatery.averageRating,
-        });
-      }
-    } catch (err) {
-      console.error("Failed to update rating on server:", err);
+      // Submit the rating
+      await axios.post(`${API_URL}/eateries/${eateryId}/rate`, {
+        rating,
+      });
+
+      // Fetch the updated eatery to get the recalculated rating
+      const updatedEatery = await getEatery(eateryId);
+
+      // Update the eateries list with the freshly fetched data
+      setEateries((prev) =>
+        prev.map((eatery) => (eatery.id === eateryId ? updatedEatery : eatery))
+      );
+
+      return updatedEatery;
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to submit rating");
+      console.error("Error submitting rating:", error);
+      throw error;
     }
   };
-
   // Helper function to check if an eatery is currently open
   const checkIsOpen = (openTime, closeTime) => {
     if (!openTime || !closeTime) return false;

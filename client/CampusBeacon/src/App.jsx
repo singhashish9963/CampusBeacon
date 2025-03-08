@@ -5,6 +5,7 @@ import NavBar from "./components/NavBar.jsx";
 import Footer from "./components/Footer.jsx";
 import HomePage from "./pages/homePage.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
+import AuthContext from "./contexts/AuthContext.jsx";
 import ProfilePage from "./pages/profilePage.jsx";
 import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
@@ -37,6 +38,13 @@ import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
 import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
 import RideShare from "./pages/rideShare.jsx";
 import RidesProvider from "./contexts/ridesContext.jsx";
+import { HostelProvider } from "./contexts/hostelContext.jsx";
+import { MenuProvider } from "./contexts/hostelContext.jsx";
+import { OfficialProvider } from "./contexts/hostelContext.jsx";
+import { NotificationsProvider } from "./contexts/hostelContext.jsx"; 
+import { ComplaintProvider } from "./contexts/hostelContext.jsx";
+import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+
 
 function App() {
   return (
@@ -48,6 +56,12 @@ function App() {
               <ContactContextProvider>
                 <BuyAndSellProvider>
                   <LostAndFoundProvider>
+                    <HostelProvider>
+                    <MenuProvider>
+                    <OfficialProvider>
+                    <NotificationsProvider>
+                    <ComplaintProvider>
+
                     <ProfileProvider>
                       <RidesProvider>
                         <BrowserRouter>
@@ -72,7 +86,7 @@ function App() {
                                 <Route path="/contact" element={<ContactsDisplay />} />
                                 <Route path="/SVBH" element={<SVBH />} />
                                 <Route path="/DJGH" element={<DJGH />} />
-
+                                <Route path="/hostels" element={<AdminHostelPage />} />x
                                 {/* Protected Routes */}
                                 <Route element={<ProtectedRoute />}>
                                   <Route path="/profile" element={<ProfilePage />} />
@@ -93,6 +107,11 @@ function App() {
                         </BrowserRouter>
                       </RidesProvider>
                     </ProfileProvider>
+                    </ComplaintProvider>
+                    </NotificationsProvider>
+                    </OfficialProvider>
+                    </MenuProvider>
+                    </HostelProvider>
                   </LostAndFoundProvider>
                 </BuyAndSellProvider>
               </ContactContextProvider>

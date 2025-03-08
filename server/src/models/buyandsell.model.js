@@ -36,7 +36,7 @@ const BuyAndSell = sequelize.define("BuyAndSell", {
     allowNull:false,
   },
   item_condition: {
-    type: DataTypes.ENUM("Good", "Fair", "Poor"),
+    type: DataTypes.ENUM("Good", "Fair", "Poor","New","Like New","Fair"),
     allowNull: false,
   } 
 }, {
