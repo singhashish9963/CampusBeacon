@@ -44,7 +44,7 @@ import { OfficialProvider } from "./contexts/hostelContext.jsx";
 import { NotificationsProvider } from "./contexts/hostelContext.jsx"; 
 import { ComplaintProvider } from "./contexts/hostelContext.jsx";
 import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
-
+import HostelPage from "./pages/HostelPages/HostelPage.jsx";
 
 function App() {
   return (
@@ -86,7 +86,6 @@ function App() {
                                 <Route path="/contact" element={<ContactsDisplay />} />
                                 <Route path="/SVBH" element={<SVBH />} />
                                 <Route path="/DJGH" element={<DJGH />} />
-                                <Route path="/hostels" element={<AdminHostelPage />} />x
                                 {/* Protected Routes */}
                                 <Route element={<ProtectedRoute />}>
                                   <Route path="/profile" element={<ProfilePage />} />
@@ -96,6 +95,8 @@ function App() {
                                   <Route path="/attendance" element={<AttendanceManager />} />
                                   <Route path="/eatries" element={<CollegeEateries />} />
                                   <Route path="/community" element={<CommunityPage />} />
+                                  <Route path="/hostels" element={<AdminHostelPage />} />
+                                  <Route path="/hostels/:hostel_id" element={<HostelPage />} />
                                 </Route>
 
                                 {/* Redirect unknown paths */}
