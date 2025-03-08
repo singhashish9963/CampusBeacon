@@ -120,11 +120,15 @@ export const deleteSubject = async (req, res) => {
   }
 };
 
+// ==============================
+// UserSubject Assignment Endpoints
+// ==============================
+
 // Create a new UserSubject (assign a subject to a user)
 export const createUserSubject = async (req, res) => {
   const { userId, subjectId } = req.body;
   try {
-    // First, check if the subject exists in the subjects table
+    // First, check if the subject exists
     const subject = await Subject.findByPk(subjectId);
     if (!subject) {
       return res.status(400).json({
@@ -133,7 +137,7 @@ export const createUserSubject = async (req, res) => {
       });
     }
 
-    // Optionally, check if the assignment already exists
+    // Check if assignment already exists
     const existingAssignment = await UserSubjects.findOne({
       where: { userId, subjectId },
     });
@@ -144,7 +148,7 @@ export const createUserSubject = async (req, res) => {
       });
     }
 
-    // Create the user subject assignment
+    // Create the assignment
     const userSubject = await UserSubjects.create({
       userId,
       subjectId,
@@ -165,7 +169,7 @@ export const createUserSubject = async (req, res) => {
   }
 };
 
-// Get a UserSubject by its ID
+// Get a UserSubject by its primary key ID
 export const getUserSubjectById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -188,7 +192,7 @@ export const getUserSubjectById = async (req, res) => {
   }
 };
 
-// Get all UserSubject records
+// Get all UserSubject assignments
 export const getAllUserSubjects = async (req, res) => {
   try {
     const userSubjects = await UserSubjects.findAll();
@@ -205,7 +209,28 @@ export const getAllUserSubjects = async (req, res) => {
   }
 };
 
-// Update a UserSubject by its ID
+// NEW: Get all UserSubject assignments for a specific user
+export const getUserSubjectsByUserId = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const assignments = await UserSubjects.findAll({
+      where: { userId },
+    });
+    return res.status(200).json({
+      message: "User subject assignments for the user retrieved successfully",
+      data: assignments,
+    });
+  } catch (error) {
+    console.error("Error retrieving user subject assignments for user:", error);
+    return res.status(500).json({
+      message:
+        "An error occurred while retrieving user subject assignments for user",
+      error: error.message,
+    });
+  }
+};
+
+// Update a UserSubject by its primary key ID
 export const updateUserSubject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -218,7 +243,7 @@ export const updateUserSubject = async (req, res) => {
       });
     }
 
-    // Update fields if provided
+    // Update properties if provided
     userSubject.userId = userId !== undefined ? userId : userSubject.userId;
     userSubject.subjectId =
       subjectId !== undefined ? subjectId : userSubject.subjectId;
@@ -238,17 +263,19 @@ export const updateUserSubject = async (req, res) => {
   }
 };
 
-// Delete a UserSubject by its ID
-export const deleteUserSubject = async (req, res) => {
+// NEW: Delete a UserSubject assignment by userId and subjectId
+export const deleteUserSubjectAssignment = async (req, res) => {
   try {
-    const { id } = req.params;
-    const userSubject = await UserSubjects.findByPk(id);
-    if (!userSubject) {
+    const { userId, subjectId } = req.params;
+    const assignment = await UserSubjects.findOne({
+      where: { userId, subjectId },
+    });
+    if (!assignment) {
       return res.status(404).json({
         message: "User subject assignment not found",
       });
     }
-    await userSubject.destroy();
+    await assignment.destroy();
     return res.status(200).json({
       message: "User subject assignment deleted successfully",
     });
