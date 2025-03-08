@@ -2,7 +2,9 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import cookie from "cookie";
 import dotenv from "dotenv";
-dotenv.config("./.env");
+
+// Configure dotenv with an object for clarity.
+dotenv.config({ path: "./.env" });
 
 const initializeSocket = (server) => {
   const io = new Server(server, {
@@ -23,13 +25,15 @@ const initializeSocket = (server) => {
     },
   });
 
-  // Track active users in channels
+  // Keep track of active users per channel
   const channelUsers = new Map();
 
+  // Utility to get current UTC time formatted as "YYYY-MM-DD HH:MM:SS"
   const getCurrentUtcTime = () => {
     return new Date().toISOString().slice(0, 19).replace("T", " ");
   };
 
+  // Middleware: authenticate socket connection via JWT token in cookies
   io.use(async (socket, next) => {
     try {
       const cookies = socket.handshake.headers.cookie;
@@ -49,6 +53,7 @@ const initializeSocket = (server) => {
         username: decoded?.username,
       };
 
+      // Initialize socket properties for tracking channels
       socket.channels = new Set();
       next();
     } catch (error) {
@@ -57,6 +62,7 @@ const initializeSocket = (server) => {
     }
   });
 
+  // Socket connection
   io.on("connection", (socket) => {
     console.log(`User connected: ${socket.user.id}`);
 
@@ -70,12 +76,14 @@ const initializeSocket = (server) => {
       }
       channelUsers.get(channelId).add(socket.user.id);
 
+      // Notify others in the room
       socket.to(roomName).emit("user-joined", {
         userId: socket.user.id,
         username: socket.user.username,
         timestamp: getCurrentUtcTime(),
       });
 
+      // Send current channel users to the socket
       socket.emit("channel-users", {
         channelId,
         users: Array.from(channelUsers.get(channelId)),
@@ -102,15 +110,15 @@ const initializeSocket = (server) => {
       });
     });
 
-  socket.on("delete-message", (data) => {
-    const { messageId, channelId, timestamp, userId } = data;
-    io.to(`channel-${channelId}`).emit("message-deleted", {
-      messageId,
-      channelId,
-      timestamp,
-      userId: socket.user.id,
+    socket.on("delete-message", (data) => {
+      io.to(`channel-${data.channelId}`).emit("message-deleted", {
+        messageId: data.messageId,
+        channelId: data.channelId,
+        timestamp: getCurrentUtcTime(),
+        userId: socket.user.id,
+      });
     });
-  });
+
     socket.on("typing-start", (channelId) => {
       socket.to(`channel-${channelId}`).emit("user-typing", {
         userId: socket.user.id,
@@ -127,11 +135,10 @@ const initializeSocket = (server) => {
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.user.id}`);
-
+      // Remove the user from each channel they joined and notify others
       socket.channels.forEach((channelId) => {
         if (channelUsers.has(channelId)) {
           channelUsers.get(channelId).delete(socket.user.id);
-
           io.to(`channel-${channelId}`).emit("user-left", {
             userId: socket.user.id,
             username: socket.user.username,

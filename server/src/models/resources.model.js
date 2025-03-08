@@ -1,42 +1,60 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
 
-const Branch = sequelize.define("Branch", {
-  branch_id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
+// Define Branch model
+const Branch = sequelize.define(
+  "Branch",
+  {
+    branch_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+    },
+    branch_name: {
+      type: DataTypes.ENUM(
+        "Biotechnology",
+        "Chemical Engineering",
+        "Civil Engineering",
+        "Computer Science and Engineering",
+        "Electrical Engineering",
+        "Electronics and Communication Engineering",
+        "Materials Engineering",
+        "Mechanical Engineering",
+        "Production and Industrial Engineering",
+        "Engineering and Computational Mechanics"
+      ),
+      allowNull: false,
+      // Removed inline unique: true to avoid PostgreSQL migration issues
+    },
   },
-  branch_name: {
-    type: DataTypes.ENUM(
-      "Biotechnology",
-      "Chemical Engineering",
-      "Civil Engineering",
-      "Computer Science and Engineering",
-      "Electrical Engineering",
-      "Electronics and Communication Engineering",
-      "Materials Engineering",
-      "Mechanical Engineering",
-      "Production and Industrial Engineering",
-      "Engineering and Computational Mechanics"
-    ),
-    allowNull: false,
-    unique: true,
-  },
-}, {
-  timestamps: true,
-  tableName: "branches",
-});
+  {
+    timestamps: true,
+    tableName: "branches",
+    indexes: [
+      {
+        unique: true,
+        fields: ["branch_name"],
+      },
+    ],
+  }
+);
 
-
-const Year = sequelize.define("Year", {
+// Define Year model
+const Year = sequelize.define(
+  "Year",
+  {
     year_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
     year_name: {
-      type: DataTypes.ENUM("First Year", "Second Year", "Third Year", "Fourth Year"),
+      type: DataTypes.ENUM(
+        "First Year",
+        "Second Year",
+        "Third Year",
+        "Fourth Year"
+      ),
       allowNull: false,
     },
     branch_id: {
@@ -47,14 +65,17 @@ const Year = sequelize.define("Year", {
       },
       onDelete: "CASCADE",
     },
-  }, {
+  },
+  {
     timestamps: true,
     tableName: "years",
-  });
-  
+  }
+);
 
-  
-  const StudyMaterial = sequelize.define("StudyMaterial", {
+// Define StudyMaterial model
+const StudyMaterial = sequelize.define(
+  "StudyMaterial",
+  {
     material_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
@@ -88,11 +109,11 @@ const Year = sequelize.define("Year", {
       },
       onDelete: "CASCADE",
     },
-  }, {
+  },
+  {
     timestamps: true,
     tableName: "study_materials",
-  });
-  
-  
+  }
+);
 
-export {StudyMaterial, Year, Branch};   
+export { StudyMaterial, Year, Branch };

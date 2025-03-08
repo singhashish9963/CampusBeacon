@@ -22,7 +22,7 @@ export const useAttendanceContext = () => {
 const initialCurrentUser = {
   id: null,
   login: "guest",
-  /* Add other user properties as needed */
+  // Add additional user properties as needed
 };
 
 // Define API_URL and AUTH_API_URL outside the component
@@ -45,7 +45,7 @@ export const AttendanceProvider = ({ children }) => {
   const [attendanceStats, setAttendanceStats] = useState(null);
   const [attendanceAlerts, setAttendanceAlerts] = useState([]);
 
-  // Consolidated error handler
+  // Consolidated error handler with logging and automatic clear
   const handleError = useCallback((error) => {
     let errorMessage = "Something went wrong";
     if (axios.isAxiosError(error) && error.response) {
@@ -56,16 +56,16 @@ export const AttendanceProvider = ({ children }) => {
     } else if (error instanceof Error) {
       errorMessage = error.message;
     } else {
-      errorMessage = String(error); // Convert to string for safety
+      errorMessage = String(error);
     }
-
     setError(errorMessage);
-    setTimeout(() => setError(null), 5000); // Extended visibility
+    // Clear error after 5 seconds
+    setTimeout(() => setError(null), 5000);
     console.error("API Error:", errorMessage, error);
-    return errorMessage; // Useful for handling in calling functions
+    return errorMessage;
   }, []);
 
-  // Refresh User Subjects
+  // Refresh user subjects for the authenticated user
   const refreshUserSubjects = useCallback(
     async (userId) => {
       if (!userId) {
@@ -100,7 +100,7 @@ export const AttendanceProvider = ({ children }) => {
     [handleError]
   );
 
-  // Define getAttendanceRecordsFn before markAttendance
+  // Get attendance records for a specific subject/month/year
   const getAttendanceRecordsFn = useCallback(
     async (subjectId, month, year) => {
       try {
@@ -123,7 +123,7 @@ export const AttendanceProvider = ({ children }) => {
     [handleError]
   );
 
-  // Student Attendance Report
+  // Get student attendance report
   const getStudentAttendanceReport = useCallback(
     async (userId) => {
       try {
@@ -143,7 +143,7 @@ export const AttendanceProvider = ({ children }) => {
     [handleError]
   );
 
-  // Fetch current user
+  // Fetch current user on mount
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -151,7 +151,6 @@ export const AttendanceProvider = ({ children }) => {
         const response = await axios.get(`${AUTH_API_URL}/users/current`, {
           withCredentials: true,
         });
-
         if (response.data?.data?.user) {
           setCurrentUser(response.data.data.user);
           if (response.data.data.user.id) {
@@ -173,7 +172,7 @@ export const AttendanceProvider = ({ children }) => {
     fetchCurrentUser(); // Call on mount
   }, [handleError, refreshUserSubjects]);
 
-  // Update current time every minute - can be adjusted
+  // Update current time every minute
   useEffect(() => {
     const updateCurrentTime = () => {
       const now = new Date();
@@ -187,7 +186,7 @@ export const AttendanceProvider = ({ children }) => {
     return () => clearInterval(timeInterval); // Cleanup
   }, []);
 
-  // Subject Management
+  // Subject Management: fetch subjects
   const fetchSubjects = useCallback(async () => {
     try {
       setLoading(true);
@@ -205,17 +204,15 @@ export const AttendanceProvider = ({ children }) => {
     }
   }, [handleError]);
 
-  // User Subject Management
+  // User Subject Management: add user subject
   const addUserSubject = useCallback(
     async (subjectId) => {
       if (!currentUser?.id) {
         handleError(new Error("User is not authenticated"));
         return false;
       }
-
       try {
         setLoading(true);
-
         // Check if the subject is already added
         const existingSubject = userSubjects.find(
           (sub) => sub.subjectId === subjectId
@@ -223,18 +220,16 @@ export const AttendanceProvider = ({ children }) => {
         if (existingSubject) {
           throw new Error("Subject already added for this user.");
         }
-
         const response = await axios.post(
           `${API_URL}/user-subjects`,
           { userId: currentUser.id, subjectId },
           { withCredentials: true }
         );
-
         if (response.data.success) {
           await refreshUserSubjects(currentUser.id);
           return true;
         } else {
-          throw new Error(response.data.message || "Failed to add subject"); // More informative
+          throw new Error(response.data.message || "Failed to add subject");
         }
       } catch (error) {
         handleError(error);
@@ -246,6 +241,7 @@ export const AttendanceProvider = ({ children }) => {
     [currentUser, handleError, refreshUserSubjects, userSubjects]
   );
 
+  // User Subject Management: remove user subject
   const removeUserSubject = useCallback(
     async (subjectId) => {
       if (!currentUser?.id) {
@@ -262,7 +258,7 @@ export const AttendanceProvider = ({ children }) => {
           await refreshUserSubjects(currentUser.id);
           return true;
         } else {
-          throw new Error(response.data.message || "Failed to remove subject"); // More informative
+          throw new Error(response.data.message || "Failed to remove subject");
         }
       } catch (error) {
         handleError(error);
@@ -274,35 +270,30 @@ export const AttendanceProvider = ({ children }) => {
     [currentUser, handleError, refreshUserSubjects]
   );
 
-  // Attendance Management
+  // Attendance Management: mark attendance
   const markAttendance = useCallback(
     async (subjectId, date, status) => {
       if (!currentUser?.id) {
         handleError(new Error("User is not authenticated"));
         return false;
       }
-
       const standardizedStatus =
         status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
-
       if (!["Present", "Absent", "Cancelled"].includes(standardizedStatus)) {
         handleError(new Error("Invalid attendance status"));
         return false;
       }
-
       setLoading(true);
       try {
         let existingRecord = attendanceRecords.find(
           (record) => record.subjectId === subjectId && record.date === date
         );
-
         if (existingRecord) {
           const response = await axios.put(
             `${API_URL}/attendance/attendance/${existingRecord.id}`,
             { status: standardizedStatus },
             { withCredentials: true }
           );
-
           if (!response.data.success) {
             throw new Error(
               response.data.message || "Failed to update attendance"
@@ -325,19 +316,17 @@ export const AttendanceProvider = ({ children }) => {
             );
           }
         }
-
-        // Refresh attendance records - moving the call inside
+        // Optionally refresh attendance records
         try {
           const records = await getAttendanceRecordsFn(
             subjectId,
             new Date(date).getMonth() + 1,
             new Date(date).getFullYear()
           );
-          setAttendanceRecords(records); // Update local state
+          setAttendanceRecords(records);
         } catch (refreshError) {
           handleError(refreshError);
         }
-
         return true;
       } catch (error) {
         handleError(error);
@@ -355,6 +344,7 @@ export const AttendanceProvider = ({ children }) => {
     ]
   );
 
+  // Attendance Management: update attendance record
   const updateAttendance = useCallback(
     async (attendanceId, status) => {
       try {
@@ -380,15 +370,14 @@ export const AttendanceProvider = ({ children }) => {
     [handleError]
   );
 
+  // Attendance Management: delete attendance record
   const deleteAttendance = useCallback(
     async (attendanceId) => {
       try {
         setLoading(true);
         const response = await axios.delete(
           `${API_URL}/attendance/attendance/${attendanceId}`,
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
         if (!response.data.success) {
           throw new Error(
@@ -406,6 +395,7 @@ export const AttendanceProvider = ({ children }) => {
     [handleError]
   );
 
+  // Reports and Statistics: get subject attendance report
   const getSubjectAttendanceReport = useCallback(
     async (subjectId) => {
       try {
@@ -425,6 +415,7 @@ export const AttendanceProvider = ({ children }) => {
     [handleError]
   );
 
+  // Reports and Statistics: get attendance stats for a subject
   const getAttendanceStats = useCallback(
     async (subjectId) => {
       try {
@@ -458,6 +449,7 @@ export const AttendanceProvider = ({ children }) => {
     [handleError]
   );
 
+  // Reports and Statistics: get attendance alerts
   const getAttendanceAlerts = useCallback(async () => {
     try {
       setLoading(true);
@@ -474,6 +466,7 @@ export const AttendanceProvider = ({ children }) => {
     }
   }, [handleError]);
 
+  // Save attendance stats via form submission
   const saveAttendanceStatsFromForm = useCallback(
     async (formData) => {
       if (!currentUser?.id) {
@@ -488,13 +481,13 @@ export const AttendanceProvider = ({ children }) => {
           totalClasses: parseInt(formData.totalClasses) || 0,
           totalPresent: parseInt(formData.attendedClasses) || 0,
         };
-
         const response = await axios.post(
           `${API_URL}/attendance/stats`,
           payload,
-          { withCredentials: true }
+          {
+            withCredentials: true,
+          }
         );
-
         if (!response.data.success) {
           throw new Error(
             response.data.message || "Failed to save attendance stats"
@@ -522,26 +515,22 @@ export const AttendanceProvider = ({ children }) => {
     currentUser,
     attendanceStats,
     attendanceAlerts,
-
-    // Subject Management
+    // Subject and User Subject Management
     fetchSubjects,
     refreshUserSubjects,
     addUserSubject,
     removeUserSubject,
-
     // Attendance Management
     markAttendance,
     updateAttendance,
     deleteAttendance,
-    getAttendanceRecords: getAttendanceRecordsFn, // Use the useCallback version
-
+    getAttendanceRecords: getAttendanceRecordsFn,
     // Reports and Statistics
     getStudentAttendanceReport,
     getSubjectAttendanceReport,
     getAttendanceStats,
     getAttendanceAlerts,
     saveAttendanceStatsFromForm,
-
     // Utilities
     handleError,
   };

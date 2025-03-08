@@ -392,20 +392,26 @@ const RideShare = () => {
 
         {/* Modals */}
         <AnimatePresence>
-          <RideFormModal
-            isOpen={isFormOpen}
-            editingRide={editingRide}
-            onSubmit={handleFormSubmit}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setEditingRide(null);
-            }}
-          />
-          <DeleteConfirmationModal
-            isOpen={Boolean(confirmDelete)}
-            onDeleteConfirm={() => handleDelete(confirmDelete)}
-            onCancel={() => setConfirmDelete(null)}
-          />
+          {isFormOpen && (
+            <RideFormModal
+              key="ride-form-modal"
+              isOpen={isFormOpen}
+              editingRide={editingRide}
+              onSubmit={handleFormSubmit}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setEditingRide(null);
+              }}
+            />
+          )}
+          {confirmDelete && (
+            <DeleteConfirmationModal
+              key="delete-confirm-modal"
+              isOpen={Boolean(confirmDelete)}
+              onDeleteConfirm={() => handleDelete(confirmDelete)}
+              onCancel={() => setConfirmDelete(null)}
+            />
+          )}
         </AnimatePresence>
       </div>
     </div>
