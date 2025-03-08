@@ -19,6 +19,7 @@ import hostelsRoutes from "./src/routes/hostel.routes.js"
 import session from "express-session";
 import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
 import ridesRoutes from "./src/routes/ride.routes.js"
+import resourcesRoutes from "./src/routes/resources.routes.js"
 dotenv.config({ path: "./.env" });
 
 const app = express();
@@ -78,6 +79,7 @@ app.use("/api/hostels",hostelsRoutes);
 app.use("/api/rides",ridesRoutes);
 app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/eateries", eateriesRoutes);
+app.use("/api/resources", resourcesRoutes);
 
 const startServer = async () => {
   try {

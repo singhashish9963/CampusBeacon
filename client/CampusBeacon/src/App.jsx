@@ -36,9 +36,6 @@ import MNNITFactsGenerator from "./pages/utilityPages/factsGenerator.jsx";
 import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
 import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
 
-import { HostelProvider } from "./contexts/HOSTEL CONTEXT/hostelContext.jsx";
-import HostelList from "./pages/HostelPages/HostelList.jsx";
-
 import RideShare from "./pages/rideShare.jsx";
 import RidesProvider from "./contexts/ridesContext.jsx";
 
@@ -53,7 +50,6 @@ function App() {
               <ContactContextProvider>
                 <BuyAndSellProvider>
                   <LostAndFoundProvider>
-                    <HostelProvider>
                     <ProfileProvider>
                       <BrowserRouter>
                         <div className="flex flex-col min-h-screen">
@@ -176,24 +172,9 @@ function App() {
                                     element={<AttendanceManager />}
                                   />
 
-                                  <Route
-                                    path="/eatries"
-                                    element={<CollegeEateries />}
-                                  />
-                                  <Route path="/SVBH" element={<SVBH />} />
-                                  <Route path="/DJGH" element={<DJGH />} />
-                                  <Route
-                                    path="/community"
-                                    element={<CommunityPage />}
-                                  />
-                                </Route>
                                 <Route
-                                  path="/contact"
-                                  element={<ContactsDisplay />}
-
-                                  <Route
-                                  path="/hotels"
-                                  element={<HostelList/>}
+                                  path="/eatries"
+                                  element={<CollegeEateries />}
                                 />
                                 <Route path="/SVBH" element={<SVBH />} />
                                 <Route path="/DJGH" element={<DJGH />} />
@@ -218,7 +199,6 @@ function App() {
                         </div>
                       </BrowserRouter>
                     </ProfileProvider>
-                    </HostelProvider>
                   </LostAndFoundProvider>
                 </BuyAndSellProvider>
               </ContactContextProvider>

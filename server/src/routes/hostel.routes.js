@@ -29,8 +29,9 @@ import {
   updateNotification,
  deleteNotification
 } from "../controllers/hostels.controller.js";
-
+import authMiddleware from "../middlewares/auth.middleware.js"
 const router = express.Router();
+import filterInputMiddleware from "../middlewares/filter.middleware.js";
 
 const upload = multer({ dest: "./public/temp" });
 
@@ -41,11 +42,11 @@ const upload = multer({ dest: "./public/temp" });
 =============================
 */
 
-router.post("/hostels", createHostel); 
-router.get("/hostels", getAllHostels); 
-router.get("/hostels/:id", getHostelById); 
-router.put("/hostels/:id", editHostel); 
-router.delete("/hostels/:id", deleteHostel);
+router.post("/hostels",authMiddleware, createHostel); 
+router.get("/hostels",authMiddleware, getAllHostels); 
+router.get("/hostels/:id", authMiddleware,getHostelById); 
+router.put("/hostels/:id", authMiddleware,editHostel); 
+router.delete("/hostels/:id", authMiddleware,deleteHostel);
 
 /*
 =============================
@@ -53,12 +54,12 @@ router.delete("/hostels/:id", deleteHostel);
 =============================
 */
 
-router.post("/menus", createMenu);
-router.get("/menus/hostel/:hostel_id", getMenuByHostel);
-router.get("/menus/:menu_id", getMenuById);
-router.get("/menus/meal/:hostel_id/:day/:meal", getMenuMeal);
-router.put("/menus/meal/:hostel_id/:day/:meal", updateMenuMeal);
-router.delete("/menus/meal/:hostel_id/:day/:meal", deleteMenuMeal);
+router.post("/menus", authMiddleware,createMenu);
+router.get("/menus/hostel/:hostel_id", authMiddleware,getMenuByHostel);
+router.get("/menus/:menu_id", authMiddleware,getMenuById);
+router.get("/menus/meal/:hostel_id/:day/:meal",authMiddleware, getMenuMeal);
+router.put("/menus/meal/:hostel_id/:day/:meal",authMiddleware, updateMenuMeal);
+router.delete("/menus/meal/:hostel_id/:day/:meal", authMiddleware,deleteMenuMeal);
 
 /*
 =============================
@@ -66,12 +67,12 @@ router.delete("/menus/meal/:hostel_id/:day/:meal", deleteMenuMeal);
 =============================
 */
 
-router.post("/officials", createOfficial);
-router.get("/officials", getAllOfficials);
-router.get("/officials/hostel/:hostel_id", getOfficialsByHostel);
-router.get("officials/:official_id", getOfficialById);
-router.put("officials/:official_id", editOfficial);
-router.delete("officials/:official_id", deleteOfficial);
+router.post("/officials", authMiddleware,createOfficial);
+router.get("/officials",authMiddleware, getAllOfficials);
+router.get("/officials/hostel/:hostel_id", authMiddleware,getOfficialsByHostel);
+router.get("officials/:official_id",authMiddleware, getOfficialById);
+router.put("officials/:official_id", authMiddleware,editOfficial);
+router.delete("officials/:official_id",authMiddleware, deleteOfficial);
 
 
 
@@ -80,11 +81,11 @@ router.delete("officials/:official_id", deleteOfficial);
         Complaint Routes
 =============================
 */
-router.post("/complaints", createComplaint);
-router.get("/complaints", getComplaints);
-router.get("/complaints/hostel/:hostel_id", getHostelComplaints);
-router.put("/complaints/:complaint_id", updateComplaint); 
-router.delete("/complaints/:complaint_id", deleteComplaint);
+router.post("/complaints", authMiddleware,createComplaint);
+router.get("/complaints", authMiddleware,getComplaints);
+router.get("/complaints/hostel/:hostel_id", authMiddleware,getHostelComplaints);
+router.put("/complaints/:complaint_id", authMiddleware,updateComplaint); 
+router.delete("/complaints/:complaint_id", authMiddleware,deleteComplaint);
 
 
 
@@ -94,11 +95,17 @@ router.delete("/complaints/:complaint_id", deleteComplaint);
 =============================
 */
 
-router.post("/notifications", upload.single("file"), createNotification);
-router.get("/notifications", getNotifications);
-router.get("/notifications/:hostel_id", getHostelNotifications);
-router.put("/notifications/:notification_id", upload.single("file"), updateNotification);
-router.delete("/notifications/:notification_id", deleteNotification);
+router.post("/notifications", upload.single("file"), 
+authMiddleware,
+filterInputMiddleware,
+createNotification);
+router.get("/notifications", authMiddleware,getNotifications);
+router.get("/notifications/:hostel_id",authMiddleware, getHostelNotifications);
+router.put("/notifications/:notification_id", upload.single("file"), 
+authMiddleware,
+filterInputMiddleware,
+updateNotification);
+router.delete("/notifications/:notification_id", authMiddleware,deleteNotification);
 
 
 export default router;
