@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
-import { useAuth } from "../contexts/authContext.jsx";
+import { useAuth } from "../contexts/AuthContext.jsx";
 import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
 
 const HomePage = () => {
