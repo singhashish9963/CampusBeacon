@@ -15,9 +15,11 @@ export const createHostel = asyncHandler(async (req, res) => {
   if (!hostel_name?.trim()) {
     throw new ApiError("Hostel Name is required", 400);
   }
+  console.log(req.body);
 
   const hostel = await Hostel.create({ hostel_name });
   res.status(201).json(new ApiResponse(201, hostel, "Hostel created successfully"));
+
 });
 
 export const getAllHostels = asyncHandler(async (req, res) => {
