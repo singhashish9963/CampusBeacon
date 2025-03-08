@@ -5,6 +5,7 @@ import {
   deleteEatery,
   getEatery,
   getAllEateries,
+  rateEatery,
 } from "../controllers/eateries.controller.js";
 import multer from "multer";
 
@@ -14,6 +15,7 @@ const router = express.Router();
 
 router.post("/", upload.single("menuImage"), createEatery);
 router.put("/:id", upload.single("menuImage"), updateEatery);
+router.post("/:id/rate", rateEatery);
 router.delete("/:id", deleteEatery);
 router.get("/:id", getEatery);
 router.get("/", getAllEateries);
