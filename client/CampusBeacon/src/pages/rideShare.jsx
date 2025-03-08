@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Car, AlertTriangle } from "lucide-react";
 import { useRides } from "../contexts/ridesContext";
-import { useAuth } from "../contexts/authContext";
+import { useAuth } from "../contexts/AuthContext";
 import { formatDateTime, isRideActive } from "../utils/dateUtils";
 
 import RideHeader from "../components/rides/RideHeader";

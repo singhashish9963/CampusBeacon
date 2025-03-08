@@ -2,9 +2,10 @@ import express from "express";
 import {
   createUserSubject,
   getUserSubjectById,
+  getUserSubjectsByUserId,
   getAllUserSubjects,
   updateUserSubject,
-  deleteUserSubject,
+  deleteUserSubjectAssignment,
 } from "../controllers/subject.controller.js";
 
 const router = express.Router();
@@ -15,13 +16,16 @@ router.post("/", createUserSubject);
 // Get all user subject assignments
 router.get("/", getAllUserSubjects);
 
-// Get a specific user subject assignment by ID
+// NEW: Get all user subject assignments for a specific user
+router.get("/user/:userId", getUserSubjectsByUserId);
+
+// Get a specific user subject assignment by its primary key ID
 router.get("/:id", getUserSubjectById);
 
-// Update a user subject assignment by ID
+// Update a user subject assignment by its primary key ID
 router.put("/:id", updateUserSubject);
 
-// Delete a user subject assignment by ID
-router.delete("/:id", deleteUserSubject);
+// NEW: Delete a user subject assignment (using userId and subjectId)
+router.delete("/:userId/:subjectId", deleteUserSubjectAssignment);
 
 export default router;

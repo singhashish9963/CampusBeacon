@@ -27,7 +27,7 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
 
 // Sync Models
 sequelize
-  .sync({alter:true})
+  .sync()
   .then(() => {
     console.log("Database & tables have been updated!");
   })
