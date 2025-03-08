@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Car, AlertTriangle } from "lucide-react";
 import { useRides } from "../contexts/ridesContext";
-import { useAuth } from "../contexts/authContext";
+import { useAuth } from "../contexts/AuthContext";
 import { formatDateTime, isRideActive } from "../utils/dateUtils";
-
+import AuthContext from "../contexts/AuthContext";
 import RideHeader from "../components/rides/RideHeader";
 import RideFilters from "../components/rides/RideFilters";
 import RideGrid from "../components/rides/RideGrid";
@@ -392,20 +392,26 @@ const RideShare = () => {
 
         {/* Modals */}
         <AnimatePresence>
-          <RideFormModal
-            isOpen={isFormOpen}
-            editingRide={editingRide}
-            onSubmit={handleFormSubmit}
-            onCancel={() => {
-              setIsFormOpen(false);
-              setEditingRide(null);
-            }}
-          />
-          <DeleteConfirmationModal
-            isOpen={Boolean(confirmDelete)}
-            onDeleteConfirm={() => handleDelete(confirmDelete)}
-            onCancel={() => setConfirmDelete(null)}
-          />
+          {isFormOpen && (
+            <RideFormModal
+              key="ride-form-modal"
+              isOpen={isFormOpen}
+              editingRide={editingRide}
+              onSubmit={handleFormSubmit}
+              onCancel={() => {
+                setIsFormOpen(false);
+                setEditingRide(null);
+              }}
+            />
+          )}
+          {confirmDelete && (
+            <DeleteConfirmationModal
+              key="delete-confirm-modal"
+              isOpen={Boolean(confirmDelete)}
+              onDeleteConfirm={() => handleDelete(confirmDelete)}
+              onCancel={() => setConfirmDelete(null)}
+            />
+          )}
         </AnimatePresence>
       </div>
     </div>
