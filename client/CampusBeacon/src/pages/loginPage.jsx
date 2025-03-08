@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext.jsx";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const LoginSignup = () => {
   const {
@@ -12,26 +12,26 @@ const LoginSignup = () => {
     handleForgetPassword,
     isAuthenticated,
     error: authError,
-    welcomeMessage,
   } = useAuth();
-
   const [isSignUp, setIsSignUp] = useState(false);
   const [authMode, setAuthMode] = useState("default");
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Handle authentication toast and navigation
+  // Handle navigation after successful authentication
+  // This will run whenever isAuthenticated changes
   useEffect(() => {
-    // Debug log
-    console.log("Auth state:", isAuthenticated, "Welcome message:", welcomeMessage);
-    
     if (isAuthenticated) {
-      // Navigation after authentication
+      toast.success("Login successful!", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+
       const timer = setTimeout(() => {
-        console.log("Navigating to home page");
         navigate("/");
       }, 2000);
+
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, navigate]);
@@ -39,9 +39,7 @@ const LoginSignup = () => {
   // Handle error toast separately
   useEffect(() => {
     if (authError) {
-      console.log("Auth error detected:", authError);
       setError(authError);
-      
       toast.error(authError, {
         position: "top-right",
         autoClose: 5000,
@@ -51,12 +49,11 @@ const LoginSignup = () => {
 
   const handleFormSubmit = async (e, type) => {
     e.preventDefault();
-    console.log(`Form submitted: ${type}`);
     setError(null);
     setIsLoading(true);
 
-    // Show a toast immediately on form submission
-    toast.info(`Processing ${type} request...`, {
+    // Show processing toast
+    const toastId = toast.info(`Processing ${type} request...`, {
       position: "top-right",
       autoClose: 2000,
     });
@@ -64,32 +61,24 @@ const LoginSignup = () => {
     try {
       if (type === "forgotPassword") {
         const email = e.target.email.value;
-        await handleForgetPassword(email);
-        toast.info("Password reset link sent to your email", {
-          position: "top-center",
-          autoClose: 4000,
-        });
-        setAuthMode("default");
-      } else {
-        // Explicitly show a toast before making the API call
-        console.log(`Attempting ${type}`);
-        
-        const response = await handleSubmit(e, type);
-        
-        console.log("Response:", response);
-        
-        if (response?.success) {
-          console.log("Authentication successful");
-          toast.success(type === "signUp" ? "Account created successfully!" : "Login successful!", {
-            position: "top-right",
-            autoClose: 2000,
+        const response = await handleForgetPassword(email);
+        if (response && response.success) {
+          toast.info("Password reset link sent to your email", {
+            position: "top-center",
+            autoClose: 4000,
           });
-        } else {
+          setAuthMode("default");
+        }
+      } else {
+        // For login and signup
+        const response = await handleSubmit(e, type);
+
+        // We'll let the isAuthenticated useEffect handle successful login navigation
+        if (!response?.success) {
           throw new Error(response?.message || "Authentication failed");
         }
       }
     } catch (err) {
-      console.error("Error during form submission:", err);
       setError(err.message || "An error occurred");
       toast.error(err.message || "An error occurred", {
         position: "top-right",
@@ -97,6 +86,7 @@ const LoginSignup = () => {
       });
     } finally {
       setIsLoading(false);
+      toast.dismiss(toastId);
     }
   };
 
@@ -131,7 +121,7 @@ const LoginSignup = () => {
       />
     </form>
   );
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center p-4">
       {/* Toast Container */}
@@ -148,7 +138,7 @@ const LoginSignup = () => {
         theme="dark"
         style={{ zIndex: 9999 }}
       />
-      
+
       <AnimatePresence mode="wait">
         {authMode === "default" ? (
           <motion.div
@@ -194,7 +184,7 @@ const LoginSignup = () => {
             </motion.div>
 
             {/* Sign Up Form */}
-            <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg md:border-hidden ">
+            <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg md:border-hidden">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Create New Account
               </h2>
@@ -211,7 +201,7 @@ const LoginSignup = () => {
             </div>
 
             {/* Sign In Form */}
-            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden ">
+            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Welcome Back!
               </h2>
@@ -269,28 +259,8 @@ const LoginSignup = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Keep welcome message overlay as a fallback */}
-      <AnimatePresence>
-        {welcomeMessage && isAuthenticated && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-          >
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="text-white text-4xl md:text-6xl font-bold text-center p-8 rounded-lg"
-            >
-              {welcomeMessage}
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };
 
-export default LoginSignup; 
+export default LoginSignup;
