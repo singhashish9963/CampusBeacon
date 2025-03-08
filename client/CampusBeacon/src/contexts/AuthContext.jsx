@@ -23,16 +23,6 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [welcomeMessage, setWelcomeMessage] = useState("");
-
-  useEffect(() => {
-    if (welcomeMessage) {
-      const timer = setTimeout(() => {
-        setWelcomeMessage("");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [welcomeMessage]);
 
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -62,29 +52,14 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log(`Making ${endpoint} request with:`, data);
       const response = await api.post(`/users${endpoint}`, data);
-
       if (response.data.success) {
         if (response.data.data && response.data.data.user) {
           const userData = response.data.data.user;
           setUser(userData);
           setIsAuthenticated(true);
-
-          // Set appropriate welcome message
-          if (endpoint === "/login") {
-            if (!userData.isVerified) {
-              setError("Please verify your email to continue.");
-            } else {
-              setWelcomeMessage(`Welcome back, ${userData.email}!`);
-            }
-          } else if (endpoint === "/signup") {
-            setWelcomeMessage(
-              "Welcome! Please check your email for verification instructions."
-            );
-          }
         } else {
           setUser(null);
           setIsAuthenticated(false);
-          setWelcomeMessage(response.data.message || "");
         }
         return {
           success: true,
@@ -110,14 +85,10 @@ export const AuthProvider = ({ children }) => {
       console.log("Starting email verification with token:", token);
       const response = await api.get(`/users/verify-email?token=${token}`);
       console.log("Verification response:", response.data);
-
       if (response.data.success && response.data.data?.user) {
         const userData = response.data.data.user;
         setUser(userData);
         setIsAuthenticated(true);
-        setWelcomeMessage(
-          response.data.message || "Email verified successfully!"
-        );
         return {
           success: true,
           user: userData,
@@ -160,7 +131,6 @@ export const AuthProvider = ({ children }) => {
     async (e, actionType) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-
       try {
         let response;
         switch (actionType) {
@@ -204,7 +174,6 @@ export const AuthProvider = ({ children }) => {
   const handleLogout = useCallback(async () => {
     try {
       await api.post("/users/logout");
-
       if (window.socket) {
         window.socket.disconnect();
         window.socket = null;
@@ -215,7 +184,6 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       setError(null);
-      setWelcomeMessage("");
     }
   }, []);
 
@@ -224,7 +192,6 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     error,
     loading,
-    welcomeMessage,
     handleSubmit,
     handleSignIn,
     handleSignUp,
@@ -253,4 +220,3 @@ export const useAuth = () => {
 };
 
 export default AuthContext;
-
