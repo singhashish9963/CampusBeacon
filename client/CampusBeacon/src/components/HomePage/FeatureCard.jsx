@@ -28,7 +28,7 @@ const FeatureCard = ({
     >
       <div
         className={`
-        absolute -inset-0.5 rounded-xl
+        rounded-xl
         bg-gradient-to-r ${gradient}
         opacity-30 group-hover:opacity-75
         blur group-hover:blur-md
@@ -67,7 +67,7 @@ const FeatureCard = ({
             {title}
           </h3>
 
-          <p className="text-base md:text-lg text-gray-400 font-mono leading-relaxed">
+          <p className="text-base p-4 md:text-lg text-gray-400 font-mono leading-relaxed">
             {description}
           </p>
 
