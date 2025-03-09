@@ -36,7 +36,7 @@ const FeatureCard = ({
       `}
       />
 
-      <div className="relative p-8 bg-gray-900/90 backdrop-blur-md rounded-xl">
+      <div className="relative p-5 bg-gray-900/90 backdrop-blur-md rounded-xl">
         <div className="flex flex-col items-center text-center space-y-6">
           <motion.div
             whileHover={{
@@ -90,34 +90,6 @@ const FeatureCard = ({
           transition duration-300
         `}
         />
-      </div>
-
-      <div className="absolute -inset-2 z-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-        {[...Array(3)].map((_, i) => (
-          <motion.div
-            key={i}
-            className={`
-              absolute w-2 h-2 rounded-full
-              bg-gradient-to-r ${gradient}
-            `}
-            initial={{
-              x: Math.random() * 100 - 50,
-              y: Math.random() * 100 - 50,
-              opacity: 0,
-            }}
-            animate={{
-              x: Math.random() * 200 - 100,
-              y: Math.random() * 200 - 100,
-              opacity: [0, 1, 0],
-              scale: [0.5, 1, 0.5],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              delay: i * 0.2,
-            }}
-          />
-        ))}
       </div>
     </motion.div>
   );
