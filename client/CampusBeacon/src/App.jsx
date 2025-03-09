@@ -11,7 +11,6 @@ import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
 import SVBH from "./pages/HostelPages/SVBH.jsx";
 import DJGH from "./pages/HostelPages/DJGH.jsx";
-import CommunityPage from "./pages/communityPage.jsx";
 import { ProfileProvider } from "./contexts/profileContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { LostAndFoundProvider } from "./contexts/lostandfoundContext.jsx";
@@ -46,8 +45,6 @@ import { ComplaintProvider } from "./contexts/hostelContext.jsx";
 import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
 
 import ChatProvider from "./contexts/chatContext.jsx";
-
-=======
 import HostelPage from "./pages/HostelPages/HostelPage.jsx";
 
 
@@ -99,7 +96,6 @@ function App() {
                                   <Route path="/resource" element={<ResourcesPage />} />
                                   <Route path="/attendance" element={<AttendanceManager />} />
                                   <Route path="/eatries" element={<CollegeEateries />} />
-                                  <Route path="/community" element={<CommunityPage />} />
                                   <Route path="/hostels" element={<AdminHostelPage />} />
                                   <Route path="/hostels/:hostel_id" element={<HostelPage />} />
                                 </Route>
