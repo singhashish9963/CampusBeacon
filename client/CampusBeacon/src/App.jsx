@@ -45,8 +45,6 @@ import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
 
 import HostelPage from "./pages/HostelPages/HostelPage.jsx";
 
-import ChatProvider from "./contexts/chatContext.jsx";
-import ChatApp from "./pages/Chat/ChatApp.jsx";
 import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
 
 
