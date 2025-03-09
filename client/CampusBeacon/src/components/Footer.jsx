@@ -13,23 +13,23 @@ import {
   SiFramer,
   SiDocker,
   SiVercel,
-  SiPrisma
+  SiPrisma,
 } from "react-icons/si";
-import { FaLinkedin, FaEnvelope, FaGithub, FaTwitter, FaInstagram } from "react-icons/fa";
+import {
+  FaLinkedin,
+  FaEnvelope,
+  FaGithub,
+  FaTwitter,
+  FaInstagram,
+} from "react-icons/fa";
 import { BiLogoPostgresql } from "react-icons/bi";
 
-
-
-  const technologies = [
-    { Icon: SiJavascript, name: "JavaScript", color: "hover:text-yellow-400" },
-    { Icon: SiReact, name: "React", color: "hover:text-cyan-400" },
-    { Icon: SiNodedotjs, name: "Node.js", color: "hover:text-green-500" },
-    { Icon: SiSocketdotio, name: "Socket.IO", color: "hover:text-white" },
-    { Icon: BiLogoPostgresql, name: "PostgreSQL", color: "hover:text-blue-400" },
-    { Icon: SiTailwindcss, name: "Tailwind CSS", color: "hover:text-teal-400" },
-    { Icon: SiFramer, name: "Framer Motion", color: "hover:text-purple-400" },
-    { Icon: SiVercel, name: "Vercel", color: "hover:text-gray-400" }
-  ];
+const technologies = [
+  { Icon: SiJavascript, name: "JavaScript", color: "hover:text-yellow-400" },
+  { Icon: SiReact, name: "React", color: "hover:text-cyan-400" },
+  { Icon: SiNodedotjs, name: "Node.js", color: "hover:text-green-500" },
+  { Icon: BiLogoPostgresql, name: "PostgreSQL", color: "hover:text-blue-400" },
+];
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -45,46 +45,8 @@ const Footer = () => {
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 gap-25 mb-16">
           {/* About Section */}
-          <div>
-            <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6"
-            >
-              About CampusBeacon
-            </motion.h3>
-            <p className="text-gray-400 mb-6">
-              Your comprehensive campus companion, connecting students with
-              resources, opportunities, and each other in one seamless platform.
-            </p>
-            <motion.div
-              className="flex space-x-4"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <a
-                href="https://twitter.com/campusbeacon"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <FaTwitter size={20} />
-              </a>
-              <a
-                href="https://instagram.com/campusbeacon"
-                className="text-gray-400 hover:text-pink-400 transition-colors"
-              >
-                <FaInstagram size={20} />
-              </a>
-              <a
-                href="https://github.com/campusbeacon"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                <FaGithub size={20} />
-              </a>
-            </motion.div>
-          </div>
 
           {/* Contact Section */}
           <div>
@@ -126,6 +88,31 @@ const Footer = () => {
                 <HiLocationMarker className="text-xl group-hover:scale-110 transition-transform" />
                 <span>MNNIT Allahabad</span>
               </motion.a>
+              <motion.div
+                className="flex space-x-4"
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              >
+                <a
+                  href="https://twitter.com/campusbeacon"
+                  className="text-gray-400 hover:text-blue-400 transition-colors"
+                >
+                  <FaTwitter size={20} />
+                </a>
+                <a
+                  href="https://instagram.com/campusbeacon"
+                  className="text-gray-400 hover:text-pink-400 transition-colors"
+                >
+                  <FaInstagram size={20} />
+                </a>
+                <a
+                  href="https://github.com/campusbeacon"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <FaGithub size={20} />
+                </a>
+              </motion.div>
             </div>
           </div>
 
@@ -138,7 +125,7 @@ const Footer = () => {
             >
               Built With
             </motion.h3>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-4 grid-flow-row gap-0.5rem">
               {technologies.map(({ Icon, name, color }) => (
                 <motion.div
                   key={name}
@@ -148,7 +135,7 @@ const Footer = () => {
                   className={`text-gray-400 ${color} transition-colors cursor-pointer`}
                   title={name}
                 >
-                  <Icon size={24} />
+                  <Icon size={25} />
                 </motion.div>
               ))}
             </div>
@@ -229,37 +216,36 @@ const Footer = () => {
                   </a>
                 </div>
               </motion.div>
-             
             </div>
           </div>
         </div>
 
         {/* Bottom Section */}
         <div className="border-t border-gray-800 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
+          <div className="flex flex-col justify-between items-center">
             <motion.p
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}
-              className="text-gray-400 text-sm mb-4 md:mb-0"
+              className="text-gray-400 text-lg mb-7"
             >
               © {new Date().getFullYear()} CampusBeacon. All rights reserved.
             </motion.p>
             <div className="flex space-x-6">
               <a
                 href="/policy"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
+                className="text-gray-400 hover:text-white text-lg transition-colors"
               >
                 Privacy Policy
               </a>
               <a
                 href="/terms"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
+                className="text-gray-400 hover:text-white text-lg transition-colors"
               >
                 Terms of Service
               </a>
               <a
                 href="/about"
-                className="text-gray-400 hover:text-white text-sm transition-colors"
+                className="text-gray-400 hover:text-white text-lg transition-colors"
               >
                 About Us
               </a>
