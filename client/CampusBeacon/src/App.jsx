@@ -19,7 +19,7 @@ import BuyAndSellProvider from "./contexts/buyandsellContext.jsx";
 import AboutUs from "./pages/AboutUs.jsx";
 import ContactsDisplay from "./pages/ContactPage.jsx";
 import { ContactContextProvider } from "./contexts/contactContext.jsx";
-import { ChatContextProvider } from "./contexts/chatContext.jsx";
+// import { ChatContextProvider } from "./contexts/chatContext.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
 import { ChatbotProvider } from "./contexts/chatBotContext.jsx";
@@ -44,12 +44,13 @@ import { OfficialProvider } from "./contexts/hostelContext.jsx";
 import { NotificationsProvider } from "./contexts/hostelContext.jsx"; 
 import { ComplaintProvider } from "./contexts/hostelContext.jsx";
 import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
-<<<<<<<<< Temporary merge branch 1
-import HostelPage from "./pages/HostelPages/HostelPage.jsx";
-=========
-import ChatProvider from "./contexts/chatContext.jsx";
 
->>>>>>>>> Temporary merge branch 2
+import HostelPage from "./pages/HostelPages/HostelPage.jsx";
+
+import ChatProvider from "./contexts/chatContext.jsx";
+import ChatApp from "./pages/Chat/ChatApp.jsx";
+import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
+
 
 function App() {
   return (
@@ -57,7 +58,7 @@ function App() {
       <AttendanceProvider>
         <ChatbotProvider>
           <EateriesProvider>
-            <ChatContextProvider>
+            {/* <ChatContextProvider> */}
               <ContactContextProvider>
                 <BuyAndSellProvider>
                   <LostAndFoundProvider>
@@ -95,11 +96,12 @@ function App() {
                                 <Route element={<ProtectedRoute />}>
                                   <Route path="/profile" element={<ProfilePage />} />
                                   <Route path="/marketplace" element={<Marketplace />} />
+                                  <Route path="/chat" element={<ChatTestPage />} />
                                   <Route path="/lost-found" element={<LostAndFound />} />
                                   <Route path="/resource" element={<ResourcesPage />} />
                                   <Route path="/attendance" element={<AttendanceManager />} />
                                   <Route path="/eatries" element={<CollegeEateries />} />
-                                  <Route path="/community" element={<CommunityPage />} />
+                                  {/* <Route path="/community" element={<CommunityPage />} /> */}
                                   <Route path="/hostels" element={<AdminHostelPage />} />
                                   <Route path="/hostels/:hostel_id" element={<HostelPage />} />
                                 </Route>
@@ -121,7 +123,7 @@ function App() {
                   </LostAndFoundProvider>
                 </BuyAndSellProvider>
               </ContactContextProvider>
-            </ChatContextProvider>
+            {/* </ChatContextProvider> */}
           </EateriesProvider>
         </ChatbotProvider>
       </AttendanceProvider>
