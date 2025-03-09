@@ -7,6 +7,11 @@ import { User } from "../models/association.js";
 
 const getMessages = asyncHandler(async (req, res) => {
   const { channelId } = req.params;
+  // Read pagination parameters from the query string
+  // Default page to 1 and limit to 20 messages per page
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 20;
+  const offset = (page - 1) * limit;
 
   const channel = await Channel.findOne({
     where: { name: channelId.toLowerCase() },
@@ -26,12 +31,20 @@ const getMessages = asyncHandler(async (req, res) => {
           attributes: ["id", "name", "email"], // Update these attributes to match your User model
         },
       ],
+      offset: offset,
+      limit: limit,
       raw: false,
     });
 
     return res
       .status(200)
-      .json(new ApiResponse(200, messages, "Messages fetched successfully"));
+      .json(
+        new ApiResponse(
+          200,
+          { messages, page, limit },
+          "Messages fetched successfully"
+        )
+      );
   } catch (error) {
     console.error("Database error:", error);
     throw new ApiError(500, "Error fetching messages");
