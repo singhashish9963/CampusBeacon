@@ -125,7 +125,7 @@ const HomePage = () => {
                 Everything you need for a connected campus life
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
               <FeatureCard
                 icon={Coffee}
                 title="Eateries"
@@ -134,7 +134,7 @@ const HomePage = () => {
                 gradient="from-amber-500 via-orange-500 to-red-500"
               />
               <FeatureCard
-                icon={Users}
+                icon={Users}  
                 title="Hostel Management"
                 description="Seamless hostel allocation and maintenance system"
                 href="/hostel"
