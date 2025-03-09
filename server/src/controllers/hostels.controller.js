@@ -15,11 +15,9 @@ export const createHostel = asyncHandler(async (req, res) => {
   if (!hostel_name?.trim()) {
     throw new ApiError("Hostel Name is required", 400);
   }
-  console.log(req.body);
 
   const hostel = await Hostel.create({ hostel_name });
   res.status(201).json(new ApiResponse(201, hostel, "Hostel created successfully"));
-
 });
 
 export const getAllHostels = asyncHandler(async (req, res) => {
@@ -192,7 +190,7 @@ export const createOfficial = asyncHandler(async (req, res, next) => {
         throw new ApiError("Hostel not found", 404);
     }
 
-    const official = await Official.create({ hostel_id, name, email, phone, designation });
+    const official = await Official.create({ hostel_id: Number(hostel_id), name, email, phone, designation });
 
     res.status(201).json(new ApiResponse(201, official, "Official added successfully"));
 });
@@ -303,17 +301,37 @@ export const createComplaint = asyncHandler(async (req, res) => {
   res.status(201).json(new ApiResponse(201, complaint, "Complaint submitted successfully!"));
 });
 
-export const getComplaints = asyncHandler(async (req, res) => {
+export const getAllComplaints = asyncHandler(async (req, res, next) => {
   const complaints = await Complaint.findAll();
-  res.status(200).json(complaints);
+
+  res.status(200).json(new ApiResponse(200, complaints, "Complaints retrieved successfully"));
 });
 
-export const getHostelComplaints = asyncHandler(async (req, res) => {
+// Get a specific complaint by its ID
+export const getComplaintById = asyncHandler(async (req, res, next) => {
+  const { complaint_id } = req.params;
+
+  const complaint = await Complaint.findByPk(complaint_id);
+  if (!complaint) {
+      throw new ApiError("Complaint not found", 404);
+  }
+
+  res.status(200).json(new ApiResponse(200, complaint, "Complaint details retrieved successfully"));
+});
+
+// Get complaints by hostel ID
+export const getComplaintsByHostel = asyncHandler(async (req, res, next) => {
   const { hostel_id } = req.params;
-  const complaints = await Complaint.findAll({ where: { hostel_id } });
 
-  res.status(200).json(complaints);
+  const complaints = await Complaint.findAll({ where: { hostel_id } });
+  if (!complaints.length) {
+      throw new ApiError("No complaints found for this hostel", 404);
+  }
+
+  res.status(200).json(new ApiResponse(200, complaints, "Complaints retrieved successfully"));
 });
+
+
 
 export const updateComplaint = asyncHandler(async (req, res) => {
   const { complaint_id } = req.params;
