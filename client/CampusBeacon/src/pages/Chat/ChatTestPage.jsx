@@ -1,254 +1,295 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ChatApp from "./ChatApp";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageSquare,
   Hash,
   Code,
   Bell,
   Zap,
-  Users,
   Search,
   Settings,
   Moon,
   Sun,
   LogOut,
+  BellRing,
 } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { useProfile } from "../../contexts/profileContext";
 
+// Define available channels.
 const channels = [
   { id: 1, name: "General Chat", icon: <MessageSquare size={18} /> },
   { id: 2, name: "Random", icon: <Hash size={18} /> },
   { id: 3, name: "Tech Talk", icon: <Code size={18} /> },
-  { id: 4, name: "MNNIT Announcements", icon: <Bell size={18} /> },
-  { id: 5, name: "Sports Chat", icon: <Zap size={18} /> },
+  { id: 4, name: "Announcements", icon: <Bell size={18} /> },
+  { id: 5, name: "Sports", icon: <Zap size={18} /> },
+];
+
+// Array of dynamic fact and quote strings related to MNNIT
+const mnnitFacts = [
+  "MNNIT– Excellence in Engineering and Innovation",
+  "Campus Festivities: Diwali, Holi, TechFest and Annual Cultural Fiesta",
+  "MNNIT: Where tradition meets cutting-edge research",
+  "Explore our state-of-the-art labs and creative minds",
+  "MNNIT has a rich heritage and vibrant festival spirit",
+  "Commitment, Creativity & Community – That’s MNNIT",
+  "Drowned in knowledge, driven by passion: MNNIT",
 ];
 
 const ChatTestPage = () => {
+  const { user: authUser } = useAuth();
+  const { user: profileUser } = useProfile();
   const [selectedChannel, setSelectedChannel] = useState(channels[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(true);
   const [showUserPanel, setShowUserPanel] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
 
-  // Mock user data
-  const currentUser = {
-    name: "John Doe",
-    registration_number: "MNNIT/2023/B42",
-    avatar: "/api/placeholder/40/40",
-    status: "online",
-  };
+  // Dynamic fact displayed on the sidebar with interval 10 seconds
+  const [currentFactIndex, setCurrentFactIndex] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentFactIndex((prevIndex) =>
+        prevIndex === mnnitFacts.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
-  // Filter channels based on search query
+  // Additional informational elements to be displayed in the sidebar
+  const additionalInfo = [
+    "MNNIT stands for Motilal Nehru National Institute of Technology.",
+    "Located in Allahabad, we celebrate our heritage every festival season.",
+    "Our campus is known for its academic excellence and innovation.",
+    "Join events like TechFest, Cultural Fiesta, and Annual Sports Meet.",
+  ];
+
+  // Fetch current user data from backend (using auth and profile data)
+  useEffect(() => {
+    if (authUser && profileUser) {
+      setCurrentUser({
+        id: authUser.id,
+        name: profileUser.name || authUser.email,
+        registration_number:
+          profileUser.registration_number || "Not registered",
+        avatar:
+          profileUser.avatar ||
+          `https://robohash.org/${authUser.id}?set=set4&size=150x150`,
+        status: "online",
+      });
+    }
+  }, [authUser, profileUser]);
+
+  // Filter channels based on search query.
   const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
     <div
-      className={`min-h-screen flex ${
+      className={`flex flex-col lg:flex-row min-h-screen transition-colors duration-300 ${
         darkMode
           ? "bg-gradient-to-b from-[#0B1026] to-[#1A1B35] text-white"
           : "bg-gradient-to-b from-gray-100 to-white text-gray-800"
       }`}
     >
-      {/* Sidebar with channels */}
+      {/* Left Sidebar */}
       <aside
-        className={`w-64 ${
-          darkMode ? "bg-gray-900/50" : "bg-gray-100"
-        } border-r ${
-          darkMode ? "border-gray-700" : "border-gray-200"
-        } flex flex-col`}
+        className={`w-full lg:w-64 flex-shrink-0 p-4 ${
+          darkMode ? "bg-gray-900/70" : "bg-gray-100"
+        } border-b lg:border-b-0 lg:border-r ${
+          darkMode ? "border-gray-700" : "border-gray-300"
+        } flex flex-col justify-between`}
       >
-        {/* App Header */}
-        <div className="p-4 border-b border-gray-700">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center space-x-2"
-          >
-            <div className="w-8 h-8 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold">
-              M
+        <div>
+          {/* App Header */}
+          <div className="flex items-center justify-between mb-4">
+            <motion.div className="flex items-center space-x-3">
+              <div className="w-10 h-10 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold shadow-lg">
+                M
+              </div>
+              <h1 className="text-2xl font-bold">MNNIT Chat</h1>
+            </motion.div>
+            <button className="p-2 rounded-full hover:bg-gray-800">
+              <BellRing size={20} className="text-white" />
+            </button>
+          </div>
+          {/* Search Input */}
+          <div className="mb-4">
+            <div
+              className={`flex items-center space-x-2 rounded-full ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              } px-4 py-2 shadow-md`}
+            >
+              <Search size={18} className="text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search channels"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent border-none focus:outline-none text-md w-full"
+              />
             </div>
-            <h1 className="text-xl font-bold">MNNIT Chat</h1>
-          </motion.div>
-        </div>
-
-        {/* Search */}
-        <div className="p-4">
-          <div
-            className={`flex items-center space-x-2 rounded-md ${
-              darkMode ? "bg-gray-800" : "bg-white"
-            } p-2`}
-          >
-            <Search size={16} className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search channels"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-transparent border-none focus:outline-none text-sm w-full"
-            />
+          </div>
+          {/* Channel List */}
+          <div className="mb-6">
+            <h2 className="text-xs uppercase tracking-wider text-gray-400 mb-3 font-semibold">
+              Channels
+            </h2>
+            <ul className="space-y-2">
+              {filteredChannels.map((channel) => (
+                <motion.li
+                  key={channel.id}
+                  whileHover={{ x: 4 }}
+                  className={`cursor-pointer rounded-xl p-3 transition-all ${
+                    selectedChannel.id === channel.id
+                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xl"
+                      : darkMode
+                      ? "hover:bg-gray-800/70"
+                      : "hover:bg-gray-200"
+                  }`}
+                  onClick={() => setSelectedChannel(channel)}
+                >
+                  <div className="flex items-center space-x-3">
+                    {channel.icon}
+                    <span className="font-medium">{channel.name}</span>
+                  </div>
+                </motion.li>
+              ))}
+            </ul>
+          </div>
+          {/* Dynamic Fact Display */}
+          <div className="p-4 bg-gray-800 rounded-xl shadow-inner">
+            <p className="text-lg font-medium text-gray-200">
+              {mnnitFacts[currentFactIndex]}
+            </p>
+          </div>
+          {/* Additional MNNIT Info */}
+          <div className="mt-4 space-y-2">
+            {additionalInfo.map((info, idx) => (
+              <p key={idx} className="text-sm text-gray-400">
+                • {info}
+              </p>
+            ))}
           </div>
         </div>
-
-        {/* Channel List */}
-        <div className="flex-1 overflow-y-auto p-4">
-          <h2 className="text-xs uppercase tracking-wider text-gray-500 mb-2 font-semibold">
-            Channels
-          </h2>
-          <ul className="space-y-1">
-            {filteredChannels.map((channel) => (
-              <motion.li
-                key={channel.id}
-                whileHover={{ x: 4 }}
-                className={`cursor-pointer rounded-md flex items-center justify-between p-2 ${
-                  selectedChannel.id === channel.id
-                    ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white"
-                    : darkMode
-                    ? "hover:bg-gray-800"
-                    : "hover:bg-gray-200"
-                }`}
-                onClick={() => setSelectedChannel(channel)}
-              >
-                <div className="flex items-center space-x-2">
-                  {channel.icon}
-                  <span>{channel.name}</span>
-                </div>
-              </motion.li>
-            ))}
-          </ul>
-        </div>
-
-        {/* User Profile */}
+        {/* Settings Panel */}
         <div
-          className={`p-4 border-t ${
-            darkMode ? "border-gray-700" : "border-gray-200"
-          } flex items-center justify-between cursor-pointer`}
+          className={`mt-8 p-4 border-t ${
+            darkMode ? "border-gray-700" : "border-gray-300"
+          } flex items-center justify-between cursor-pointer relative`}
           onClick={() => setShowUserPanel(!showUserPanel)}
         >
-          <div className="flex items-center space-x-2">
-            <div className="relative">
+          {currentUser && (
+            <div className="flex items-center space-x-3">
               <img
                 src={currentUser.avatar}
                 alt="Avatar"
-                className="w-8 h-8 rounded-full object-cover"
+                className="w-10 h-10 rounded-full object-cover shadow-md"
               />
-              <span className="absolute bottom-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-gray-900"></span>
+              <div>
+                <p className="text-lg font-medium">{currentUser.name}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-medium">{currentUser.name}</p>
-              <p className="text-xs text-gray-500">
-                {currentUser.registration_number}
-              </p>
-            </div>
-          </div>
-          <Settings size={16} className="text-gray-400" />
-        </div>
-
-        {/* User Panel (slides up when clicked) */}
-        {showUserPanel && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            className={`absolute bottom-16 left-4 w-56 ${
-              darkMode ? "bg-gray-800" : "bg-white"
-            } rounded-lg shadow-lg p-4 z-10 border ${
-              darkMode ? "border-gray-700" : "border-gray-200"
-            }`}
-          >
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium">Appearance</span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDarkMode(!darkMode);
-                }}
-                className="p-1 rounded-md bg-gray-700 text-gray-300"
+          )}
+          <Settings size={20} className="text-gray-400" />
+          <AnimatePresence>
+            {showUserPanel && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className={`absolute bottom-full left-4 w-60 ${
+                  darkMode ? "bg-gray-800" : "bg-white"
+                } rounded-xl shadow-2xl p-4 z-10 border ${
+                  darkMode ? "border-gray-700" : "border-gray-300"
+                }`}
               >
-                {darkMode ? <Sun size={14} /> : <Moon size={14} />}
-              </button>
-            </div>
-            <button className="flex items-center space-x-2 text-red-500 text-sm mt-4 w-full">
-              <LogOut size={14} />
-              <span>Sign Out</span>
-            </button>
-          </motion.div>
-        )}
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-md font-semibold">Appearance</span>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDarkMode(!darkMode);
+                    }}
+                    className="p-2 rounded-full bg-gray-700 text-white"
+                  >
+                    {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+                  </button>
+                </div>
+                <button className="flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-red-600 text-white font-medium">
+                  <LogOut size={16} />
+                  Sign Out
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </aside>
 
-      {/* Main Chat Area */}
-      <main className="flex-1">
-        <ChatApp
-          channelId={selectedChannel.id}
-          channelName={selectedChannel.name}
-          darkMode={darkMode}
-          currentUser={currentUser}
-        />
+      {/* Middle Chat Area */}
+      <main className="flex-1 bg-gray-900/60">
+        {currentUser && (
+          <ChatApp
+            channelId={selectedChannel.id}
+            channelName={selectedChannel.name}
+            darkMode={darkMode}
+            currentUser={currentUser}
+          />
+        )}
       </main>
 
-      {/* Users Online Panel */}
-      <aside
-        className={`w-64 ${
-          darkMode ? "bg-gray-900/50" : "bg-gray-100"
-        } border-l ${
-          darkMode ? "border-gray-700" : "border-gray-200"
-        } p-6 hidden lg:block`}
-      >
-        <div className="flex items-center space-x-2 mb-4">
-          <Users size={18} />
-          <h2 className="text-lg font-bold">Users Online</h2>
+      {/* Right Panel - Cosmic Dashboard */}
+      <aside className="w-full lg:w-80 flex-shrink-0 bg-gray-900/70 border-t lg:border-t-0 lg:border-l border-gray-700 p-6 relative overflow-hidden">
+        {/* Animated Stars Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div
+            className="w-full h-full bg-[url('/assets/stars.png')] bg-cover opacity-30 animate-pulse"
+            initial={{ opacity: 0.2 }}
+            animate={{ opacity: 0.5 }}
+            transition={{ yoyo: Infinity, duration: 2 }}
+          />
         </div>
-
-        <div className="space-y-3">
-          {/* Mock online users */}
-          {[
-            {
-              name: "John Doe",
-              registration_number: "MNNIT/2023/B42",
-              status: "online",
-            },
-            {
-              name: "Jane Smith",
-              registration_number: "MNNIT/2022/A19",
-              status: "idle",
-            },
-            {
-              name: "Mike Johnson",
-              registration_number: "MNNIT/2023/C78",
-              status: "online",
-            },
-            {
-              name: "Sara Williams",
-              registration_number: "MNNIT/2021/D33",
-              status: "offline",
-            },
-          ].map((user, index) => (
-            <div key={index} className="flex items-center space-x-3">
-              <div className="relative">
-                <img
-                  src={`/api/placeholder/${40 + index}/${40 + index}`}
-                  alt="User avatar"
-                  className="w-8 h-8 rounded-full"
-                />
-                <span
-                  className={`absolute bottom-0 right-0 w-2 h-2 rounded-full border-2 ${
-                    darkMode ? "border-gray-900" : "border-white"
-                  } ${
-                    user.status === "online"
-                      ? "bg-green-500"
-                      : user.status === "idle"
-                      ? "bg-yellow-500"
-                      : "bg-gray-500"
-                  }`}
-                ></span>
-              </div>
-              <div>
-                <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-xs text-gray-500">
-                  {user.registration_number}
-                </p>
-              </div>
-            </div>
-          ))}
+        <div className="relative z-10">
+          <motion.h2
+            className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 mb-4"
+            initial={{ x: -50, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            Cosmic Dashboard
+          </motion.h2>
+          <motion.div
+            className="p-4 rounded-xl border border-amber-500 shadow-xl mb-6 animate-[borderGlow_3s_infinite]"
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 1 }}
+          >
+            <p className="text-lg font-medium text-gray-200">
+              {mnnitFacts[currentFactIndex]}
+            </p>
+            <p className="mt-2 text-sm text-gray-400">
+              {(() => {
+                const fact = mnnitFacts[currentFactIndex];
+                if (fact.includes("Diwali") || fact.includes("Holi")) {
+                  return "Celebrate the vibrant festivals of MNNIT with joy and unity.";
+                }
+                return `Experience the spirit of MNNIT: innovation, festivity, and academic excellence.`;
+              })()}
+            </p>
+          </motion.div>
+          <motion.div
+            className="mt-8"
+            initial={{ y: 50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 1.5, ease: "easeOut" }}
+          >
+            <p className="text-sm text-gray-500">
+              Our campus pulses with energy – from running lightning borders to
+              gentle rains and twinkling stars. Discover the magic of MNNIT!
+            </p>
+          </motion.div>
         </div>
       </aside>
     </div>
