@@ -71,17 +71,6 @@ const QuickLinks = () => {
               className="relative group"
             >
               <Link to={link.href}>
-                {/* Animated gradient background */}
-                <div
-                  className={`
-                  absolute -inset-0.5 rounded-xl 
-                  bg-gradient-to-r ${link.gradient}
-                  opacity-30 group-hover:opacity-50
-                  blur-sm group-hover:blur
-                  transition duration-500
-                `}
-                />
-
                 {/* Main card content */}
                 <div
                   className={`
@@ -111,11 +100,8 @@ const QuickLinks = () => {
                   <h3
                     className={`
                     mt-4 text-lg font-semibold
-                    text-gray-200 group-hover:bg-gradient-to-r 
-                    group-hover:${link.gradient}
-                    group-hover:bg-clip-text 
-                    group-hover:text-transparent
-                    transition duration-300
+                    text-gray-200
+                   
                   `}
                   >
                     {link.label}

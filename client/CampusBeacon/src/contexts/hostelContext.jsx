@@ -1,5 +1,4 @@
-import { createContext, useContext, useState, useEffect } from "react";
-import React from "react";
+import React, { createContext, useContext, useState, useCallback, useEffect } from "react";
 import axios from "axios";
 
 const api = axios.create({
@@ -10,166 +9,184 @@ const api = axios.create({
   },
 });
 
-
-// Function to get authentication headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("authToken");
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-const handleAuthError = (err) => {
-  if (err.response?.status === 401) {
-    localStorage.removeItem("authToken");
-  }
-};
-
-
 // Hostel Context
-const HostelContext = createContext();
+const HostelContext = createContext(null);
 
 export const HostelProvider = ({ children }) => {
   const [hostels, setHostels] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetchHostels();
-  }, []);
-
-  const fetchHostels = async () => {
-    setLoading(true);
+  const fetchHostels = useCallback(async () => {
     try {
-      const response = await api.get("/hostels/hostels", { headers: getAuthHeaders() });
+      setLoading(true);
+      const response = await api.get("/hostels/hostels");
       setHostels(response.data.data);
-    } catch (err) {
-      handleAuthError(err);
-      setError("Failed to fetch hostels");
+    } catch (error) {
+      console.error("Error fetching hostels:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
  const createHostel = async (hostelData) => {
-    try {
-      const response = await api.post("/hostels/hostels", hostelData, { headers: getAuthHeaders() });
-      setHostels([...hostels, response.data.data]);
-    } catch (err) {
-      handleAuthError(err);
-      setError("Failed to create hostel");
-    }
-  };
+  try {
+    const response = await api.post("/hostels/hostels", hostelData); 
+    setHostels((prev) => [...prev, response.data.data]);
+    return response.data.data;
+  } catch (error) {
+    console.error("Error creating hostel:", error);
+    throw error;
+  }
+};
 
-  const updateHostel = async (id, hostelData) => {
-    try {
-      const response = await api.put(`/hostels/hostels/${id}`, hostelData, { headers: getAuthHeaders() });
-      setHostels(hostels.map(h => (h.id === id ? response.data.data : h)));
-    } catch (err) {
-      setError(err.response?.data?.message || "Error updating hostel");
-    }
-  };
+const updateHostel = async (hostel_id, hostelData) => {
+  try {
+    const response = await api.put(`/hostels/hostels/${hostel_id}`, hostelData); 
+    setHostels((prev) => prev.map((h) => (h.hostel_id === hostel_id ? response.data.data : h)));
+    return response.data.data;
+  } catch (error) {
+    console.error("Error updating hostel:", error);
+    throw error;
+  }
+};
 
-  const deleteHostel = async (id) => {
-    try {
-      await api.delete(`/hostels/hostels/${id}`, { headers: getAuthHeaders() });
-      setHostels(hostels.filter(h => h.id !== id));
-    } catch (err) {
-      setError(err.response?.data?.message || "Error deleting hostel");
-    }
-  };
+const deleteHostel = async (hostel_id) => {
+  try {
+    await api.delete(`/hostels/hostels/${hostel_id}`); 
+    setHostels((prev) => prev.filter((h) => h.hostel_id !== hostel_id));
+  } catch (error) {
+    console.error("Error deleting hostel:", error);
+    throw error;
+  }
+};
 
 
   return (
-    <HostelContext.Provider
-      value={{ hostels, loading, error, fetchHostels, createHostel, updateHostel, deleteHostel }}
-    >
+    <HostelContext.Provider value={{ hostels, fetchHostels, createHostel, updateHostel, deleteHostel, loading }}>
       {children}
     </HostelContext.Provider>
   );
 };
 
-export const useHostel = () => useContext(HostelContext);
+export const useHostel = () => {
+  const context = useContext(HostelContext);
+  if (!context) {
+    throw new Error("useHostel must be used within a HostelProvider");
+  }
+  return context;
+};
 
 // Menu Context
-const MenuContext = createContext();
-
-export const useMenu = () => useContext(MenuContext);
+const MenuContext = createContext(null);
 
 export const MenuProvider = ({ children }) => {
   const [menus, setMenus] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const fetchMenus = async (hostelId) => {
-    setLoading(true);
+  // Fetch menus for a specific hostel
+  const fetchMenuByHostel = useCallback(async (hostel_id) => {
     try {
-      const response = await api.get(`/hostels/hostels/${hostelId}`, {
-        headers: getAuthHeaders(),
-      });
+      setLoading(true);
+      const response = await api.get(`/hostels/menus/hostel/${hostel_id}`); // Fetch menus by hostel_id
       setMenus(response.data.data);
-    } catch (err) {
-      console.error("Error fetching menus:", err.response?.data || err);
-      setError(err.response?.data?.message || "Error fetching menus");
+    } catch (error) {
+      console.error("Error fetching menus for hostel:", error);
     } finally {
       setLoading(false);
     }
-  };
-  
+  }, []);
 
-  const createMenu = async (menuData) => {
-    setLoading(true);
+  // Fetch a specific menu by its ID
+  const fetchMenuById = useCallback(async (menu_id) => {
     try {
-      const response = await api.post("/hostel/menu", menuData, {
-        headers: getAuthHeaders(),
-      });
-      setMenus((prev) => [...prev, response.data.data]);
-    } catch (err) {
-      console.error("Error creating menu:", err.response?.data || err);
-      setError(err.response?.data?.message || "Error creating menu");
+      setLoading(true);
+      const response = await api.get(`/hostels/menus/${menu_id}`); // Fetch a menu by menu_id
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching menu:", error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch a specific meal from a menu
+  const fetchMenuMeal = async (hostel_id, day, meal) => {
+    try {
+      setLoading(true);
+      const response = await api.get(`/hostels/menus/meal/${hostel_id}/${day}/${meal}`); // Fetch meal by hostel_id, day, and meal type
+      return response.data.data;
+    } catch (error) {
+      console.error("Error fetching menu meal:", error);
+      throw error;
     } finally {
       setLoading(false);
     }
   };
-  
 
- const updateMenuMeal = async (hostelId, day, meal, newMeal) => {
-  setLoading(true);
-  try {
-    const response = await api.put(`/menu/${hostelId}/${day}/${meal}`, 
-      { newMeal }, 
-      { headers: getAuthHeaders() }
-    );
-    setMenus((prev) => prev.map(menu => (menu.day === day ? response.data.data : menu)));
-  } catch (err) {
-    console.error("Error updating meal:", err.response?.data || err);
-    setError(err.response?.data?.message || "Error updating meal");
-  } finally {
-    setLoading(false);
-  }
-};
+  // Create a new menu
+  const createMenu = async (menuData) => {
+    try {
+      const response = await api.post("/hostels/menus", menuData); // POST request to create a new menu
+      setMenus((prev) => [...prev, response.data.data]); // Add new menu to the list
+      return response.data.data;
+    } catch (error) {
+      console.error("Error creating menu:", error);
+      throw error;
+    }
+  };
 
+  // Update an existing menu's meal
+  const updateMenuMeal = async (hostel_id, day, meal, newMeal) => {
+    try {
+      const response = await api.put(`/hostels/menus/meal/${hostel_id}/${day}/${meal}`, { newMeal }); // PUT request to update meal
+      setMenus((prev) => prev.map((m) => (m.hostel_id === hostel_id && m.day === day ? response.data.data : m))); // Update the menu in the list
+      return response.data.data;
+    } catch (error) {
+      console.error("Error updating menu meal:", error);
+      throw error;
+    }
+  };
 
-const deleteMenuMeal = async (hostelId, day, meal) => {
-  setLoading(true);
-  try {
-    await api.delete(`/menu/${hostelId}/${day}/${meal}`, { headers: getAuthHeaders() });
-    setMenus((prev) => prev.map(menu => (menu.day === day ? { ...menu, [meal]: null } : menu)));
-  } catch (err) {
-    console.error("Error deleting meal:", err.response?.data || err);
-    setError(err.response?.data?.message || "Error deleting meal");
-  } finally {
-    setLoading(false);
-  }
-};
-
+  // Delete a specific meal from a menu
+  const deleteMenuMeal = async (hostel_id, day, meal) => {
+    try {
+      const response = await api.delete(`/hostels/  menus/meal/${hostel_id}/${day}/${meal}`); // DELETE request to delete a meal
+      setMenus((prev) => prev.map((m) => (m.hostel_id === hostel_id && m.day === day ? response.data.data : m))); // Remove the deleted meal
+      return response.data.data;
+    } catch (error) {
+      console.error("Error deleting menu meal:", error);
+      throw error;
+    }
+  };
 
   return (
     <MenuContext.Provider
-      value={{ menus, loading, error, fetchMenus, createMenu, updateMenuMeal, deleteMenuMeal }}
+      value={{
+        menus,
+        fetchMenuByHostel,
+        fetchMenuById,
+        fetchMenuMeal,
+        createMenu,
+        updateMenuMeal,
+        deleteMenuMeal,
+        loading,
+      }}
     >
       {children}
     </MenuContext.Provider>
   );
 };
+
+// Custom hook for using the menu context
+export const useMenu = () => {
+  const context = useContext(MenuContext);
+  if (!context) {
+    throw new Error("useMenu must be used within a MenuProvider");
+  }
+  return context;
+};
+
 
 // Official Context
 const OfficialContext = createContext();
@@ -186,12 +203,11 @@ export const OfficialProvider = ({ children }) => {
   const fetchOfficials = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/officials", { headers: getAuthHeaders() });
+      const response = await api.get("/hostels/officials");
       setOfficials(response.data.data);
     } catch (err) {
       console.error("Error fetching officials:", err.response?.data || err);
       setError(err.response?.data?.message || "Error fetching officials");
-      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -199,12 +215,11 @@ export const OfficialProvider = ({ children }) => {
   
   const createOfficial = async (officialData) => {
     try {
-      const response = await api.post("/officials", officialData, { headers: getAuthHeaders() });
+      const response = await api.post("/hostels/officials", officialData);
       setOfficials((prev) => [...prev, response.data.data]);
     } catch (err) {
       console.error("Error creating official:", err.response?.data || err);
       setError(err.response?.data?.message || "Failed to create official");
-      handleAuthError(err);
     }
   };
   
@@ -212,25 +227,23 @@ export const OfficialProvider = ({ children }) => {
 
   const updateOfficial = async (officialId, updatedData) => {
     try {
-      const response = await api.put(`/officials/${officialId}`, updatedData, { headers: getAuthHeaders() });
+      const response = await api.put(`/hostels/officials/${officialId}`, updatedData);
       setOfficials((prev) =>
         prev.map((official) => (official.id === officialId ? response.data.data : official))
       );
     } catch (err) {
       console.error("Error updating official:", err.response?.data || err);
       setError(err.response?.data?.message || "Failed to update official");
-      handleAuthError(err);
     }
   };
 
   const deleteOfficial = async (officialId) => {
     try {
-      await api.delete(`/officials/${officialId}`, { headers: getAuthHeaders() });
+      await api.delete(`/hostels/officials/${officialId}`);
       setOfficials((prev) => prev.filter((official) => official.id !== officialId));
     } catch (err) {
       console.error("Error deleting official:", err.response?.data || err);
       setError(err.response?.data?.message || "Failed to delete official");
-      handleAuthError(err);
     }
   };
   
@@ -261,12 +274,11 @@ export const ComplaintProvider = ({ children }) => {
   const fetchComplaints = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/hostels/complaints", { headers: getAuthHeaders() });
+      const response = await api.get("/hostels/complaints");
       setComplaints(response.data.data);
     } catch (err) {
       console.error("Error fetching complaints:", err.response?.data || err);
       setError(err.response?.data?.message || "Failed to fetch complaints");
-      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -274,7 +286,7 @@ export const ComplaintProvider = ({ children }) => {
 
   const createComplaint = async (complaintData) => {
     try {
-      const response = await api.post("/hostel/complaints", complaintData, { headers: getAuthHeaders() });
+      const response = await api.post("/hostel/complaints", complaintData);
       setComplaints((prev) => [...prev, response.data.data]);
     } catch (err) {
       console.error("Error creating complaint:", err.response?.data || err);
@@ -284,7 +296,7 @@ export const ComplaintProvider = ({ children }) => {
 
   const updateComplaint = async (complaintId, updatedData) => {
     try {
-      const response = await api.put(`/hostels/complaints/${complaintId}`, updatedData, { headers: getAuthHeaders() });
+      const response = await api.put(`/hostels/complaints/${complaintId}`, updatedData);
       setComplaints((prev) => prev.map((comp) => (comp.id === complaintId ? response.data.data : comp)));
     } catch (err) {
       console.error("Error updating complaint:", err.response?.data || err);
@@ -294,7 +306,7 @@ export const ComplaintProvider = ({ children }) => {
 
   const deleteComplaint = async (complaintId) => {
     try {
-      await api.delete(`/hostels/complaints/${complaintId}`, { headers: getAuthHeaders() });
+      await api.delete(`/hostels/complaints/${complaintId}`);
       setComplaints((prev) => prev.filter((comp) => comp.id !== complaintId));
     } catch (err) {
       console.error("Error deleting complaint:", err.response?.data || err);
@@ -326,12 +338,11 @@ export const NotificationsProvider = ({ children }) => {
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const response = await api.get("/notifications", { headers: getAuthHeaders() });
+      const response = await api.get("/hostels/notifications");
       setNotifications(response.data.data);
     } catch (err) {
       console.error("Error fetching notifications:", err.response?.data || err);
       setError(err.response?.data?.message || "Failed to fetch notifications");
-      handleAuthError(err);
     } finally {
       setLoading(false);
     }
@@ -341,38 +352,35 @@ export const NotificationsProvider = ({ children }) => {
 
   const createNotification = async (data) => {
     try {
-      const response = await api.post("/notifications", data, { headers: getAuthHeaders() });
+      const response = await api.post("/hostels/notifications", data);
       setNotifications((prev) => [...prev, response.data.data]);
     } catch (err) {
       console.error("Error creating notification:", err.response?.data || err);
       setError(err.response?.data?.message || "Error creating notification");
-      handleAuthError(err);
     }
   };
   
 
   const updateNotification = async (notification_id, data) => {
     try {
-      const response = await api.put(`/notifications/${notification_id}`, data, { headers: getAuthHeaders() });
+      const response = await api.put(`/hostels/notifications/${notification_id}`, data);
       setNotifications((prev) =>
         prev.map((notif) => (notif.id === notification_id ? response.data.data : notif))
       );
     } catch (err) {
       console.error("Error updating notification:", err.response?.data || err);
       setError(err.response?.data?.message || "Error updating notification");
-      handleAuthError(err);
     }
   };
   
 
   const deleteNotification = async (notification_id) => {
     try {
-      await api.delete(`/notifications/${notification_id}`, { headers: getAuthHeaders() });
+      await api.delete(`/hostels/notifications/${notification_id}`);
       setNotifications((prev) => prev.filter((notif) => notif.id !== notification_id));
     } catch (err) {
       console.error("Error deleting notification:", err.response?.data || err);
       setError(err.response?.data?.message || "Error deleting notification");
-      handleAuthError(err);
     }
   };
   
