@@ -44,7 +44,12 @@ import { OfficialProvider } from "./contexts/hostelContext.jsx";
 import { NotificationsProvider } from "./contexts/hostelContext.jsx"; 
 import { ComplaintProvider } from "./contexts/hostelContext.jsx";
 import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+
+import ChatProvider from "./contexts/chatContext.jsx";
+
+=======
 import HostelPage from "./pages/HostelPages/HostelPage.jsx";
+
 
 function App() {
   return (
