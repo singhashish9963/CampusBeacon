@@ -42,7 +42,11 @@ import { OfficialProvider } from "./contexts/hostelContext.jsx";
 import { NotificationsProvider } from "./contexts/hostelContext.jsx"; 
 import { ComplaintProvider } from "./contexts/hostelContext.jsx";
 import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+
 import HostelPage from "./pages/HostelPages/HostelPage.jsx";
+
+import ChatProvider from "./contexts/chatContext.jsx";
+import ChatApp from "./pages/Chat/ChatApp.jsx";
 import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
 
 
@@ -52,7 +56,7 @@ function App() {
       <AttendanceProvider>
         <ChatbotProvider>
           <EateriesProvider>
-
+            {/* <ChatContextProvider> */}
               <ContactContextProvider>
                 <BuyAndSellProvider>
                   <LostAndFoundProvider>
@@ -95,11 +99,9 @@ function App() {
                                   <Route path="/resource" element={<ResourcesPage />} />
                                   <Route path="/attendance" element={<AttendanceManager />} />
                                   <Route path="/eatries" element={<CollegeEateries />} />
-
                                   <Route path="/hostels" element={<AdminHostelPage />} />
                                   <Route path="/hostels/:hostel_id" element={<HostelPage />} />
                                 </Route>
-
                                 {/* Redirect unknown paths */}
                                 <Route path="*" element={<Navigate to="/" replace />} />
                               </Routes>
@@ -117,7 +119,7 @@ function App() {
                   </LostAndFoundProvider>
                 </BuyAndSellProvider>
               </ContactContextProvider>
-
+            {/* </ChatContextProvider> */}
           </EateriesProvider>
         </ChatbotProvider>
       </AttendanceProvider>

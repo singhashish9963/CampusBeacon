@@ -19,8 +19,9 @@ import {
   editOfficial,
   deleteOfficial,
   createComplaint,
- getComplaints,
- getHostelComplaints,
+  getAllComplaints, 
+  getComplaintById, 
+  getComplaintsByHostel, 
  updateComplaint,
  deleteComplaint,
   createNotification,
@@ -70,9 +71,9 @@ router.delete("/menus/meal/:hostel_id/:day/:meal", authMiddleware,deleteMenuMeal
 router.post("/officials", authMiddleware,createOfficial);
 router.get("/officials",authMiddleware, getAllOfficials);
 router.get("/officials/hostel/:hostel_id", authMiddleware,getOfficialsByHostel);
-router.get("officials/:official_id",authMiddleware, getOfficialById);
-router.put("officials/:official_id", authMiddleware,editOfficial);
-router.delete("officials/:official_id",authMiddleware, deleteOfficial);
+router.get("/officials/:official_id",authMiddleware, getOfficialById);
+router.put("/officials/:official_id", authMiddleware,editOfficial);
+router.delete("/officials/:official_id",authMiddleware, deleteOfficial);
 
 
 
@@ -82,8 +83,9 @@ router.delete("officials/:official_id",authMiddleware, deleteOfficial);
 =============================
 */
 router.post("/complaints", authMiddleware,createComplaint);
-router.get("/complaints", authMiddleware,getComplaints);
-router.get("/complaints/hostel/:hostel_id", authMiddleware,getHostelComplaints);
+router.get("/complaints", authMiddleware, getAllComplaints); // Get all complaints
+router.get("/complaints/:complaint_id", authMiddleware, getComplaintById); // Get complaint by ID
+router.get("/complaints/hostel/:hostel_id", authMiddleware, getComplaintsByHostel); // Get complaints by hostel ID
 router.put("/complaints/:complaint_id", authMiddleware,updateComplaint); 
 router.delete("/complaints/:complaint_id", authMiddleware,deleteComplaint);
 
