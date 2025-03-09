@@ -73,7 +73,6 @@ const Footer = () => {
 
             <SiJavascript className={IconHoverStyle} size={24} />
             <SiNodedotjs className={IconHoverStyle} size={24} />
-            <SiSocketdotio className={IconHoverStyle} size={24} />
             <SiReact className={IconHoverStyle} size={24} />
             <BiLogoPostgresql className={IconHoverStyle} size={24} />
           </div>
