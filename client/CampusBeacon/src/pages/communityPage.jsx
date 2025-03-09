@@ -1,6 +1,17 @@
 
+
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { Hash, Search, Send, Trash, Edit2 } from "lucide-react";
+
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import { Hash, Search, Send, Trash, Edit2, ChevronDown } from "lucide-react";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { FaCode } from "react-icons/fa";
 import { TiMessages } from "react-icons/ti";
@@ -8,7 +19,11 @@ import { useChat } from "../contexts/chatContext";
 import { useAuth } from "../contexts/AuthContext";
 import ChatBox from "../components/Chat/ChatBox";
 
+
 // Redesigned Message Bubble component
+
+// MessageBubble component remains unchanged
+
 const MessageBubble = ({ message, onDelete, onEdit, isOwnMessage }) => {
   const { userProfiles } = useChat();
   const [isEditing, setIsEditing] = useState(false);
@@ -160,8 +175,13 @@ const MessageBubble = ({ message, onDelete, onEdit, isOwnMessage }) => {
   );
 };
 
+
 // Helper function to remove duplicate messages by ID.
 const removeDuplicateMessages = (messages) => {
+
+// Helper function
+function removeDuplicateMessages(messages) {
+
   const unique = [];
   const seenIds = new Set();
   messages.forEach((m) => {
@@ -192,12 +212,22 @@ const CommunityPage = () => {
   } = useChat();
 
   const [newMessage, setNewMessage] = useState("");
+
   const [showScrollButton, setShowScrollButton] = useState(false);
   const chatBoxRef = useRef(null);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [activeChannelInfo, setActiveChannelInfo] = useState(null);
 
   // Enhanced channel list.
+
+  const [isNearBottom, setIsNearBottom] = useState(true);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [optimisticMessageId, setOptimisticMessageId] = useState(null);
+  const [lastProcessedMessageId, setLastProcessedMessageId] = useState(null);
+  const [autoScrollPaused, setAutoScrollPaused] = useState(false);
+
+  // Prepare a channel list (could be dynamic in a real app).
+
   const channelList = [
     {
       id: "general",
@@ -223,6 +253,7 @@ const CommunityPage = () => {
   const filteredChannels = channelList.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
 
   // Scroll to bottom function.
   const scrollToBottom = useCallback(() => {
@@ -252,11 +283,127 @@ const CommunityPage = () => {
     }
   }, [currentChannel, fetchOlderMessages, hasMoreMessages, messages]);
 
+  // Check if user is near bottom - improved with threshold calculation
+  const checkIfNearBottom = useCallback(() => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+      const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+      const threshold = 100; // Increased threshold for better user experience
+      
+      const nearBottom = distanceFromBottom < threshold;
+      setIsNearBottom(nearBottom);
+      setShowScrollButton(!nearBottom);
+      
+      // If user manually scrolls up, pause auto-scrolling
+      if (!nearBottom && !autoScrollPaused) {
+        setAutoScrollPaused(true);
+      }
+      
+      // If user manually scrolls to bottom, resume auto-scrolling
+      if (nearBottom && autoScrollPaused) {
+        setAutoScrollPaused(false);
+      }
+    }
+  }, [autoScrollPaused]);
+  
+  // Scroll to bottom function with smooth animation option
+  const scrollToBottom = useCallback((smooth = false) => {
+    if (messagesContainerRef.current) {
+      const container = messagesContainerRef.current;
+      if (smooth) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: "smooth"
+        });
+      } else {
+        container.scrollTop = container.scrollHeight;
+      }
+      setShowScrollButton(false);
+      setAutoScrollPaused(false);
+    }
+  }, []);
+
+  // Fetch channels once when mounting
+  useEffect(() => {
+    fetchChannels();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Attach scroll event listener to messages container
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", checkIfNearBottom);
+      return () => container.removeEventListener("scroll", checkIfNearBottom);
+    }
+  }, [checkIfNearBottom]);
+
+  // Improved message tracking and scroll behavior
+  useEffect(() => {
+    if (!isLoading && messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      
+      // Don't process the same message twice
+      if (lastMessage.id === lastProcessedMessageId) return;
+      
+      // Check if this is a new message
+      const isNewMessage = lastProcessedMessageId !== null;
+      const isUserMessage = lastMessage.userId === user?.id;
+      const isOptimisticMessage = optimisticMessageId !== null;
+      
+      // Scroll conditions:
+      // 1. Always scroll for user's own messages
+      // 2. Scroll for new messages if user is near bottom and auto-scroll isn't paused
+      // 3. Scroll on initial load
+      // 4. Scroll for optimistic messages (being sent)
+      const shouldScroll = 
+        isUserMessage || 
+        (isNewMessage && isNearBottom && !autoScrollPaused) || 
+        (lastProcessedMessageId === null) || 
+        isOptimisticMessage;
+      
+      if (shouldScroll) {
+        scrollToBottom(isNewMessage && !isUserMessage); // Smooth scroll for others' messages
+      }
+      
+      // Remember this message ID for next comparison
+      setLastProcessedMessageId(lastMessage.id);
+    }
+  }, [messages, isLoading, isNearBottom, scrollToBottom, user?.id, lastProcessedMessageId, optimisticMessageId, autoScrollPaused]);
+
+  // Force scroll on channel change
+  useEffect(() => {
+    if (currentChannel) {
+      // Reset message tracking when channel changes
+      setLastProcessedMessageId(null);
+      setAutoScrollPaused(false);
+      
+      // Use a brief timeout to ensure DOM is updated before scrolling
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
+    }
+  }, [currentChannel, scrollToBottom]);
+
+
   // Handle sending of new messages.
   const handleSendMessage = () => {
     if (newMessage.trim()) {
+
       sendMessage(newMessage);
+
+      const tempId = Date.now().toString();
+      setOptimisticMessageId(tempId);
+      sendMessage(newMessage, tempId);
+
       setNewMessage("");
+      
+      // Force scroll to bottom when sending a message, regardless of current position
+      setAutoScrollPaused(false);
+      setTimeout(() => scrollToBottom(), 50);
+      
+      // Clear optimistic message ID after a while
+      setTimeout(() => setOptimisticMessageId(null), 500);
     }
   };
 
@@ -265,6 +412,7 @@ const CommunityPage = () => {
     setNewMessage(e.target.value);
     handleTyping(true);
   };
+
 
   // Remove duplicate messages.
   const uniqueMessages = useMemo(
@@ -287,9 +435,27 @@ const CommunityPage = () => {
     fetchChannels();
   }, [fetchChannels]);
 
+  // Handle scroll button click
+  const handleScrollButtonClick = () => {
+    scrollToBottom(true); // Use smooth scrolling
+  };
+
+  // Remove duplicate messages
+  const uniqueMessages = useMemo(() => {
+    let filteredMessages = messages;
+    if (optimisticMessageId) {
+      filteredMessages = messages.filter(
+        (msg) => msg.id !== optimisticMessageId
+      );
+    }
+    return removeDuplicateMessages(filteredMessages);
+  }, [messages, optimisticMessageId]);
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0B1026] via-[#1A1B35] to-[#2C1B47] text-white">
       <div className="max-w-7xl mx-auto px-4 py-8">
+
         <div
           className="grid grid-cols-12 gap-6 bg-black/30 rounded-2xl border border-gray-700/50 h-[85vh] overflow-hidden backdrop-blur-xl shadow-2xl"
           style={{ boxShadow: "0 0 20px rgba(138, 75, 175, 0.2)" }}
@@ -321,11 +487,28 @@ const CommunityPage = () => {
                   type="text"
                   placeholder="Search channels..."
                   className="w-full bg-gray-800/30 text-white rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500/40 border border-gray-700/50"
+
+        <div className="grid grid-cols-12 gap-6 bg-black/40 rounded-2xl backdrop-blur-xl border border-purple-500/20 overflow-hidden h-[85vh]">
+          {/* Sidebar with fixed header and scrollable channel list */}
+          <div className="col-span-3 border-r border-purple-500/20 flex flex-col h-full">
+            {/* Fixed sidebar header */}
+            <div className="p-4 border-b border-purple-500/20 flex-shrink-0">
+              <h2 className="text-3xl font-bold text-white">
+                Community Channel
+              </h2>
+              <div className="relative mt-4">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search channels..."
+                  className="w-full bg-purple-500/10 text-white rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40"
+
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
             </div>
+
 
             {/* Channels */}
             <div className="flex-1 relative p-4 space-y-3">
@@ -373,6 +556,30 @@ const CommunityPage = () => {
                           #{topic}
                         </span>
                       ))}
+
+            
+            {/* Scrollable channel list */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="space-y-2">
+                {filteredChannels.map((channel) => (
+                  <motion.div
+                    key={channel.id}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => joinChannel(channel.id)}
+                    className={`cursor-pointer p-4 rounded-lg flex items-center space-x-3 ${
+                      currentChannel === channel.id
+                        ? "bg-purple-600/30 border border-purple-500/50"
+                        : "hover:bg-purple-600/10"
+                    }`}
+                  >
+                    <channel.icon className={`w-5 h-5 ${channel.color}`} />
+                    <div>
+                      <p className="text-white font-medium">{channel.name}</p>
+                      <p className="text-gray-400 text-sm">
+                        {channel.description}
+                      </p>
+
                     </div>
                   </div>
                 </motion.div>
@@ -402,10 +609,17 @@ const CommunityPage = () => {
             </div>
           </div>
 
+
           {/* Chat Section */}
           <div className="col-span-9 flex flex-col h-full">
             {/* Chat header - Fixed at top */}
             <div className="p-4 border-b border-gray-700/50 bg-gray-800/30">
+
+          {/* Chat Section with fixed header, scrollable messages, and fixed input */}
+          <div className="col-span-9 flex flex-col h-full">
+            {/* Fixed chat header */}
+            <div className="p-4 border-b border-purple-500/20 flex-shrink-0">
+
               {currentChannel ? (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -482,6 +696,7 @@ const CommunityPage = () => {
               )}
             </div>
 
+
             {/* Chat messages area - Scrollable */}
             <div className="flex-1 flex flex-col">
               <ChatBox
@@ -491,10 +706,19 @@ const CommunityPage = () => {
                 onScroll={handleChatScroll}
                 ref={chatBoxRef}
                 maxHeight="calc(100% - 80px)" // Adjust the value as needed
+
+            {/* Chat content area with proper flexbox layout */}
+            <div className="flex-1 flex flex-col overflow-hidden relative">
+              {/* Scrollable messages area */}
+              <div
+                className="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-thin scrollbar-thumb-purple-500/40 scrollbar-track-transparent"
+                ref={messagesContainerRef}
+
               >
                 {currentChannel ? (
                   isLoading ? (
                     <div className="flex items-center justify-center h-full">
+
                       <div className="space-y-3">
                         <motion.div
                           animate={{ rotate: 360 }}
@@ -510,6 +734,20 @@ const CommunityPage = () => {
                     </div>
                   ) : uniqueMessages.length > 0 ? (
                     <div className="p-4 space-y-4">
+
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full"
+                      />
+                    </div>
+                  ) : (
+                    <>
+
                       {uniqueMessages.map((message, index) => (
                         <MessageBubble
                           key={message.id || `${message.userId}-${index}`}
@@ -519,6 +757,7 @@ const CommunityPage = () => {
                           onEdit={updateMessage}
                         />
                       ))}
+
                     </div>
                   ) : (
                     <div className="flex items-center justify-center h-full text-center">
@@ -563,9 +802,67 @@ const CommunityPage = () => {
                       </div>
                     </div>
                   </div>
+
+                      <div ref={messagesEndRef} className="h-px" />
+                    </>
+                  )
+                ) : (
+                  <div className="flex items-center justify-center h-full text-white font-medium">
+                    Please select a channel from the sidebar.
+                  </div>
+                )}
+              </div>
+
+              {/* Fixed message input at bottom */}
+              {currentChannel && (
+                <div className="p-4 border-t border-purple-500/20 bg-black/30 flex-shrink-0">
+                  <div className="flex items-center space-x-4">
+                    <TextareaAutosize
+                      placeholder={`Message #${currentChannel}`}
+                      className="flex-1 bg-purple-500/10 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500/40 resize-none max-h-28"
+                      value={newMessage}
+                      onChange={handleMessageInput}
+                      onBlur={() => handleTyping(false)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleSendMessage();
+                        }
+                      }}
+                      minRows={1}
+                      maxRows={4}
+                    />
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={handleSendMessage}
+                      className="p-2 rounded-full bg-purple-500 text-white hover:bg-purple-600 transition-colors"
+                      title="Send Message"
+                    >
+                      <Send size={18} />
+                    </motion.button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Scroll button - position adjusted for better visibility */}
+              <AnimatePresence>
+                {showScrollButton && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    onClick={handleScrollButtonClick}
+                    className="absolute bottom-20 right-6 p-3 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors z-10"
+                    title="Scroll to bottom"
+                  >
+                    <ChevronDown size={20} />
+                  </motion.button>
+
                 )}
               </ChatBox>
             </div>
+
 
             {/* Message input area - Fixed at bottom */}
             {currentChannel && (
@@ -597,6 +894,7 @@ const CommunityPage = () => {
                 </div>
               </div>
             )}
+
           </div>
         </div>
       </div>
