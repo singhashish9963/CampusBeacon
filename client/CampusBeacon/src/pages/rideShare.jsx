@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Car, AlertTriangle } from "lucide-react";
+import { Car, AlertTriangle, Plus } from "lucide-react";
 import { useRides } from "../contexts/ridesContext";
 import { useAuth } from "../contexts/AuthContext";
 import { formatDateTime, isRideActive } from "../utils/dateUtils";
@@ -12,30 +12,50 @@ import RideFormModal from "../components/rides/RideFormModal";
 import DeleteConfirmationModal from "../components/rides/DeleteConfirmationModal";
 
 const RideShare = () => {
-  const { rides, loading, error, createRide, updateRide, deleteRide } =
-    useRides();
+  const {
+    rides,
+    loading,
+    error,
+    createRide,
+    updateRide,
+    deleteRide,
+    getAllRides,
+    getUserRides,
+    filteredRides,
+    activeFilterCount,
+    setSearchTerm,
+    filters,
+    handleFilterChange,
+  } = useRides();
   const { user: currentUser } = useAuth();
 
-  // State management
+  // Local state for managing modals and editing state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRide, setEditingRide] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filteredRides, setFilteredRides] = useState([]);
-  const [activeFilterCount, setActiveFilterCount] = useState(0);
-  const [filters, setFilters] = useState({
-    sortBy: "dateAsc",
-    status: "all",
-    timeFrame: null,
-    dateRange: null,
-    minSeats: null,
-    maxPrice: null,
-    direction: null,
-    startDate: null,
-    endDate: null,
-  });
+  const [searchInput, setSearchInput] = useState("");
 
-  // Utility functions for date boundaries
+  // Fetch rides data when this page is mounted
+  useEffect(() => {
+    const fetchRides = async () => {
+      try {
+        await getAllRides();
+        await getUserRides();
+      } catch (err) {
+        console.error("Error fetching rides:", err);
+      }
+    };
+
+    fetchRides();
+  }, [getAllRides, getUserRides]);
+
+  // Handle search input change and update context search term
+  const handleSearchChange = (e) => {
+    setSearchInput(e.target.value);
+    setSearchTerm(e.target.value);
+  };
+
+  // Utility functions for date boundaries (if needed)
   const getTomorrow = () => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -56,179 +76,6 @@ const RideShare = () => {
     const nextSunday = new Date(nextMonday);
     nextSunday.setDate(nextMonday.getDate() + 6);
     return nextSunday;
-  };
-
-  // Count active filters (search term counts as one filter)
-  useEffect(() => {
-    const count = Object.entries(filters).reduce((acc, [key, value]) => {
-      if (key !== "sortBy" && value !== null && value !== "all") {
-        return acc + 1;
-      }
-      return acc;
-    }, 0);
-
-    setActiveFilterCount(count + (searchTerm ? 1 : 0));
-  }, [filters, searchTerm]);
-
-  // Filter and search logic
-  useEffect(() => {
-    if (rides) {
-      let filtered = [...rides];
-
-      // Search filter (pickup or drop location)
-      if (searchTerm) {
-        filtered = filtered.filter(
-          (ride) =>
-            ride.pickupLocation
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase()) ||
-            ride.dropLocation.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      }
-
-      // Time frame filter (today or tomorrow)
-      if (filters.timeFrame) {
-        const now = new Date();
-        const today = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate()
-        );
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dayAfterTomorrow = new Date(today);
-        dayAfterTomorrow.setDate(today.getDate() + 2);
-
-        filtered = filtered.filter((ride) => {
-          const rideDate = new Date(ride.departureDateTime);
-          if (filters.timeFrame === "today") {
-            return rideDate >= today && rideDate < tomorrow;
-          }
-          if (filters.timeFrame === "tomorrow") {
-            return rideDate >= tomorrow && rideDate < dayAfterTomorrow;
-          }
-          return true;
-        });
-      }
-
-      // Date range filter using predefined ranges or custom dates
-      if (filters.dateRange) {
-        const now = new Date();
-        const today = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate()
-        );
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-        const dayAfterTomorrow = new Date(today);
-        dayAfterTomorrow.setDate(today.getDate() + 2);
-
-        // Calculate week boundaries
-        const dayOfWeek = today.getDay();
-        const daysUntilSunday = 7 - dayOfWeek;
-        const endOfWeek = new Date(today);
-        endOfWeek.setDate(today.getDate() + daysUntilSunday);
-
-        // Next week boundaries
-        const nextWeekStart = getNextWeekStart();
-        const nextWeekEnd = getNextWeekEnd();
-
-        filtered = filtered.filter((ride) => {
-          const rideDate = new Date(ride.departureDateTime);
-          switch (filters.dateRange) {
-            case "today":
-              return rideDate >= today && rideDate < tomorrow;
-            case "tomorrow":
-              return rideDate >= tomorrow && rideDate < dayAfterTomorrow;
-            case "week":
-              return rideDate >= today && rideDate <= endOfWeek;
-            case "nextWeek":
-              return rideDate >= nextWeekStart && rideDate <= nextWeekEnd;
-            case "custom":
-              if (filters.startDate) {
-                const startDate = new Date(filters.startDate);
-                startDate.setHours(0, 0, 0, 0);
-                if (filters.endDate) {
-                  const endDate = new Date(filters.endDate);
-                  endDate.setHours(23, 59, 59, 999);
-                  return rideDate >= startDate && rideDate <= endDate;
-                } else {
-                  const nextDay = new Date(startDate);
-                  nextDay.setDate(startDate.getDate() + 1);
-                  return rideDate >= startDate && rideDate < nextDay;
-                }
-              }
-              return true;
-            default:
-              return true;
-          }
-        });
-      }
-
-      // If a specific startDate is provided without a dateRange selection
-      if (filters.startDate && !filters.dateRange) {
-        const filterDate = new Date(filters.startDate);
-        filterDate.setHours(0, 0, 0, 0);
-        const nextDay = new Date(filterDate);
-        nextDay.setDate(filterDate.getDate() + 1);
-        filtered = filtered.filter((ride) => {
-          const rideDate = new Date(ride.departureDateTime);
-          return rideDate >= filterDate && rideDate < nextDay;
-        });
-      }
-
-      // Seats filter
-      if (filters.minSeats) {
-        filtered = filtered.filter(
-          (ride) => ride.availableSeats >= filters.minSeats
-        );
-      }
-
-      // Price filter
-      if (filters.maxPrice) {
-        filtered = filtered.filter((ride) => ride.price <= filters.maxPrice);
-      }
-
-      // Direction filter
-      if (filters.direction) {
-        filtered = filtered.filter(
-          (ride) => ride.direction === filters.direction
-        );
-      }
-
-      // Sorting
-      filtered.sort((a, b) => {
-        switch (filters.sortBy) {
-          case "dateAsc":
-            return (
-              new Date(a.departureDateTime) - new Date(b.departureDateTime)
-            );
-          case "dateDesc":
-            return (
-              new Date(b.departureDateTime) - new Date(a.departureDateTime)
-            );
-          case "priceAsc":
-            return a.price - b.price;
-          case "priceDesc":
-            return b.price - a.price;
-          case "seatsDesc":
-            return b.availableSeats - a.availableSeats;
-          default:
-            return 0;
-        }
-      });
-
-      setFilteredRides(filtered);
-    }
-  }, [rides, searchTerm, filters]);
-
-  // Handle filter updates
-  const handleFilterChange = (filterType, value) => {
-    setFilters((prev) => ({
-      ...prev,
-      [filterType]: value,
-    }));
   };
 
   // Form submission handler for creating/updating rides
@@ -261,18 +108,15 @@ const RideShare = () => {
 
   // Clear all filters
   const clearAllFilters = () => {
+    setSearchInput("");
     setSearchTerm("");
-    setFilters({
-      sortBy: "dateAsc",
-      status: "all",
-      timeFrame: null,
-      dateRange: null,
-      minSeats: null,
-      maxPrice: null,
-      direction: null,
-      startDate: null,
-      endDate: null,
-    });
+    handleFilterChange("timeFrame", null);
+    handleFilterChange("dateRange", null);
+    handleFilterChange("minSeats", null);
+    handleFilterChange("maxPrice", null);
+    handleFilterChange("direction", null);
+    handleFilterChange("startDate", null);
+    handleFilterChange("endDate", null);
   };
 
   if (loading) {
@@ -323,8 +167,8 @@ const RideShare = () => {
           }}
         />
         <RideFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
+          searchTerm={searchInput}
+          onSearchChange={handleSearchChange}
           filters={filters}
           onFilterChange={handleFilterChange}
           clearAllFilters={clearAllFilters}
