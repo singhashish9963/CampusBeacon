@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Check, Trash, Clock } from "lucide-react";
-import { useNotification } from "../contexts/notificationContext";
+import { useNotification } from "../../contexts/notificationContext";
 
 const NotificationItem = ({ notification }) => {
   const { markNotificationAsRead, deleteNotification } = useNotification();

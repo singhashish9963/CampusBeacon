@@ -17,7 +17,7 @@ import EventsSection from "../components/HomePage/EventsSection.jsx";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
 import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
-import NotificationIcon from "../components/NotificationIcon";
+import NotificationIcon from "../components/Notifications/NotificationIcon.jsx";
 import { useAuth } from "../contexts/AuthContext.jsx";
 
 const HomePage = () => {

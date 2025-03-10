@@ -1,22 +1,16 @@
 import React from "react";
 import { Bell } from "lucide-react";
-import { useNotification } from "../contexts/notificationContext";
+import { useNotification } from "../../contexts/notificationContext";
 import NotificationItem from "./NotificationItem";
 
 const NotificationList = () => {
-  const { notifications, loading } = useNotification();
+  const { notifications, loading, error } = useNotification();
 
-  // Empty state
-  if (notifications.length === 0 && !loading) {
+  // Display error if one exists
+  if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div className="bg-gray-800/30 p-4 rounded-full mb-4">
-          <Bell className="w-10 h-10 text-amber-500/50" />
-        </div>
-        <h4 className="text-gray-300 font-medium mb-1">All caught up!</h4>
-        <p className="text-gray-500 text-sm max-w-xs">
-          You don't have any notifications at the moment. Check back later.
-        </p>
+        <p className="text-red-500 text-sm">{error}</p>
       </div>
     );
   }
@@ -30,6 +24,21 @@ const NotificationList = () => {
           <div className="h-2 w-2 bg-amber-500 rounded-full"></div>
           <div className="h-2 w-2 bg-amber-500 rounded-full"></div>
         </div>
+      </div>
+    );
+  }
+
+  // Empty state (when notifications list is empty)
+  if (notifications.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+        <div className="bg-gray-800/30 p-4 rounded-full mb-4">
+          <Bell className="w-10 h-10 text-amber-500/50" />
+        </div>
+        <h4 className="text-gray-300 font-medium mb-1">All caught up!</h4>
+        <p className="text-gray-500 text-sm max-w-xs">
+          You don't have any notifications at the moment. Check back later.
+        </p>
       </div>
     );
   }

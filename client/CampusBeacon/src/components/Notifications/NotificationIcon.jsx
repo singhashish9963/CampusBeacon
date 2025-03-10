@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Bell, X } from "lucide-react";
-import { useNotification } from "../contexts/notificationContext";
+import { useNotification } from "../../contexts/notificationContext";
 import NotificationList from "./NotificationList";
 
 const NotificationIcon = () => {
@@ -9,7 +9,6 @@ const NotificationIcon = () => {
     useNotification();
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
-  const hasFetchedRef = useRef(false);
 
   // Handle click outside to close panel
   useEffect(() => {
@@ -34,9 +33,9 @@ const NotificationIcon = () => {
     const newState = !isOpen;
     setIsOpen(newState);
 
-    if (newState && !hasFetchedRef.current) {
+    if (newState) {
+      // Always fetch notifications when the panel opens.
       getNotifications();
-      hasFetchedRef.current = true;
     }
   };
 
