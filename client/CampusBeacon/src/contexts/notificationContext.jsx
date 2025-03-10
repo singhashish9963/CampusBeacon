@@ -13,9 +13,7 @@ import { useAuth } from "./AuthContext";
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  // Note: We are not setting a global "Content-Type" header here.
 });
 
 const NotificationContext = createContext(null);
@@ -32,38 +30,22 @@ export const NotificationProvider = ({ children }) => {
   const getNotifications = useCallback(
     async (page = 1, limit = 20) => {
       if (!isAuthenticated) {
-        console.log(
-          "NotificationContext: getNotifications - Not authenticated"
-        );
+        console.log("Not authenticated - skipping getNotifications");
         return;
       }
       setLoading(true);
       setError(null);
       try {
-        console.log(
-          "NotificationContext: getNotifications - Fetching notifications"
-        );
         const response = await api.get("/notification", {
           params: { page, limit },
         });
         if (response.data.success) {
-          console.log(
-            "NotificationContext: getNotifications - Success:",
-            response.data.data
-          );
           setNotifications(response.data.data);
         } else {
-          console.log(
-            "NotificationContext: getNotifications - Error:",
-            response.data.message
-          );
           setError(response.data.message || "Failed to load notifications");
         }
       } catch (err) {
-        console.error(
-          "NotificationContext: getNotifications - Exception:",
-          err
-        );
+        console.error("getNotifications error:", err);
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -71,10 +53,6 @@ export const NotificationProvider = ({ children }) => {
         );
       } finally {
         setLoading(false);
-        console.log(
-          "NotificationContext: getNotifications - Finally, loading:",
-          loading
-        );
       }
     },
     [isAuthenticated]
@@ -93,7 +71,7 @@ export const NotificationProvider = ({ children }) => {
         setError(response.data.message || "Failed to retrieve notification");
         return null;
       } catch (err) {
-        console.error("Error in getNotification:", err);
+        console.error("getNotification error:", err);
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -105,31 +83,26 @@ export const NotificationProvider = ({ children }) => {
     [isAuthenticated]
   );
 
-  // Create a new notification, handling file uploads if provided
+  // Create a new notification, handling file uploads if provided.
   const createNotification = useCallback(
     async (data) => {
       if (!isAuthenticated) return null;
       setLoading(true);
       setError(null);
       try {
-        let formData;
-        let headers = { "Content-Type": "application/json" };
+        let payload;
+        let headers = {};
         if (data.file) {
-          formData = new FormData();
-          Object.keys(data).forEach((key) => {
-            if (key === "file") {
-              formData.append("file", data.file);
-            } else {
-              formData.append(key, data[key]);
-            }
-          });
-          headers = { "Content-Type": "multipart/form-data" };
+          payload = new FormData();
+          for (const key in data) {
+            payload.append(key, data[key]);
+          }
+          // Do not set Content-Type for FormData.
+        } else {
+          payload = JSON.stringify(data);
+          headers["Content-Type"] = "application/json";
         }
-        const response = await api.post(
-          "/notification",
-          formData ? formData : JSON.stringify(data),
-          { headers }
-        );
+        const response = await api.post("/notification", payload, { headers });
         if (response.data.success) {
           setNotifications((prev) => [response.data.data, ...prev]);
           return response.data.data;
@@ -137,7 +110,7 @@ export const NotificationProvider = ({ children }) => {
         setError(response.data.message || "Failed to create notification");
         return null;
       } catch (err) {
-        console.error("Error in createNotification:", err);
+        console.error("createNotification error:", err);
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -151,31 +124,27 @@ export const NotificationProvider = ({ children }) => {
     [isAuthenticated]
   );
 
-  // Update an existing notification, handling file uploads if provided
+  // Update an existing notification, handling file uploads if provided.
   const updateNotification = useCallback(
     async (id, data) => {
       if (!isAuthenticated) return null;
       setLoading(true);
       setError(null);
       try {
-        let formData;
-        let headers = { "Content-Type": "application/json" };
+        let payload;
+        let headers = {};
         if (data.file) {
-          formData = new FormData();
-          Object.keys(data).forEach((key) => {
-            if (key === "file") {
-              formData.append("file", data.file);
-            } else {
-              formData.append(key, data[key]);
-            }
-          });
-          headers = { "Content-Type": "multipart/form-data" };
+          payload = new FormData();
+          for (const key in data) {
+            payload.append(key, data[key]);
+          }
+        } else {
+          payload = JSON.stringify(data);
+          headers["Content-Type"] = "application/json";
         }
-        const response = await api.put(
-          `/notification/${id}`,
-          formData ? formData : JSON.stringify(data),
-          { headers }
-        );
+        const response = await api.put(`/notification/${id}`, payload, {
+          headers,
+        });
         if (response.data.success) {
           setNotifications((prev) =>
             prev.map((n) => (n.id === id ? response.data.data : n))
@@ -185,7 +154,7 @@ export const NotificationProvider = ({ children }) => {
         setError(response.data.message || "Failed to update notification");
         return null;
       } catch (err) {
-        console.error("Error in updateNotification:", err);
+        console.error("updateNotification error:", err);
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -214,7 +183,7 @@ export const NotificationProvider = ({ children }) => {
         setError(response.data.message || "Failed to delete notification");
         return false;
       } catch (err) {
-        console.error("Error in deleteNotification:", err);
+        console.error("deleteNotification error:", err);
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -248,7 +217,7 @@ export const NotificationProvider = ({ children }) => {
         );
         return null;
       } catch (err) {
-        console.error("Error in markNotificationAsRead:", err);
+        console.error("markNotificationAsRead error:", err);
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -270,7 +239,6 @@ export const NotificationProvider = ({ children }) => {
     try {
       const response = await api.put(`/notification/read-all`);
       if (response.data.success) {
-        // Update local state by marking all as read
         setNotifications((prev) =>
           prev.map((n) => ({ ...n, is_read: true, read_at: new Date() }))
         );
@@ -282,7 +250,7 @@ export const NotificationProvider = ({ children }) => {
       );
       return false;
     } catch (err) {
-      console.error("Error in markAllNotificationsAsRead:", err);
+      console.error("markAllNotificationsAsRead error:", err);
       setError(
         err.response?.data?.message ||
           err.message ||
@@ -306,38 +274,74 @@ export const NotificationProvider = ({ children }) => {
       }
       return 0;
     } catch (err) {
-      console.error("Error in getUnreadNotificationCount:", err);
+      console.error("getUnreadNotificationCount error:", err);
       return 0;
     }
   }, [isAuthenticated]);
 
-  // Auto-fetch notifications and unread count when authenticated
+  // Broadcast a notification to all users (admin only).
+  const broadcastNotification = useCallback(
+    async (data) => {
+      if (!isAuthenticated) return null;
+      setLoading(true);
+      setError(null);
+      try {
+        let payload;
+        let headers = {};
+        // If a file is present, use FormData and let the browser set Content-Type
+        if (data.file) {
+          payload = new FormData();
+          for (const key in data) {
+            payload.append(key, data[key]);
+          }
+        } else {
+          payload = JSON.stringify(data);
+          headers["Content-Type"] = "application/json";
+        }
+        const response = await api.post("/notification/broadcast", payload, {
+          headers,
+        });
+        if (response.data.success) {
+          // Optionally update notifications state.
+          setNotifications((prev) => [...response.data.data, ...prev]);
+          return response.data.data;
+        }
+        setError(response.data.message || "Failed to broadcast notification");
+        return null;
+      } catch (err) {
+        console.error("broadcastNotification error:", err);
+        setError(
+          err.response?.data?.message ||
+            err.message ||
+            "Failed to broadcast notification"
+        );
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [isAuthenticated]
+  );
+
+  // Auto-fetch notifications and unread count when authenticated.
   useEffect(() => {
     if (isAuthenticated && !initialFetchDone.current) {
-      console.log(
-        "NotificationContext: useEffect - User is authenticated, fetching notifications and unread count"
-      );
       getNotifications();
       getUnreadNotificationCount();
       initialFetchDone.current = true;
     } else if (!isAuthenticated) {
-      console.log(
-        "NotificationContext: useEffect - User is not authenticated, clearing notifications and count"
-      );
       setNotifications([]);
       setUnreadCount(0);
       initialFetchDone.current = false;
     }
   }, [isAuthenticated, getNotifications, getUnreadNotificationCount]);
 
-  // Set up a timer to periodically update the unread count (every 2 minutes)
+  // Periodically update the unread count (every 2 minutes).
   useEffect(() => {
     if (!isAuthenticated) return;
-
     const intervalId = setInterval(() => {
       getUnreadNotificationCount();
-    }, 2 * 60 * 1000); // 2 minutes
-
+    }, 120000);
     return () => clearInterval(intervalId);
   }, [isAuthenticated, getUnreadNotificationCount]);
 
@@ -354,6 +358,7 @@ export const NotificationProvider = ({ children }) => {
     markNotificationAsRead,
     markAllNotificationsAsRead,
     getUnreadNotificationCount,
+    broadcastNotification,
     setNotifications,
   };
 
