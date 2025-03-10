@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { X, Check, Bell, Trash } from "lucide-react";
 import { useNotification } from "../contexts/notificationContext";
@@ -9,33 +9,40 @@ const NotificationPanel = React.memo(({ isOpen, onClose }) => {
     markNotificationAsRead,
     deleteNotification,
     markAllNotificationsAsRead,
-    getNotifications,
   } = useNotification();
 
-  const [hoveredId, setHoveredId] = useState(null);
   const panelRef = useRef(null);
 
-  // Fetch notifications when panel opens
+  // Position the panel correctly when it opens
   useEffect(() => {
-    if (isOpen) {
-      console.log(
-        "NotificationPanel: Component mounted, fetching notifications"
+    if (isOpen && panelRef.current) {
+      // Get the notification icon position
+      const iconElement = document.querySelector(
+        'button[aria-label="Notifications"]'
       );
-      getNotifications();
-    }
-  }, [isOpen, getNotifications]);
 
-  // Handle mouse leave for the entire panel
-  const handleMouseLeave = () => {
-    // Small delay before closing to allow moving between icon and panel
-    setTimeout(() => {
-      if (
-        !document.querySelector(":hover").closest(".notification-container")
-      ) {
-        onClose();
+      if (iconElement) {
+        const iconRect = iconElement.getBoundingClientRect();
+        const panel = panelRef.current;
+
+        // Position the panel below the icon
+        panel.style.top = `${iconRect.bottom + 10}px`;
+        panel.style.right = `${window.innerWidth - iconRect.right}px`;
       }
-    }, 100);
-  };
+    }
+  }, [isOpen]);
+
+  // Prevent clicks inside the panel from closing it
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (panelRef.current && panelRef.current.contains(e.target)) {
+        e.stopPropagation();
+      }
+    };
+
+    document.addEventListener("click", handleClick);
+    return () => document.removeEventListener("click", handleClick);
+  }, []);
 
   const handleDelete = useCallback(
     (id, e) => {
@@ -81,8 +88,8 @@ const NotificationPanel = React.memo(({ isOpen, onClose }) => {
   return (
     <div
       ref={panelRef}
-      className="fixed top-20 right-4 h-[calc(100vh-5rem)] w-80 bg-[#0B1026] border border-amber-500/30 rounded-xl shadow-lg z-50 overflow-hidden"
-      onMouseLeave={handleMouseLeave}
+      className="fixed w-80 h-[70vh] max-h-[600px] bg-[#0B1026] border border-amber-500/30 rounded-xl shadow-lg z-50 overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
     >
       {/* Header */}
       <div className="p-4 border-b border-amber-500/30 bg-gradient-to-r from-[#1A1B35] to-[#0B1026] flex justify-between items-center">
@@ -90,7 +97,10 @@ const NotificationPanel = React.memo(({ isOpen, onClose }) => {
           Notifications
         </h2>
         <button
-          onClick={onClose}
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
           aria-label="Close"
           className="text-gray-400 hover:text-amber-400 transition-colors"
         >
@@ -99,7 +109,7 @@ const NotificationPanel = React.memo(({ isOpen, onClose }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 overflow-y-auto h-[calc(100%-4rem)] scrollbar-thin scrollbar-thumb-amber-500/20 scrollbar-track-[#1A1B35]/30">
+      <div className="p-4 overflow-y-auto h-[calc(100%-8rem)] scrollbar-thin scrollbar-thumb-amber-500/20 scrollbar-track-[#1A1B35]/30">
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <Bell className="w-12 h-12 text-gray-600 mb-4" />
@@ -118,8 +128,6 @@ const NotificationPanel = React.memo(({ isOpen, onClose }) => {
                     ? "border-gray-700/50"
                     : "border-amber-500/40"
                 } rounded-xl p-4 relative overflow-hidden transition-all duration-300`}
-                onMouseEnter={() => setHoveredId(notification.id)}
-                onMouseLeave={() => setHoveredId(null)}
                 onClick={(e) => {
                   e.stopPropagation();
                   if (!notification.is_read) {
@@ -141,28 +149,23 @@ const NotificationPanel = React.memo(({ isOpen, onClose }) => {
                   <span className="text-xs text-amber-500/70">
                     {getTimeAgo(notification.createdAt)}
                   </span>
-                  {hoveredId === notification.id && (
-                    <div className="flex space-x-2">
-                      {!notification.is_read && (
-                        <button
-                          className="text-blue-400 hover:text-blue-300 transition-colors"
-                          onClick={(e) => handleMarkAsRead(notification.id, e)}
-                        >
-                          <Check className="w-4 h-4" />
-                        </button>
-                      )}
+                  <div className="flex space-x-2">
+                    {!notification.is_read && (
                       <button
-                        className="text-red-400 hover:text-red-300 transition-colors"
-                        onClick={(e) => handleDelete(notification.id, e)}
+                        className="text-blue-400 hover:text-blue-300 transition-colors"
+                        onClick={(e) => handleMarkAsRead(notification.id, e)}
                       >
-                        <Trash className="w-4 h-4" />
+                        <Check className="w-4 h-4" />
                       </button>
-                    </div>
-                  )}
+                    )}
+                    <button
+                      className="text-red-400 hover:text-red-300 transition-colors"
+                      onClick={(e) => handleDelete(notification.id, e)}
+                    >
+                      <Trash className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                {hoveredId === notification.id && !notification.is_read && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-amber-500/5 to-orange-500/5 pointer-events-none" />
-                )}
               </li>
             ))}
           </ul>

@@ -1,58 +1,26 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Bell } from "lucide-react";
-import NotificationPanel from "./NotificationPanel";
+import { Bell, X } from "lucide-react";
 import { useNotification } from "../contexts/notificationContext";
+import NotificationList from "./NotificationList";
 
 const NotificationIcon = () => {
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [mouseOverIcon, setMouseOverIcon] = useState(false);
-  const { getNotifications, unreadCount } = useNotification();
-  const iconRef = useRef(null);
-  const timeoutRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const { unreadCount, markAllNotificationsAsRead, getNotifications } =
+    useNotification();
+  const panelRef = useRef(null);
+  const buttonRef = useRef(null);
+  const hasFetchedRef = useRef(false);
 
-  // Handle showing the panel when hovering over the bell icon
-  const handleMouseEnter = () => {
-    setMouseOverIcon(true);
-    // Clear any existing timeout
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    if (!isPanelOpen) {
-      console.log("NotificationIcon: Mouse entered, opening panel");
-      setIsPanelOpen(true);
-      getNotifications();
-    }
-  };
-
-  // Handle mouse leaving the bell icon
-  const handleMouseLeave = () => {
-    setMouseOverIcon(false);
-    // Small delay before closing to allow moving to the panel
-    timeoutRef.current = setTimeout(() => {
-      if (
-        !document.querySelector(":hover").closest(".notification-container")
-      ) {
-        setIsPanelOpen(false);
-      }
-    }, 300);
-  };
-
-  // Handle closing the panel
-  const handleClosePanel = () => {
-    console.log("NotificationIcon: Close button clicked");
-    setIsPanelOpen(false);
-  };
-
-  // Event listener for clicks outside to close panel
+  // Handle click outside to close panel
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
-        isPanelOpen &&
-        !event.target.closest(".notification-container") &&
-        !event.target.closest(".notification-icon")
+        isOpen &&
+        panelRef.current &&
+        !panelRef.current.contains(event.target) &&
+        !buttonRef.current.contains(event.target)
       ) {
-        setIsPanelOpen(false);
+        setIsOpen(false);
       }
     };
 
@@ -60,26 +28,71 @@ const NotificationIcon = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isPanelOpen]);
+  }, [isOpen]);
+
+  const togglePanel = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+
+    if (newState && !hasFetchedRef.current) {
+      getNotifications();
+      hasFetchedRef.current = true;
+    }
+  };
+
+  const handleMarkAllAsRead = (e) => {
+    e.stopPropagation();
+    markAllNotificationsAsRead();
+  };
 
   return (
-    <div className="relative notification-container">
+    <div className="relative">
+      {/* Notification Bell Button */}
       <button
-        ref={iconRef}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        type="button"
-        className="p-2 bg-gray-800/50 rounded-full hover:bg-gray-700 transition-colors relative notification-icon"
+        ref={buttonRef}
+        onClick={togglePanel}
+        className="p-2 bg-gray-800/50 rounded-full hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
         aria-label="Notifications"
       >
         <Bell className="w-6 h-6 text-white" />
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 h-3 w-3 rounded-full bg-amber-500"></span>
+          <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-gray-900">
+            {unreadCount > 9 ? "9+" : unreadCount}
+          </span>
         )}
       </button>
 
-      {isPanelOpen && (
-        <NotificationPanel isOpen={true} onClose={handleClosePanel} />
+      {/* Notification Panel */}
+      {isOpen && (
+        <div
+          ref={panelRef}
+          className="absolute right-0 mt-2 w-96 bg-gradient-to-b from-[#1A1B35] to-[#0B1026] rounded-lg shadow-2xl border border-amber-500/30 overflow-hidden z-50"
+          style={{ maxHeight: "80vh" }}
+        >
+          {/* Panel Header */}
+          <div className="flex items-center justify-between p-4 border-b border-amber-500/30">
+            <h3 className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600">
+              Notifications
+            </h3>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleMarkAllAsRead}
+                className="text-xs text-amber-400 hover:text-amber-300 transition-colors"
+              >
+                Mark all as read
+              </button>
+              <button
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-white transition-colors focus:outline-none"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </div>
+
+          {/* Notification Content */}
+          <NotificationList />
+        </div>
       )}
     </div>
   );

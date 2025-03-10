@@ -4,6 +4,7 @@ import React, {
   useContext,
   useCallback,
   useEffect,
+  useRef,
 } from "react";
 import axios from "axios";
 import LoadingScreen from "../components/LoadingScreen.jsx";
@@ -25,6 +26,7 @@ export const NotificationProvider = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const initialFetchDone = useRef(false);
 
   // Retrieve all notifications with pagination support
   const getNotifications = useCallback(
@@ -236,8 +238,9 @@ export const NotificationProvider = ({ children }) => {
         const response = await api.put(`/notification/${id}/read`);
         if (response.data.success) {
           setNotifications((prev) =>
-            prev.map((n) => (n.id === id ? response.data.data : n))
+            prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
           );
+          setUnreadCount((prev) => Math.max(0, prev - 1));
           return response.data.data;
         }
         setError(
@@ -271,6 +274,7 @@ export const NotificationProvider = ({ children }) => {
         setNotifications((prev) =>
           prev.map((n) => ({ ...n, is_read: true, read_at: new Date() }))
         );
+        setUnreadCount(0);
         return true;
       }
       setError(
@@ -293,8 +297,6 @@ export const NotificationProvider = ({ children }) => {
   // Get unread notifications count.
   const getUnreadNotificationCount = useCallback(async () => {
     if (!isAuthenticated) return 0;
-    setLoading(true);
-    setError(null);
     try {
       const response = await api.get(`/notification/unread/count`);
       if (response.data.success) {
@@ -302,39 +304,42 @@ export const NotificationProvider = ({ children }) => {
         setUnreadCount(count);
         return count;
       }
-      setError(
-        response.data.message || "Failed to get unread notifications count"
-      );
       return 0;
     } catch (err) {
       console.error("Error in getUnreadNotificationCount:", err);
-      setError(
-        err.response?.data?.message ||
-          err.message ||
-          "Failed to get unread notifications count"
-      );
       return 0;
-    } finally {
-      setLoading(false);
     }
   }, [isAuthenticated]);
 
   // Auto-fetch notifications and unread count when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !initialFetchDone.current) {
       console.log(
         "NotificationContext: useEffect - User is authenticated, fetching notifications and unread count"
       );
       getNotifications();
       getUnreadNotificationCount();
-    } else {
+      initialFetchDone.current = true;
+    } else if (!isAuthenticated) {
       console.log(
         "NotificationContext: useEffect - User is not authenticated, clearing notifications and count"
       );
       setNotifications([]);
       setUnreadCount(0);
+      initialFetchDone.current = false;
     }
   }, [isAuthenticated, getNotifications, getUnreadNotificationCount]);
+
+  // Set up a timer to periodically update the unread count (every 2 minutes)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const intervalId = setInterval(() => {
+      getUnreadNotificationCount();
+    }, 2 * 60 * 1000); // 2 minutes
+
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated, getUnreadNotificationCount]);
 
   const notificationContextValue = {
     notifications,
@@ -352,7 +357,7 @@ export const NotificationProvider = ({ children }) => {
     setNotifications,
   };
 
-  if (loading) {
+  if (loading && notifications.length === 0) {
     return <LoadingScreen />;
   }
 
