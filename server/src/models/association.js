@@ -2,8 +2,6 @@ import sequelize from "../db/db.js";
 import User from "./user.model.js";
 import BuyAndSell from "./buyandsell.model.js";
 import LostAndFound from "./lostandfound.model.js";
-import Channel from "./channel.model.js";
-import Message from "./message.model.js";
 import UserSubjects from "./userSubjects.model.js";
 import { Subject } from "./subject.model.js";
 import { UserAttendance, AttendanceStats } from "./attendance.model.js";
@@ -31,23 +29,7 @@ const initializeAssociations = () => {
   });
   BuyAndSell.belongsTo(User, { foreignKey: "userId", as: "users" });
 
-  // Channel - Message associations
-  Channel.hasMany(Message, {
-    foreignKey: "channelId",
-    onDelete: "CASCADE",
-  });
-  Message.belongsTo(Channel, {
-    foreignKey: "channelId",
-  });
 
-  // User - Message associations
-  User.hasMany(Message, {
-    foreignKey: "userId",
-    onDelete: "CASCADE",
-  });
-  Message.belongsTo(User, {
-    foreignKey: "userId",
-  });
 
   // User - Subject associations (many-to-many)
   User.belongsToMany(Subject, { through: UserSubjects });

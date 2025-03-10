@@ -165,7 +165,7 @@ const HomePage = () => {
                 icon={Globe}
                 title="Community"
                 description="Connect with peers and join campus activities"
-                href="/community"
+                href="/chat"
                 gradient="from-cyan-500 via-blue-500 to-indigo-500"
               />
               <FeatureCard
