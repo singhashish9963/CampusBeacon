@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 
 const RidesContext = createContext(undefined);
@@ -88,6 +82,7 @@ export const RidesProvider = ({ children }) => {
         if (response.data.success) {
           setRides((prev) => [...prev, response.data.data]);
           setUserRides((prev) => [...prev, response.data.data]);
+          // Optionally refresh rides list if needed:
           await getAllRides();
           return response.data.data;
         }
@@ -174,23 +169,9 @@ export const RidesProvider = ({ children }) => {
     }
   }, []);
 
-  // Initial data fetch
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        await getAllRides();
-        await getUserRides();
-      } catch (err) {
-        console.error("Error fetching initial data:", err);
-      }
-    };
-
-    fetchInitialData();
-  }, [getAllRides, getUserRides]);
-
   const clearError = useCallback(() => setError(null), []);
 
-  // Client-side filtering and sorting of rides
+  // Client-side filtering and sorting of rides (and related state)
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredRides, setFilteredRides] = useState([]);
   const [activeFilterCount, setActiveFilterCount] = useState(0);
@@ -207,7 +188,8 @@ export const RidesProvider = ({ children }) => {
   });
 
   // Count active filters (search term counts as one filter)
-  useEffect(() => {
+  // This effect can be used by consuming components if needed.
+  React.useEffect(() => {
     const count = Object.entries(filters).reduce((acc, [key, value]) => {
       if (key !== "sortBy" && value !== null && value !== "all") {
         return acc + 1;
@@ -219,7 +201,7 @@ export const RidesProvider = ({ children }) => {
   }, [filters, searchTerm]);
 
   // Filter and search logic
-  useEffect(() => {
+  React.useEffect(() => {
     if (rides) {
       let filtered = [...rides];
 

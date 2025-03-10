@@ -17,6 +17,7 @@ import eateriesRoutes from "./src/routes/eateries.routes.js";
 import hostelsRoutes from "./src/routes/hostel.routes.js";
 import ridesRoutes from "./src/routes/ride.routes.js";
 import resourcesRoutes from "./src/routes/resources.routes.js";
+import notificationRoutes from "./src/routes/notification.routes.js"
 
 dotenv.config({ path: "./.env" });
 const app = express();
@@ -62,11 +63,12 @@ app.use("/api/lost-and-found", lostAndFoundRoutes);
 app.use("/api/buy-and-sell", buyAndSellRoutes);
 app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
-app.use("/api/hostels", hostelsRoutes);
+// app.use("/api/hostels", hostelsRoutes);
 app.use("/api/rides", ridesRoutes);
 app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/eateries", eateriesRoutes);
 app.use("/api/resources", resourcesRoutes);
+app.use("/api/notification",notificationRoutes);
 
 import { connectDb } from "./src/db/db.js";
 

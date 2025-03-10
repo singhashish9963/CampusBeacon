@@ -1,44 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import {
+  Users,
+  Globe,
+  Search,
+  Coffee,
+  ShoppingBag,
+  Book,
+  Car,
+} from "lucide-react";
 import ButtonColourfull from "../components/ButtonColourfull";
 import FeatureCard from "../components/HomePage/FeatureCard.jsx";
 import QuickLinks from "../components/HomePage/QuickLinks.jsx";
 import EventsSection from "../components/HomePage/EventsSection.jsx";
-import { motion } from "framer-motion";
-import {
-  Mail,
-  Users,
-  Globe,
-  HelpCircle,
-  Calendar,
-  Book,
-  Coffee,
-  ShoppingBag,
-  Search,
-  Bell,
-  Menu,
-  X,
-  Car,
-} from "lucide-react";
 import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
 import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
+import NotificationIcon from "../components/NotificationIcon";
+import { useAuth } from "../contexts/AuthContext.jsx";
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
-  const { isAuthenticated, handleLogout, user, lastLoginTime } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
-  // Scroll spy and login status logic...
+  // Scroll spy and login status logic
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       setIsLoggedIn(true);
     }
-
     const handleScroll = () => {
       const sections = document.querySelectorAll("section[id]");
       const scrollPosition = window.scrollY + 100;
@@ -53,7 +47,6 @@ const HomePage = () => {
         }
       });
     };
-
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
@@ -72,6 +65,12 @@ const HomePage = () => {
         <StarryBackground />
       </div>
       <div className="relative z-10 min-h-screen pt-16">
+        {/* Top Navigation with Notification Icon */}
+        <div className="fixed top-4 right-4 z-50 flex items-center space-x-4">
+          <NotificationIcon />
+          {/* Other navigation/profile elements can go here */}
+        </div>
+
         {/* Hero Section */}
         <section
           id="home"
@@ -134,7 +133,7 @@ const HomePage = () => {
                 gradient="from-amber-500 via-orange-500 to-red-500"
               />
               <FeatureCard
-                icon={Users}  
+                icon={Users}
                 title="Hostel Management"
                 description="Seamless hostel allocation and maintenance system"
                 href="/hostel"
@@ -171,7 +170,7 @@ const HomePage = () => {
               <FeatureCard
                 icon={Car}
                 title="Ride Sharing"
-                description="Share Rides and save Price"
+                description="Share rides and save Price"
                 href="/rides"
                 gradient="from-amber-800 via-orange-700 to-orange-900"
               />
