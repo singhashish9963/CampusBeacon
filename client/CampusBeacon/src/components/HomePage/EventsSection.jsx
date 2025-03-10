@@ -136,12 +136,12 @@ const EventsSection = () => {
           ))}
         </div>
 
-        {/* Events Grid */}
+        {/* Example 1: Removing mode="wait" */}
         <motion.div
           layout
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
-          <AnimatePresence mode="wait">
+          <AnimatePresence>
             {filteredEvents.map((event, index) => (
               <motion.div
                 key={event.title}

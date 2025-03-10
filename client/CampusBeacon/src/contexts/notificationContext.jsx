@@ -29,20 +29,39 @@ export const NotificationProvider = ({ children }) => {
   // Retrieve all notifications with pagination support
   const getNotifications = useCallback(
     async (page = 1, limit = 20) => {
-      if (!isAuthenticated) return;
+      if (!isAuthenticated) {
+        console.log(
+          "NotificationContext: getNotifications - Not authenticated"
+        );
+        return;
+      }
       setLoading(true);
       setError(null);
       try {
+        console.log(
+          "NotificationContext: getNotifications - Fetching notifications"
+        );
         const response = await api.get("/notification", {
           params: { page, limit },
         });
         if (response.data.success) {
+          console.log(
+            "NotificationContext: getNotifications - Success:",
+            response.data.data
+          );
           setNotifications(response.data.data);
         } else {
+          console.log(
+            "NotificationContext: getNotifications - Error:",
+            response.data.message
+          );
           setError(response.data.message || "Failed to load notifications");
         }
       } catch (err) {
-        console.error("Error in getNotifications:", err);
+        console.error(
+          "NotificationContext: getNotifications - Exception:",
+          err
+        );
         setError(
           err.response?.data?.message ||
             err.message ||
@@ -50,6 +69,10 @@ export const NotificationProvider = ({ children }) => {
         );
       } finally {
         setLoading(false);
+        console.log(
+          "NotificationContext: getNotifications - Finally, loading:",
+          loading
+        );
       }
     },
     [isAuthenticated]
@@ -299,9 +322,15 @@ export const NotificationProvider = ({ children }) => {
   // Auto-fetch notifications and unread count when authenticated
   useEffect(() => {
     if (isAuthenticated) {
+      console.log(
+        "NotificationContext: useEffect - User is authenticated, fetching notifications and unread count"
+      );
       getNotifications();
       getUnreadNotificationCount();
     } else {
+      console.log(
+        "NotificationContext: useEffect - User is not authenticated, clearing notifications and count"
+      );
       setNotifications([]);
       setUnreadCount(0);
     }
