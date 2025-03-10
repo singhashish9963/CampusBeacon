@@ -1,8 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
-import sequelize, { connectDb } from "./src/db/db.js";
-import userRoutes from "./src/routes/user.routes.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
+import session from "express-session";
+import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
+
+// Import routes
+import userRoutes from "./src/routes/user.routes.js";
 import contactRoutes from "./src/routes/contact.routes.js";
 import lostAndFoundRoutes from "./src/routes/lostandfound.routes.js";
 import buyAndSellRoutes from "./src/routes/buyandsell.routes.js";
@@ -11,18 +15,14 @@ import attendanceRoutes from "./src/routes/attendance.routes.js";
 import userSubjectsRoutes from "./src/routes/userSubject.routes.js";
 import eateriesRoutes from "./src/routes/eateries.routes.js";
 import hostelsRoutes from "./src/routes/hostel.routes.js";
-import session from "express-session";
-import cookieParser from "cookie-parser";
-import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
 import ridesRoutes from "./src/routes/ride.routes.js";
 import resourcesRoutes from "./src/routes/resources.routes.js";
 
 dotenv.config({ path: "./.env" });
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware setup
+// CORS options
 const corsOptions = {
   origin: ["http://localhost:5173", "https://campus-beacon.vercel.app"],
   credentials: true,
@@ -55,7 +55,7 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-// Routes
+// Use routes
 app.use("/api/users", userRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/lost-and-found", lostAndFoundRoutes);
@@ -68,12 +68,13 @@ app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/eateries", eateriesRoutes);
 app.use("/api/resources", resourcesRoutes);
 
+import { connectDb } from "./src/db/db.js";
+
 const startServer = async () => {
   try {
     console.log("Connecting to database...");
     await connectDb();
     console.log("Database connected successfully");
-
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
