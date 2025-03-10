@@ -13,27 +13,44 @@ import {
   SiFramer,
   SiDocker,
   SiVercel,
-  SiPrisma
+  SiPrisma,
 } from "react-icons/si";
-import { FaLinkedin, FaEnvelope, FaGithub, FaTwitter, FaInstagram } from "react-icons/fa";
+import {
+  FaLinkedin,
+  FaEnvelope,
+  FaGithub,
+  FaTwitter,
+  FaInstagram,
+} from "react-icons/fa";
 import { BiLogoPostgresql } from "react-icons/bi";
 
-
-
-  const technologies = [
-    { Icon: SiJavascript, name: "JavaScript", color: "hover:text-yellow-400" },
-    { Icon: SiReact, name: "React", color: "hover:text-cyan-400" },
-    { Icon: SiNodedotjs, name: "Node.js", color: "hover:text-green-500" },
-    { Icon: SiSocketdotio, name: "Socket.IO", color: "hover:text-white" },
-    { Icon: BiLogoPostgresql, name: "PostgreSQL", color: "hover:text-blue-400" },
-    { Icon: SiTailwindcss, name: "Tailwind CSS", color: "hover:text-teal-400" },
-    { Icon: SiFramer, name: "Framer Motion", color: "hover:text-purple-400" },
-    { Icon: SiVercel, name: "Vercel", color: "hover:text-gray-400" }
-  ];
+const technologies = [
+  { Icon: SiJavascript, name: "JavaScript", color: "hover:text-yellow-400" },
+  { Icon: SiReact, name: "React", color: "hover:text-cyan-400" },
+  { Icon: SiNodedotjs, name: "Node.js", color: "hover:text-green-500" },
+  { Icon: SiSocketdotio, name: "Socket.IO", color: "hover:text-white" },
+  { Icon: BiLogoPostgresql, name: "PostgreSQL", color: "hover:text-blue-400" },
+  { Icon: SiTailwindcss, name: "Tailwind CSS", color: "hover:text-teal-400" },
+  { Icon: SiFramer, name: "Framer Motion", color: "hover:text-purple-400" },
+  { Icon: SiVercel, name: "Vercel", color: "hover:text-gray-400" },
+];
 
 const Footer = () => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Simple animation variants for lower overhead animations.
+  const simpleFadeIn = {
+    initial: { opacity: 0 },
+    animate: { opacity: 1 },
+    transition: { duration: 0.3 },
+  };
+
+  const simpleSlideIn = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 },
   };
 
   return (
@@ -49,8 +66,7 @@ const Footer = () => {
           {/* About Section */}
           <div>
             <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              {...simpleSlideIn}
               className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6"
             >
               About CampusBeacon
@@ -59,12 +75,7 @@ const Footer = () => {
               Your comprehensive campus companion, connecting students with
               resources, opportunities, and each other in one seamless platform.
             </p>
-            <motion.div
-              className="flex space-x-4"
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
+            <motion.div {...simpleFadeIn} className="flex space-x-4">
               <a
                 href="https://twitter.com/campusbeacon"
                 className="text-gray-400 hover:text-blue-400 transition-colors"
@@ -89,41 +100,34 @@ const Footer = () => {
           {/* Contact Section */}
           <div>
             <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              {...simpleSlideIn}
               className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6"
             >
               Contact Us
             </motion.h3>
             <div className="space-y-4">
               <motion.a
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 }}
+                {...simpleSlideIn}
                 href="mailto:campusbeacon0@gmail.com"
-                className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group"
+                className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors"
               >
-                <HiMail className="text-xl group-hover:scale-110 transition-transform" />
+                <HiMail className="text-xl" />
                 <span>campusbeacon0@gmail.com</span>
               </motion.a>
               <motion.a
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.2 }}
+                {...simpleSlideIn}
                 href="tel:+919548999129"
-                className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group"
+                className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors"
               >
-                <HiPhone className="text-xl group-hover:scale-110 transition-transform" />
+                <HiPhone className="text-xl" />
                 <span>+91 9548999129</span>
               </motion.a>
               <motion.a
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
+                {...simpleSlideIn}
                 href="https://maps.app.goo.gl/tMuCf5DjfXLF3YuDA"
-                className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors group"
+                className="flex items-center space-x-3 text-gray-400 hover:text-blue-400 transition-colors"
               >
-                <HiLocationMarker className="text-xl group-hover:scale-110 transition-transform" />
+                <HiLocationMarker className="text-xl" />
                 <span>MNNIT Allahabad</span>
               </motion.a>
             </div>
@@ -132,8 +136,7 @@ const Footer = () => {
           {/* Tech Stack Section */}
           <div>
             <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              {...simpleSlideIn}
               className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6"
             >
               Built With
@@ -142,9 +145,7 @@ const Footer = () => {
               {technologies.map(({ Icon, name, color }) => (
                 <motion.div
                   key={name}
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  whileHover={{ scale: 1.2 }}
+                  {...simpleFadeIn}
                   className={`text-gray-400 ${color} transition-colors cursor-pointer`}
                   title={name}
                 >
@@ -157,18 +158,13 @@ const Footer = () => {
           {/* Team Section */}
           <div>
             <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              {...simpleSlideIn}
               className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-6"
             >
               Our Team
             </motion.h3>
             <div className="space-y-6">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                className="group"
-              >
+              <motion.div {...simpleSlideIn} className="group">
                 <h4 className="text-lg font-semibold text-white mb-1">
                   Ayush Jadaun
                 </h4>
@@ -196,12 +192,7 @@ const Footer = () => {
                   </a>
                 </div>
               </motion.div>
-
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                className="group"
-              >
+              <motion.div {...simpleSlideIn} className="group">
                 <h4 className="text-lg font-semibold text-white mb-1">
                   Ayush Agarwal
                 </h4>
@@ -229,7 +220,6 @@ const Footer = () => {
                   </a>
                 </div>
               </motion.div>
-             
             </div>
           </div>
         </div>
@@ -238,8 +228,7 @@ const Footer = () => {
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
+              {...simpleFadeIn}
               className="text-gray-400 text-sm mb-4 md:mb-0"
             >
               © {new Date().getFullYear()} CampusBeacon. All rights reserved.
@@ -272,10 +261,7 @@ const Footer = () => {
       <motion.button
         onClick={scrollToTop}
         className="fixed bottom-8 right-8 p-3 rounded-full bg-blue-500 text-white shadow-lg hover:bg-blue-600 transition-colors"
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
+        {...simpleFadeIn}
       >
         <HiArrowUp size={20} />
       </motion.button>
