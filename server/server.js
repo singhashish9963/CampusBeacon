@@ -4,7 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import session from "express-session";
 import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
-
+import { initializeAssociations } from "./src/models/association.js";
 // Import routes
 import userRoutes from "./src/routes/user.routes.js";
 import contactRoutes from "./src/routes/contact.routes.js";
@@ -83,6 +83,8 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+initializeAssociations();
 
 process.on("uncaughtException", (error) => {
   console.error("Uncaught Exception:", error);
