@@ -1,7 +1,14 @@
+
 import React, { useState, useMemo } from "react";
 import { HiDesktopComputer } from "react-icons/hi";
 import { motion, AnimatePresence } from "framer-motion";
 import { Calendar, Clock, MapPin, Users } from "lucide-react";
+
+// IMPORTANT: To prevent extra scroll bars, add the following to your global CSS file:
+// 
+// html, body {
+//   overflow-x: hidden;
+// }
 
 const EventsSection = () => {
   const [activeClub, setActiveClub] = useState("ALL");
@@ -72,11 +79,11 @@ const EventsSection = () => {
   );
 
   return (
-    <section className="py-20 relative overflow-hidden">
+    <section className="py-20 relative overflow-hidden overflow-x-hidden">
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <motion.div
-          className="absolute -left-20 top-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl"
+          className="absolute -left-20 top-20 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl pointer-events-none"
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.5, 0.3],
@@ -88,7 +95,7 @@ const EventsSection = () => {
           }}
         />
         <motion.div
-          className="absolute right-0 bottom-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl"
+          className="absolute right-0 bottom-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"
           animate={{
             scale: [1.2, 1, 1.2],
             opacity: [0.2, 0.4, 0.2],
@@ -136,7 +143,7 @@ const EventsSection = () => {
           ))}
         </div>
 
-        {/* Example 1: Removing mode="wait" */}
+        {/* Events Grid */}
         <motion.div
           layout
           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
@@ -163,10 +170,10 @@ const EventsSection = () => {
                 {/* Gradient background */}
                 <div
                   className={`
-                  absolute inset-0 opacity-0 group-hover:opacity-10
-                  bg-gradient-to-br ${event.gradient}
-                  transition-opacity duration-300
-                `}
+                    absolute inset-0 opacity-0 group-hover:opacity-10
+                    bg-gradient-to-br ${event.gradient}
+                    transition-opacity duration-300
+                  `}
                 />
 
                 <div className="p-6 relative z-10">
@@ -186,7 +193,7 @@ const EventsSection = () => {
                     {event.title}
                   </h3>
 
-                  {/* Event details with icons */}
+                  {/* Event details */}
                   <div className="space-y-2 mb-4">
                     <div className="flex items-center text-gray-400 text-sm">
                       <Calendar className="w-4 h-4 mr-2" />
@@ -213,10 +220,10 @@ const EventsSection = () => {
                   {/* Club tag */}
                   <span
                     className={`
-                    inline-block px-4 py-1.5 rounded-full text-xs font-medium
-                    bg-gradient-to-r ${event.gradient} opacity-80
-                    group-hover:opacity-100 transition-opacity
-                  `}
+                      inline-block px-4 py-1.5 rounded-full text-xs font-medium
+                      bg-gradient-to-r ${event.gradient} opacity-80
+                      group-hover:opacity-100 transition-opacity
+                    `}
                   >
                     {event.club}
                   </span>
