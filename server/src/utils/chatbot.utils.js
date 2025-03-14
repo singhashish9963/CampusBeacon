@@ -2,19 +2,22 @@ import { NlpManager } from "node-nlp";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import config from "../config/chatbot.js";  
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const MODEL_FILE = path.join(__dirname, "model.nlp");
+
+const MODEL_FILE = config.modelPath || path.join(__dirname, "model.nlp");
 const CORPUS_FILE = path.join(__dirname, "corpus.json");
 
 const manager = new NlpManager({
-  languages: ["en"],
+  languages: config.nlpConfig.languages || ["en"],
   forceNER: true,
   nlu: { log: false },
   useNeural: true,
   modelFileName: MODEL_FILE,
+  threshold: config.nlpConfig.threshold || 0.6,  // Use configurable threshold
 });
 
 class AdvancedLanguageProcessor {
@@ -132,11 +135,9 @@ class AdvancedLanguageProcessor {
       };
     }
   }
-
   initializeEntityPatterns() {
     return {
-      date:
-        /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b/i,
+      date: /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b/i,
       email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/,
       phone: /\b\d{3}[-.)]\d{3}[-.)]\d{4}\b/,
       time: /\b(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:am|pm)\b/i,
@@ -163,15 +164,21 @@ class AdvancedLanguageProcessor {
   }
 
   generateWordVector(text) {
+    if (!text || typeof text !== "string") return new Map(); // Handle null or undefined
     const words = text.toLowerCase().split(/\W+/);
     const vector = new Map();
     words.forEach((word) => {
-      vector.set(word, (vector.get(word) || 0) + 1);
+      if (word) {
+        // Skip empty strings
+        vector.set(word, (vector.get(word) || 0) + 1);
+      }
     });
     return vector;
   }
 
   cosineSimilarity(vecA, vecB) {
+    if (!vecA || !vecB || vecA.size === 0 || vecB.size === 0) return 0; // Handle empty vectors
+
     let dotProduct = 0;
     let normA = 0;
     let normB = 0;
@@ -186,10 +193,12 @@ class AdvancedLanguageProcessor {
       normB += countB * countB;
     }
 
+    if (normA === 0 || normB === 0) return 0; // Avoid division by zero
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
   findSynonyms(word) {
+    if (!word) return []; // Handle null or undefined
     for (const [key, synonyms] of this.synonyms) {
       if (key === word || synonyms.includes(word)) {
         return [key, ...synonyms];
@@ -199,6 +208,7 @@ class AdvancedLanguageProcessor {
   }
 
   extractEntities(text) {
+    if (!text || typeof text !== "string") return {}; // Handle null or undefined
     const entities = {};
     for (const [type, pattern] of Object.entries(this.entityPatterns)) {
       const matches = text.match(pattern);
@@ -210,6 +220,7 @@ class AdvancedLanguageProcessor {
   }
 
   findContextualMatches(question, threshold = 0.6) {
+    if (!question || typeof question !== "string") return []; // Handle null or undefined
     const questionVector = this.generateWordVector(question);
     const matches = [];
 
@@ -230,6 +241,7 @@ class AdvancedLanguageProcessor {
   }
 
   updateContext(sessionId, question) {
+    if (!sessionId || !question) return; // Handle null or undefined
     const context = this.contextMemory.get(sessionId) || [];
     context.push(question);
     if (context.length > 5) context.shift();
@@ -238,18 +250,40 @@ class AdvancedLanguageProcessor {
 
   // Sentiment analysis function (basic)
   analyzeSentiment(text) {
+    if (!text || typeof text !== "string") {
+      return { score: 0, sentiment: "neutral" }; // Handle null or undefined
+    }
+
     if (this.sentimentCache.has(text)) {
       return this.sentimentCache.get(text);
     }
 
-    const positiveWords = ["good", "great", "excellent", "wonderful", "amazing", "helpful", "best", "easy"];
-    const negativeWords = ["bad", "terrible", "awful", "horrible", "difficult", "worst", "hard", "broken"];
+    const positiveWords = [
+      "good",
+      "great",
+      "excellent",
+      "wonderful",
+      "amazing",
+      "helpful",
+      "best",
+      "easy",
+    ];
+    const negativeWords = [
+      "bad",
+      "terrible",
+      "awful",
+      "horrible",
+      "difficult",
+      "worst",
+      "hard",
+      "broken",
+    ];
 
     let positiveScore = 0;
     let negativeScore = 0;
 
     const words = text.toLowerCase().split(/\W+/);
-    words.forEach(word => {
+    words.forEach((word) => {
       if (positiveWords.includes(word)) {
         positiveScore++;
       } else if (negativeWords.includes(word)) {
@@ -262,7 +296,7 @@ class AdvancedLanguageProcessor {
 
     if (score > 0) {
       sentiment = "positive";
-    } else if (score <0) {
+    } else if (score < 0) {
       sentiment = "negative";
     }
 
@@ -272,7 +306,12 @@ class AdvancedLanguageProcessor {
   }
 
   // Enhanced Context Analysis
+  // Enhanced Context Analysis (continued)
   enhancedContextAnalysis(question, sessionId) {
+    if (!question) {
+      return { bestMatch: null, bestSimilarity: 0 }; // Handle null or undefined
+    }
+
     const context = this.contextMemory.get(sessionId) || [];
     const recentQuestions = context.slice(-3); // Consider the last 3 questions
 
@@ -300,6 +339,18 @@ const processor = new AdvancedLanguageProcessor();
 
 export const processQuestion = async (question, sessionId = "default") => {
   try {
+    // Handle null or empty question
+    if (!question || typeof question !== 'string' || question.trim() === '') {
+      return {
+        answer: "I need a question to answer. Could you please provide one?",
+        similarQuestions: [],
+        category: "error",
+        confidence: 0,
+        entities: {},
+        sentiment: { score: 0, sentiment: "neutral" },
+      };
+    }
+
     processor.updateContext(sessionId, question);
 
     // Enhanced Context Analysis
@@ -312,8 +363,8 @@ export const processQuestion = async (question, sessionId = "default") => {
 
     const contextualMatches = processor.findContextualMatches(question);
 
-    // Prioritize Enhanced Context Analysis
-    if (bestSimilarity > 0.7) {
+    // Lowered threshold for better response rate
+    if (bestSimilarity > 0.65) {
       return {
         answer: bestMatch.answer,
         similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
@@ -324,7 +375,7 @@ export const processQuestion = async (question, sessionId = "default") => {
       };
     }
 
-    if (nlpResult.score > 0.7 && nlpResult.answer) {
+    if (nlpResult.score > 0.65 && nlpResult.answer) {
       return {
         answer: nlpResult.answer,
         similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
@@ -335,7 +386,7 @@ export const processQuestion = async (question, sessionId = "default") => {
       };
     }
 
-    if (contextualMatches.length > 0 && contextualMatches[0].similarity > 0.6) {
+    if (contextualMatches.length > 0 && contextualMatches[0].similarity > 0.55) {
       return {
         answer: contextualMatches[0].answer,
         similarQuestions: contextualMatches.slice(1, 4).map((m) => m.question),
@@ -370,6 +421,11 @@ export const processQuestion = async (question, sessionId = "default") => {
 
 export const addQnAPair = async (question, answer, category = "general") => {
   try {
+    // Validate input
+    if (!question || !answer || typeof question !== 'string' || typeof answer !== 'string') {
+      throw new Error("Invalid question or answer");
+    }
+
     processor.corpus.phrases.push({
       question,
       answer,
@@ -402,19 +458,25 @@ export const trainAndSave = async () => {
   }
 };
 
+// Initialize the chatbot
 (async () => {
   try {
     if (fs.existsSync(MODEL_FILE)) {
       await manager.load(MODEL_FILE);
+      console.log("Model loaded successfully from", MODEL_FILE);
     } else {
+      console.log("No existing model found. Training new model...");
       for (const phrase of processor.corpus.phrases) {
         manager.addDocument("en", phrase.question, phrase.category);
         manager.addAnswer("en", phrase.category, phrase.answer);
       }
       await manager.train();
       manager.save(MODEL_FILE);
+      console.log("New model trained and saved to", MODEL_FILE);
     }
   } catch (error) {
     console.error("Error initializing chatbot:", error);
   }
 })();
+
+
