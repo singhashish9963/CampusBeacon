@@ -13,7 +13,6 @@ import filterInputMiddleware from "../middlewares/filter.middleware.js";
 const router = express.Router();
 
 // The order of routes is important - more specific routes first
-// Fixed route order to prevent parameter routes from capturing other routes
 router.get("/", authMiddleware, getAllRides);
 router.get("/user/rides", authMiddleware, getUserRides);
 router.get("/user/:userId/rides", authMiddleware, getUserRides);

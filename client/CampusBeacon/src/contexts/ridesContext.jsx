@@ -1,10 +1,4 @@
-import React, {
-  createContext,
-  useContext,
-  useState,
-  useCallback,
-  useEffect,
-} from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
 import axios from "axios";
 
 const RidesContext = createContext(undefined);
@@ -24,12 +18,12 @@ export const RidesProvider = ({ children }) => {
   const [error, setError] = useState(null);
   const [currentRide, setCurrentRide] = useState(null);
 
-  // Fetch all rides - fixed to remove trailing slash
+  // Fetch all rides
   const getAllRides = useCallback(async () => {
     try {
       setLoading(true);
-      console.log("Fetching all rides..."); // Debug log
-      const response = await api.get("/rides"); // Removed trailing slash for consistency
+      console.log("Fetching all rides...");
+      const response = await api.get("/rides");
 
       if (response.data.success) {
         const sortedRides = response.data.data.sort(
@@ -41,7 +35,7 @@ export const RidesProvider = ({ children }) => {
       }
       throw new Error(response.data.message);
     } catch (err) {
-      console.error("Error in getAllRides:", err); // Debug log
+      console.error("Error in getAllRides:", err);
       const errorMessage =
         err.response?.data?.message || "Error fetching rides";
       setError(errorMessage);
@@ -51,12 +45,12 @@ export const RidesProvider = ({ children }) => {
     }
   }, []);
 
-  // Get user rides - fixed to match backend route
+  // Get user rides
   const getUserRides = useCallback(async () => {
     try {
       setLoading(true);
-      console.log("Fetching user rides..."); // Debug log
-      const response = await api.get("/rides/user/rides"); // Matches the backend route order
+      console.log("Fetching user rides...");
+      const response = await api.get("/rides/user/rides");
 
       if (response.data.success) {
         const sortedRides = response.data.data.sort(
@@ -68,7 +62,7 @@ export const RidesProvider = ({ children }) => {
       }
       throw new Error(response.data.message);
     } catch (err) {
-      console.error("Error in getUserRides:", err); // Debug log
+      console.error("Error in getUserRides:", err);
       const errorMessage =
         err.response?.data?.message || "Error fetching user rides";
       setError(errorMessage);
@@ -88,7 +82,8 @@ export const RidesProvider = ({ children }) => {
         if (response.data.success) {
           setRides((prev) => [...prev, response.data.data]);
           setUserRides((prev) => [...prev, response.data.data]);
-          await getAllRides(); // Refresh the rides list
+          // Optionally refresh rides list if needed:
+          await getAllRides();
           return response.data.data;
         }
         throw new Error(response.data.message);
@@ -174,21 +169,228 @@ export const RidesProvider = ({ children }) => {
     }
   }, []);
 
-  // Initial data fetch
-  useEffect(() => {
-    const fetchInitialData = async () => {
-      try {
-        await getAllRides();
-        await getUserRides();
-      } catch (err) {
-        console.error("Error fetching initial data:", err);
-      }
-    };
-
-    fetchInitialData();
-  }, [getAllRides, getUserRides]);
-
   const clearError = useCallback(() => setError(null), []);
+
+  // Client-side filtering and sorting of rides (and related state)
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredRides, setFilteredRides] = useState([]);
+  const [activeFilterCount, setActiveFilterCount] = useState(0);
+  const [filters, setFilters] = useState({
+    sortBy: "dateAsc",
+    status: "all",
+    timeFrame: null,
+    dateRange: null,
+    minSeats: null,
+    maxPrice: null,
+    direction: null,
+    startDate: null,
+    endDate: null,
+  });
+
+  // Count active filters (search term counts as one filter)
+  // This effect can be used by consuming components if needed.
+  React.useEffect(() => {
+    const count = Object.entries(filters).reduce((acc, [key, value]) => {
+      if (key !== "sortBy" && value !== null && value !== "all") {
+        return acc + 1;
+      }
+      return acc;
+    }, 0);
+
+    setActiveFilterCount(count + (searchTerm ? 1 : 0));
+  }, [filters, searchTerm]);
+
+  // Filter and search logic
+  React.useEffect(() => {
+    if (rides) {
+      let filtered = [...rides];
+
+      // Search filter (pickup or drop location)
+      if (searchTerm) {
+        filtered = filtered.filter(
+          (ride) =>
+            ride.pickupLocation
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            ride.dropLocation.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+
+      // Time frame filter (today or tomorrow)
+      if (filters.timeFrame) {
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dayAfterTomorrow = new Date(today);
+        dayAfterTomorrow.setDate(today.getDate() + 2);
+
+        filtered = filtered.filter((ride) => {
+          const rideDate = new Date(ride.departureDateTime);
+          if (filters.timeFrame === "today") {
+            return rideDate >= today && rideDate < tomorrow;
+          }
+          if (filters.timeFrame === "tomorrow") {
+            return rideDate >= tomorrow && rideDate < dayAfterTomorrow;
+          }
+          return true;
+        });
+      }
+
+      // Date range filter using predefined ranges or custom dates
+      if (filters.dateRange) {
+        const now = new Date();
+        const today = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate()
+        );
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+        const dayAfterTomorrow = new Date(today);
+        dayAfterTomorrow.setDate(today.getDate() + 2);
+
+        const dayOfWeek = today.getDay();
+        const daysUntilSunday = 7 - dayOfWeek;
+        const endOfWeek = new Date(today);
+        endOfWeek.setDate(today.getDate() + daysUntilSunday);
+
+        // Next week boundaries
+        const getNextWeekStart = () => {
+          const today = new Date();
+          const dayOfWeek = today.getDay();
+          const daysUntilNextMonday = 7 - dayOfWeek + 1;
+          const nextMonday = new Date(today);
+          nextMonday.setDate(today.getDate() + daysUntilNextMonday);
+          return nextMonday;
+        };
+
+        const getNextWeekEnd = () => {
+          const nextMonday = getNextWeekStart();
+          const nextSunday = new Date(nextMonday);
+          nextSunday.setDate(nextMonday.getDate() + 6);
+          return nextSunday;
+        };
+
+        filtered = filtered.filter((ride) => {
+          const rideDate = new Date(ride.departureDateTime);
+          switch (filters.dateRange) {
+            case "today":
+              return rideDate >= today && rideDate < tomorrow;
+            case "tomorrow":
+              return rideDate >= tomorrow && rideDate < dayAfterTomorrow;
+            case "week":
+              return rideDate >= today && rideDate <= endOfWeek;
+            case "nextWeek":
+              return (
+                rideDate >= getNextWeekStart() && rideDate <= getNextWeekEnd()
+              );
+            case "custom":
+              if (filters.startDate) {
+                const startDate = new Date(filters.startDate);
+                startDate.setHours(0, 0, 0, 0);
+                if (filters.endDate) {
+                  const endDate = new Date(filters.endDate);
+                  endDate.setHours(23, 59, 59, 999);
+                  return rideDate >= startDate && rideDate <= endDate;
+                } else {
+                  const nextDay = new Date(startDate);
+                  nextDay.setDate(startDate.getDate() + 1);
+                  return rideDate >= startDate && rideDate < nextDay;
+                }
+              }
+              return true;
+            default:
+              return true;
+          }
+        });
+      }
+
+      // Specific startDate filter if no dateRange is selected
+      if (filters.startDate && !filters.dateRange) {
+        const filterDate = new Date(filters.startDate);
+        filterDate.setHours(0, 0, 0, 0);
+        const nextDay = new Date(filterDate);
+        nextDay.setDate(filterDate.getDate() + 1);
+        filtered = filtered.filter((ride) => {
+          const rideDate = new Date(ride.departureDateTime);
+          return rideDate >= filterDate && rideDate < nextDay;
+        });
+      }
+
+      // Seats filter
+      if (filters.minSeats) {
+        filtered = filtered.filter(
+          (ride) => ride.availableSeats >= filters.minSeats
+        );
+      }
+
+      // Price filter using estimatedCost field
+      if (filters.maxPrice) {
+        filtered = filtered.filter(
+          (ride) =>
+            ride.estimatedCost !== null &&
+            ride.estimatedCost <= filters.maxPrice
+        );
+      }
+
+      // Direction filter
+      if (filters.direction) {
+        filtered = filtered.filter(
+          (ride) => ride.direction === filters.direction
+        );
+      }
+
+      // Sorting logic updated for estimatedCost instead of price
+      filtered.sort((a, b) => {
+        switch (filters.sortBy) {
+          case "dateAsc":
+            return (
+              new Date(a.departureDateTime) - new Date(b.departureDateTime)
+            );
+          case "dateDesc":
+            return (
+              new Date(b.departureDateTime) - new Date(a.departureDateTime)
+            );
+          case "priceAsc":
+            return (a.estimatedCost || 0) - (b.estimatedCost || 0);
+          case "priceDesc":
+            return (b.estimatedCost || 0) - (a.estimatedCost || 0);
+          case "seatsDesc":
+            return b.availableSeats - a.availableSeats;
+          default:
+            return 0;
+        }
+      });
+
+      setFilteredRides(filtered);
+    }
+  }, [rides, searchTerm, filters]);
+
+  // Handle filter updates
+  const handleFilterChange = (filterType, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [filterType]: value,
+    }));
+  };
+
+  // Form submission handler for creating/updating rides
+  const handleFormSubmit = async (formData) => {
+    try {
+      if (formData.id) {
+        await updateRide(formData.id, formData);
+      } else {
+        await createRide(formData);
+      }
+    } catch (err) {
+      console.error("Error submitting ride:", err);
+    }
+  };
 
   const value = {
     rides,
@@ -203,6 +405,13 @@ export const RidesProvider = ({ children }) => {
     getUserRides,
     getRideById,
     clearError,
+    searchTerm,
+    setSearchTerm,
+    filteredRides,
+    activeFilterCount,
+    filters,
+    handleFilterChange,
+    handleFormSubmit,
   };
 
   return (

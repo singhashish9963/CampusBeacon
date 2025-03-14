@@ -5,7 +5,6 @@ import NavBar from "./components/NavBar.jsx";
 import Footer from "./components/Footer.jsx";
 import HomePage from "./pages/homePage.jsx";
 import { AuthProvider } from "./contexts/AuthContext.jsx";
-import AuthContext from "./contexts/AuthContext.jsx";
 import ProfilePage from "./pages/profilePage.jsx";
 import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
@@ -18,7 +17,6 @@ import BuyAndSellProvider from "./contexts/buyandsellContext.jsx";
 import AboutUs from "./pages/AboutUs.jsx";
 import ContactsDisplay from "./pages/ContactPage.jsx";
 import { ContactContextProvider } from "./contexts/contactContext.jsx";
-import { ChatContextProvider } from "./contexts/chatContext.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
 import { ChatbotProvider } from "./contexts/chatBotContext.jsx";
@@ -40,87 +38,166 @@ import RidesProvider from "./contexts/ridesContext.jsx";
 import { HostelProvider } from "./contexts/hostelContext.jsx";
 import { MenuProvider } from "./contexts/hostelContext.jsx";
 import { OfficialProvider } from "./contexts/hostelContext.jsx";
-import { NotificationsProvider } from "./contexts/hostelContext.jsx"; 
 import { ComplaintProvider } from "./contexts/hostelContext.jsx";
-import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+// import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+import { NotificationProvider } from "./contexts/notificationContext.jsx";
 
-import ChatProvider from "./contexts/chatContext.jsx";
-import HostelPage from "./pages/HostelPages/HostelPage.jsx";
+// import HostelPage from "./pages/HostelPages/HostelPage.jsx";
+
+import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
 
 
 function App() {
   return (
     <AuthProvider>
-      <AttendanceProvider>
-        <ChatbotProvider>
-          <EateriesProvider>
-            <ChatContextProvider>
+      <NotificationProvider>
+        <AttendanceProvider>
+          <ChatbotProvider>
+            <EateriesProvider>
+              {/* <ChatContextProvider> */}
               <ContactContextProvider>
                 <BuyAndSellProvider>
                   <LostAndFoundProvider>
                     <HostelProvider>
-                    <MenuProvider>
-                    <OfficialProvider>
-                    <NotificationsProvider>
-                    <ComplaintProvider>
+                      <MenuProvider>
+                        <OfficialProvider>
 
-                    <ProfileProvider>
-                      <RidesProvider>
-                        <BrowserRouter>
-                          <div className="flex flex-col min-h-screen">
-                            <NavBar />
-                            <main className="flex-grow">
-                              <Routes>
-                                <Route path="/" element={<HomePage />} />
-                                <Route path="/login" element={<LoginSignup />} />
-                                <Route path="/reset-password" element={<ResetPassword />} />
-                                <Route path="/verify-email" element={<EmailVerification />} />
-                                <Route path="/policy" element={<PrivacyPolicy />} />
-                                <Route path="/about" element={<AboutUs />} />
-                                <Route path="/terms" element={<TermsOfService />} />
-                                <Route path="/404" element={<NotFound />} />
-                                <Route path="/500" element={<ServerError />} />
-                                <Route path="/maintenance" element={<Maintenance />} />
-                                <Route path="/facts" element={<MNNITFactsGenerator />} />
-                                <Route path="/explore" element={<CampusExplorer />} />
-                                <Route path="/time" element={<MNNITTimeCapsule />} />
-                                <Route path="/rides" element={<RideShare />} />
-                                <Route path="/contact" element={<ContactsDisplay />} />
-                                <Route path="/SVBH" element={<SVBH />} />
-                                <Route path="/DJGH" element={<DJGH />} />
-                                {/* Protected Routes */}
-                                <Route element={<ProtectedRoute />}>
-                                  <Route path="/profile" element={<ProfilePage />} />
-                                  <Route path="/marketplace" element={<Marketplace />} />
-                                  <Route path="/lost-found" element={<LostAndFound />} />
-                                  <Route path="/resource" element={<ResourcesPage />} />
-                                  <Route path="/attendance" element={<AttendanceManager />} />
-                                  <Route path="/eatries" element={<CollegeEateries />} />
-                                  <Route path="/hostels" element={<AdminHostelPage />} />
-                                  <Route path="/hostels/:hostel_id" element={<HostelPage />} />
-                                </Route>
+                            <ComplaintProvider>
+                              <ProfileProvider>
+                                <RidesProvider>
+                                  <BrowserRouter>
+                                    <div className="flex flex-col min-h-screen">
+                                      <NavBar />
+                                      <main className="flex-grow">
+                                        <Routes>
+                                          <Route
+                                            path="/"
+                                            element={<HomePage />}
+                                          />
+                                          <Route
+                                            path="/login"
+                                            element={<LoginSignup />}
+                                          />
+                                          <Route
+                                            path="/reset-password"
+                                            element={<ResetPassword />}
+                                          />
+                                          <Route
+                                            path="/verify-email"
+                                            element={<EmailVerification />}
+                                          />
+                                          <Route
+                                            path="/policy"
+                                            element={<PrivacyPolicy />}
+                                          />
+                                          <Route
+                                            path="/about"
+                                            element={<AboutUs />}
+                                          />
+                                          <Route
+                                            path="/terms"
+                                            element={<TermsOfService />}
+                                          />
+                                          <Route
+                                            path="/404"
+                                            element={<NotFound />}
+                                          />
+                                          <Route
+                                            path="/500"
+                                            element={<ServerError />}
+                                          />
+                                          <Route
+                                            path="/maintenance"
+                                            element={<Maintenance />}
+                                          />
+                                          <Route
+                                            path="/facts"
+                                            element={<MNNITFactsGenerator />}
+                                          />
+                                          <Route
+                                            path="/explore"
+                                            element={<CampusExplorer />}
+                                          />
+                                          <Route
+                                            path="/time"
+                                            element={<MNNITTimeCapsule />}
+                                          />
+                                          <Route
+                                            path="/rides"
+                                            element={<RideShare />}
+                                          />
+                                          <Route
+                                            path="/contact"
+                                            element={<ContactsDisplay />}
+                                          />
+                                          <Route
+                                            path="/SVBH"
+                                            element={<SVBH />}
+                                          />
+                                          <Route
+                                            path="/DJGH"
+                                            element={<DJGH />}
+                                          />
+                                          {/* Protected Routes */}
+                                          <Route element={<ProtectedRoute />}>
+                                            <Route
+                                              path="/profile"
+                                              element={<ProfilePage />}
+                                            />
+                                            <Route
+                                              path="/marketplace"
+                                              element={<Marketplace />}
+                                            />
+                                            <Route
+                                              path="/chat"
+                                              element={<ChatTestPage />}
+                                            />
+                                            <Route
+                                              path="/lost-found"
+                                              element={<LostAndFound />}
+                                            />
+                                            <Route
+                                              path="/resource"
+                                              element={<ResourcesPage />}
+                                            />
+                                            <Route
+                                              path="/attendance"
+                                              element={<AttendanceManager />}
+                                            />
+                                            <Route
+                                              path="/eatries"
+                                              element={<CollegeEateries />}
+                                            />
+                                            {/* <Route path="/hostels" element={<AdminHostelPage />} />
+                                  <Route path="/hostels/:hostel_id" element={<HostelPage />} /> */}
+                                          </Route>
+                                          {/* Redirect unknown paths */}
+                                          <Route
+                                            path="*"
+                                            element={
+                                              <Navigate to="/" replace />
+                                            }
+                                          />
+                                        </Routes>
+                                      </main>
+                                      <Footer />
+                                    </div>
+                                  </BrowserRouter>
+                                </RidesProvider>
+                              </ProfileProvider>
+                            </ComplaintProvider>
 
-                                {/* Redirect unknown paths */}
-                                <Route path="*" element={<Navigate to="/" replace />} />
-                              </Routes>
-                            </main>
-                            <Footer />
-                          </div>
-                        </BrowserRouter>
-                      </RidesProvider>
-                    </ProfileProvider>
-                    </ComplaintProvider>
-                    </NotificationsProvider>
-                    </OfficialProvider>
-                    </MenuProvider>
+                        </OfficialProvider>
+                      </MenuProvider>
                     </HostelProvider>
                   </LostAndFoundProvider>
                 </BuyAndSellProvider>
               </ContactContextProvider>
-            </ChatContextProvider>
-          </EateriesProvider>
-        </ChatbotProvider>
-      </AttendanceProvider>
+              {/* </ChatContextProvider> */}
+            </EateriesProvider>
+          </ChatbotProvider>
+        </AttendanceProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
