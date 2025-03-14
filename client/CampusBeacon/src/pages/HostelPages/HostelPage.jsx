@@ -673,16 +673,18 @@ const NotificationsPage = () => {
   const navigate = useNavigate();
   const { hostel_id } = useParams();
   const { user, loading: authLoading } = useAuth();
-  const { loading, error, fetchNotifications, createNotification, deleteNotification } = useNotifications();
+  const { loading, error, createNotification, deleteNotification } = useNotifications();
   const [hostelDetails, setHostelDetails] = useState(null);
-  const [notifications, setNotifications] = useState([]); // Ensure this is initialized as an array
-
+  const [notifications, setNotifications] = useState([]); 
+  const [newNotification, setNewNotification] = useState({
+    message: "",
+    file: null
+  });
   useEffect(() => {
     if (!user && !authLoading) {
       navigate("/login");
-    } else {
-      fetchNotifications(hostel_id); // Fetch notifications when the component mounts
-    }
+    } 
+      fetchNotifications(hostel_id); 
   }, [user, authLoading, hostel_id]);
 
   useEffect(() => {
@@ -704,37 +706,101 @@ const NotificationsPage = () => {
     fetchHostelDetails();
   }, [hostel_id]);
 
-  // Function to display a notification
+
+  const handleCreateNotification = async () => {
+    if (!newNotification.message) {
+      showNotification("Please fill in the message.", "error");
+      return;
+    }
+  
+    try {
+      const formData = new FormData();
+      formData.append('message', newNotification.message);
+      formData.append('hostel_id', hostel_id);
+  
+      if (newNotification.file) {
+        formData.append('file', newNotification.file);
+      }
+  
+      const api = axios.create({
+        baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+        withCredentials: true,
+      });
+  
+      const response = await api.post('/hostels/notifications', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+  
+      setNewNotification({ message: "", file: null });
+      showNotification("Notification created successfully!", "success");
+  
+      // Directly add the newly created notification to the state
+      setNotifications((prevNotifications) => [
+        ...prevNotifications,
+        response.data, // Assuming the response contains the new notification
+      ]);
+    } catch (error) {
+      console.error("Error creating notification:", error);
+      showNotification("Error creating notification, please try again.", "error");
+    }
+  };
+  
+  
+  
+  const fetchNotifications = async (hostel_id) => {
+    try {
+      const api = axios.create({
+        baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+        withCredentials: true,
+      });
+  
+      const response = await api.get(`/hostels/notifications/${hostel_id}`);
+      console.log("Fetched notifications:", response.data); // Log the fetched notifications
+      setNotifications(response.data); // Update the state with fetched notifications
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+  
+  
+  useEffect(() => {
+    fetchNotifications(hostel_id); 
+    console.log("Fetching Notifications for Hostel ID:", hostel_id);
+  }, [hostel_id]);
+  
+  useEffect(() => {
+    console.log("Updated Notifications:", notifications);
+  }, [notifications]);
+  
+
+  
   const showNotification = (message, type = "success") => {
     setNotifications((prevNotifications) => {
-      // Check if prevNotifications is an array, else initialize it as an empty array
       const notificationsArray = Array.isArray(prevNotifications) ? prevNotifications : [];
-      return [
-        ...notificationsArray, // Add the new notification to the array
+            return [
+        ...notificationsArray, 
         { message, type },
       ];
     });
-
-    // Clear notifications after 3 seconds
-    setTimeout(() => {
-      setNotifications((prevNotifications) => {
-        // Ensure that we clear notifications only if it's an array
-        const notificationsArray = Array.isArray(prevNotifications) ? prevNotifications : [];
-        return notificationsArray.slice(1); // Remove the first notification after 3 seconds
-      });
-    }, 3000);
   };
-
-  // Delete notification handler
+  
   const handleDeleteNotification = async (notification_id) => {
+    if (!notification_id) {
+      console.error("Notification ID is missing");
+      return;
+    }
+  
     try {
-      await deleteNotification(notification_id);
+      await deleteNotification(notification_id); // Assuming deleteNotification function uses the correct API endpoint
       showNotification("Notification deleted successfully!", "success");
     } catch (error) {
       console.error("Error deleting notification:", error.response || error);
       showNotification("Error deleting notification, please try again.", "error");
     }
   };
+  
 
   if (loading) return <p>Loading notifications...</p>;
   if (error) return <p>{error}</p>;
@@ -753,14 +819,14 @@ const NotificationsPage = () => {
             {notifications.length > 0 ? (
               notifications.map((notification, index) => (
                 <li key={index} className="border-b py-4 flex flex-col">
-                  <span className="text-xl font-bold text-purple-400">{notification.message}</span>
-                  {notification.file_url && <img src={notification.file_url} alt="Notification image" />}
-                  <div className="space-x-2 mt-2">
-                    <button onClick={() => handleDeleteNotification(notification.id)} className="text-red-400">
-                      Delete
-                    </button>
-                  </div>
-                </li>
+      <span className="text-xl font-bold text-purple-400">{notification.message}</span>
+      {notification.file_url && <img src={notification.file_url} alt="Notification image" />}
+      <div className="space-x-2 mt-2">
+        <button onClick={() => handleDeleteNotification(notification.notification_id)} className="text-red-400">
+          Delete
+        </button>
+      </div>
+    </li>
               ))
             ) : (
               <p>No notifications found.</p>
@@ -775,22 +841,13 @@ const NotificationsPage = () => {
             placeholder="Enter Notification Message"
             className="border bg-white p-3 w-full rounded-lg mb-4"
             rows={4}
-            onChange={(e) => setNotifications({ ...notifications, message: e.target.value })}
-          />
+            onChange={(e) => setNewNotification({ ...newNotification, message: e.target.value })}          />
           <input
             type="file"
             className="border bg-white p-3 w-full rounded-lg mb-4"
-            onChange={(e) => setNotifications({ ...notifications, file: e.target.files[0] })}
-          />
-          <button
-            onClick={async () => {
-              if (notifications.message) {
-                await createNotification(hostel_id, notifications);
-                showNotification("Notification created successfully!", "success");
-              } else {
-                showNotification("Please fill in the message.", "error");
-              }
-            }}
+            onChange={(e) => setNewNotification({ ...newNotification, file: e.target.files[0] })} />        
+             <button
+           onClick={handleCreateNotification}
             className="w-full p-3 rounded-lg text-white bg-blue-500 hover:bg-blue-600"
           >
             Create Notification
