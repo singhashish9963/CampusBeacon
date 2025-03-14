@@ -64,7 +64,7 @@ app.use("/api/lost-and-found", lostAndFoundRoutes);
 app.use("/api/buy-and-sell", buyAndSellRoutes);
 app.use("/api/v1/subjects", subjectRoutes);
 app.use("/api/v1/attendance", attendanceRoutes);
-// app.use("/api/hostels", hostelsRoutes);
+app.use("/api/hostels", hostelsRoutes);
 app.use("/api/rides", ridesRoutes);
 app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/eateries", eateriesRoutes);
