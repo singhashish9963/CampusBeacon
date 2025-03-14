@@ -280,11 +280,7 @@ class AdvancedLanguageProcessor {
             answer:
               "Yes, you can edit your profile details in the 'Profile' section.",
             category: "general",
-          },
-
-            answer: "You can access the hostel section by clicking on the 'Hostel' button in the navbar. There, you can check hostel details, officials, and other features.",
-            category: "hostel"
-          },
+          },,
           {
             question: "How can I submit a complaint about hostel issues?",
             answer: "To submit a complaint, go to the hostel section and find the 'Complaint Box'. You can enter your issue, and the hostel administration will review it.",
