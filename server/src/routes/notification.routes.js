@@ -1,4 +1,5 @@
 import express from "express";
+import multer from "multer";
 import {
   getUserNotifications,
   getNotification,
@@ -8,36 +9,35 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   getUnreadNotificationCount,
+  broadcastNotification,
 } from "../controllers/notification.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
+
+
+// Use multer for parsing multipart/form-data (you might configure storage as needed)
+const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
 // Apply authentication middleware to all routes.
 router.use(authMiddleware);
 
-// Get all notifications for the logged in user (with pagination).
+// Routes for individual user notifications
 router.get("/", getUserNotifications);
-
-// Get a single notification by ID.
 router.get("/:id", getNotification);
-
-// Get count of unread notifications.
 router.get("/unread/count", getUnreadNotificationCount);
-
-// Create a new notification (supports file uploads).
 router.post("/", createNotification);
-
-// Update an existing notification.
 router.put("/:id", updateNotification);
-
-// Delete a notification.
 router.delete("/:id", deleteNotification);
-
-// Mark a single notification as read.
 router.put("/:id/read", markNotificationAsRead);
-
-// Mark all notifications as read.
 router.put("/read-all", markAllNotificationsAsRead);
+
+// Broadcast a notification to all users (admins only).
+// Use multer.single() to correctly capture file (if provided) and text fields.
+router.post(
+  "/broadcast",
+  upload.single("file"),
+  broadcastNotification
+);
 
 export default router;

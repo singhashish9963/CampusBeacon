@@ -1,4 +1,5 @@
 import Notification from "../models/notification.model.js";
+import User from "../models/user.model.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError from "../utils/apiError.js";
 import {
@@ -11,8 +12,6 @@ import {
  * Retrieve all notifications for the authenticated user with pagination.
  */
 export const getUserNotifications = asyncHandler(async (req, res) => {
-  console.log("getUserNotifications: Entered");
-  console.log("getUserNotifications: req.user:", req.user);
   const userId = req.user.id;
   const { page = 1, limit = 20 } = req.query;
   const offset = (page - 1) * limit;
@@ -25,14 +24,12 @@ export const getUserNotifications = asyncHandler(async (req, res) => {
       offset: parseInt(offset, 10),
     });
 
-    console.log("getUserNotifications: Notifications fetched:", notifications);
     res.status(200).json({
       success: true,
       data: notifications,
       message: "User notifications retrieved successfully",
     });
   } catch (error) {
-    console.error("getUserNotifications: Error fetching notifications:", error);
     res.status(500).json({
       success: false,
       message: "Failed to retrieve notifications",
@@ -82,9 +79,7 @@ export const createNotification = asyncHandler(async (req, res) => {
         throw new ApiError("Failed to upload file", 500);
       }
       file_url = uploadedUrl;
-      console.log("Successfully uploaded file to Cloudinary:", file_url);
     } catch (error) {
-      console.error("Error uploading file to Cloudinary:", error);
       throw new ApiError("Failed to upload file: " + error.message, 500);
     }
   }
@@ -125,7 +120,6 @@ export const updateNotification = asyncHandler(async (req, res) => {
       throw new ApiError("Notification not found", 404);
     }
 
-    // Update notification properties
     notification.message = message || notification.message;
     notification.type = type || notification.type;
     notification.entityType = entityType || notification.entityType;
@@ -135,7 +129,7 @@ export const updateNotification = asyncHandler(async (req, res) => {
 
     if (typeof is_read === "boolean") {
       notification.is_read = is_read;
-      notification.read_at = is_read ? new Date() : null; // Set read_at only if is_read is true
+      notification.read_at = is_read ? new Date() : null;
     }
 
     await notification.save();
@@ -146,7 +140,6 @@ export const updateNotification = asyncHandler(async (req, res) => {
       message: "Notification updated successfully",
     });
   } catch (error) {
-    console.error("Error updating notification:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to update notification",
@@ -178,7 +171,6 @@ export const deleteNotification = asyncHandler(async (req, res) => {
       message: "Notification deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting notification:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to delete notification",
@@ -213,7 +205,6 @@ export const markNotificationAsRead = asyncHandler(async (req, res) => {
       message: "Notification marked as read",
     });
   } catch (error) {
-    console.error("Error marking notification as read:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to mark notification as read",
@@ -239,7 +230,6 @@ export const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
       message: "All notifications marked as read",
     });
   } catch (error) {
-    console.error("Error marking all notifications as read:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to mark all notifications as read",
@@ -252,8 +242,6 @@ export const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
  * Retrieve the count of unread notifications for the authenticated user.
  */
 export const getUnreadNotificationCount = asyncHandler(async (req, res) => {
-  console.log("getUnreadNotificationCount: Entered");
-  console.log("getUnreadNotificationCount: req.user:", req.user);
   const userId = req.user.id;
 
   try {
@@ -261,17 +249,12 @@ export const getUnreadNotificationCount = asyncHandler(async (req, res) => {
       where: { userId, is_read: false },
     });
 
-    console.log("getUnreadNotificationCount: Unread count:", unreadCount);
     res.status(200).json({
       success: true,
       data: { unreadCount },
       message: "Unread notifications count retrieved successfully",
     });
   } catch (error) {
-    console.error(
-      "getUnreadNotificationCount: Error getting unread count:",
-      error
-    );
     return res.status(500).json({
       success: false,
       message: "Failed to get unread notifications count",
@@ -279,3 +262,62 @@ export const getUnreadNotificationCount = asyncHandler(async (req, res) => {
     });
   }
 });
+
+/**
+ * Broadcast a notification to all users.
+ * This endpoint should only be accessible to admins.
+ * Supports file uploads.
+ */
+export const broadcastNotification = asyncHandler(async (req, res) => {
+  // Ensure only admins can broadcast
+
+
+  // In this example, because we are using multer, text fields are available in req.body.
+  console.log("Broadcast Notification - req.body:", req.body);
+
+  const { message, type, entityType, entityId, actionUrl, metadata } = req.body;
+  if (!message || message.trim() === "") {
+    throw new ApiError("Message is required for broadcast", 400);
+  }
+
+  let file_url = null;
+  // If a file was uploaded, req.file is populated.
+  if (req.file) {
+    try {
+      const uploadedUrl = await uploadImageToCloudinary(req.file.path);
+      if (!uploadedUrl) {
+        throw new ApiError("Failed to upload file", 500);
+      }
+      file_url = uploadedUrl;
+    } catch (error) {
+      throw new ApiError("Failed to upload file: " + error.message, 500);
+    }
+  }
+
+  // Fetch all user IDs.
+  const users = await User.findAll({ attributes: ["id"] });
+  const userIds = users.map((user) => user.id);
+
+  // Create notifications for each user.
+  const notifications = await Promise.all(
+    userIds.map((userId) =>
+      Notification.create({
+        userId,
+        message,
+        type: type || "general",
+        entityType,
+        entityId,
+        actionUrl,
+        metadata,
+        file_url,
+      })
+    )
+  );
+
+  res.status(201).json({
+    success: true,
+    data: notifications,
+    message: "Broadcast notification sent successfully to all users",
+  });
+});
+

@@ -8,7 +8,7 @@ const questionCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 const getCacheKey = (question) => {
-  return question.toLowerCase().trim();
+  return (question || "").toLowerCase().trim();
 };
 
 const getCachedResponse = (question) => {
@@ -32,6 +32,14 @@ export const askQuestion = async (req, res, next) => {
   try {
     const { question } = req.body;
     const sessionId = req.headers["x-session-id"] || "default";
+
+    // Check if question is empty
+    if (!question || question.trim() === "") {
+      return res.status(400).json({
+        message: "Question cannot be empty",
+        error: true,
+      });
+    }
 
     const cachedResponse = getCachedResponse(question);
     if (cachedResponse) {
@@ -59,6 +67,19 @@ export const askQuestion = async (req, res, next) => {
 export const addQuestionAnswer = async (req, res, next) => {
   try {
     const { question, answer, category = "general" } = req.body;
+
+    // Validate inputs
+    if (
+      !question ||
+      !answer ||
+      question.trim() === "" ||
+      answer.trim() === ""
+    ) {
+      return res.status(400).json({
+        message: "Question and answer cannot be empty",
+        error: true,
+      });
+    }
 
     const existingResponse = getCachedResponse(question);
     if (existingResponse) {

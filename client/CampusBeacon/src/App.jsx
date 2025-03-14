@@ -45,6 +45,7 @@ import { NotificationProvider } from "./contexts/notificationContext.jsx";
 // import HostelPage from "./pages/HostelPages/HostelPage.jsx";
 
 import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
+import AdminPanel from "./pages/God/AdminPanel.jsx";
 
 
 function App() {
@@ -147,6 +148,10 @@ function App() {
                                             <Route
                                               path="/marketplace"
                                               element={<Marketplace />}
+                                            />
+                                            <Route
+                                              path="/god/*"
+                                              element={<AdminPanel />}
                                             />
                                             <Route
                                               path="/chat"
