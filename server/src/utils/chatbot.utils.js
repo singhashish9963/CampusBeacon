@@ -270,11 +270,7 @@ class AdvancedLanguageProcessor {
             answer: "Your exam results are available in the 'Exam Results' section of the Resource Hub.",
             category: "resource_hub"
           },
-          {
-            question: "How do I apply for a new ID card?",
-            answer: "You can apply for a new ID card through the 'ID Card Request' section.",
-            category: "general"
-          }
+     
         ],
         entities: {},
         patterns: [],
