@@ -48,6 +48,13 @@ import Dashboard from "./pages/HostelPages/Dashboard.jsx";
 
 import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
 import AdminPanel from "./pages/God/AdminPanel.jsx";
+import MenuPage from "./pages/HostelPages/MenuPage.jsx";
+import HostelPage from "./pages/HostelPages/HostelPage.jsx";
+import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+import OfficialPage from "./pages/HostelPages/OfficialPage.jsx";
+import { CompassIcon } from "lucide-react";
+import ComplaintPage from "./pages/HostelPages/ComplaintPage.jsx";
+import NotificationsPage from "./pages/HostelPages/NotificationPage.jsx";
 
 function App() {
   return (
@@ -139,6 +146,26 @@ function App() {
                                             path="/DJGH"
                                             element={<DJGH />}
                                           />
+                                          <Route
+                                            path='/Menu'
+                                            element={<MenuPage/>}
+                                            />
+                                             <Route
+                                            path='/hostelcreate'
+                                            element={<AdminHostelPage/>}
+                                            />
+                                            <Route
+                                            path='/official'
+                                            element={<OfficialPage/>}
+                                            />
+                                             <Route
+                                            path='/complaints'
+                                            element={<ComplaintPage/>}
+                                            />
+                                              <Route
+                                            path='/hostel-notification'
+                                            element={<NotificationsPage/>}
+                                            />
                                           <Route
                                             path="/dashboard"
                                             element={<Dashboard />}
