@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Rocket, Stars, Moon, Send, X } from "lucide-react";
+import { Rocket, Stars, Moon, Send, X, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useChatbot } from "../../contexts/chatBotContext";
 
@@ -8,8 +8,32 @@ const ChatbotWidget = () => {
   const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const chatContainerRef = useRef(null);
-  const { loading, error, askQuestion } = useChatbot();
+  const { loading, error, askQuestion, clearError, resetSession, sessionId } =
+    useChatbot();
 
+  // Load chat history from localStorage
+  useEffect(() => {
+    const savedHistory = localStorage.getItem(`chatHistory_${sessionId}`);
+    if (savedHistory) {
+      try {
+        setChatHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("Failed to parse saved chat history:", e);
+      }
+    }
+  }, [sessionId]);
+
+  // Save chat history to localStorage when it changes
+  useEffect(() => {
+    if (chatHistory.length > 0) {
+      localStorage.setItem(
+        `chatHistory_${sessionId}`,
+        JSON.stringify(chatHistory)
+      );
+    }
+  }, [chatHistory, sessionId]);
+
+  // Auto-scroll to bottom of chat
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -17,15 +41,25 @@ const ChatbotWidget = () => {
     }
   }, [chatHistory]);
 
+  // Clear error when chat widget is closed
+  useEffect(() => {
+    if (!isOpen) {
+      clearError();
+    }
+  }, [isOpen, clearError]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) return;
+
     setChatHistory((prev) => [
       ...prev,
       { sender: "user", message: trimmedQuestion },
     ]);
     setQuestion("");
+    clearError();
+
     try {
       const result = await askQuestion(trimmedQuestion);
       if (result?.answer) {
@@ -36,6 +70,7 @@ const ChatbotWidget = () => {
             message: result.answer,
             similarQuestions: result.similarQuestions,
             category: result.category,
+            confidence: result.confidence,
           },
         ]);
       }
@@ -54,6 +89,12 @@ const ChatbotWidget = () => {
   const handleSimilarQuestionClick = (similarQ) => {
     setQuestion(similarQ);
     handleSubmit({ preventDefault: () => {} });
+  };
+
+  const handleResetChat = () => {
+    const newSessionId = resetSession();
+    setChatHistory([]);
+    localStorage.removeItem(`chatHistory_${newSessionId}`);
   };
 
   return (
@@ -88,21 +129,40 @@ const ChatbotWidget = () => {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-gradient-to-b from-gray-900 to-indigo-900 shadow-2xl rounded-2xl overflow-hidden flex flex-col border border-purple-400/30"
           >
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Rocket className="w-6 h-6 text-white animate-pulse" />
-                <Stars className="w-6 h-6 text-white" />
-                <Moon className="w-6 h-6 text-white" />
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Rocket className="w-6 h-6 text-white animate-pulse" />
+                  <Stars className="w-6 h-6 text-white" />
+                  <Moon className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-white font-bold text-lg">
+                  Space Mission Control
+                </h3>
               </div>
-              <h3 className="text-white font-bold text-lg">
-                Space Mission Control
-              </h3>
+              <motion.button
+                onClick={handleResetChat}
+                whileHover={{ rotate: 180 }}
+                transition={{ duration: 0.3 }}
+                title="Reset conversation"
+                className="text-white hover:text-purple-200 focus:outline-none"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </motion.button>
             </div>
 
             <div
               ref={chatContainerRef}
               className="flex-1 p-4 overflow-y-auto space-y-3 bg-transparent"
             >
+              {error && (
+                <div className="flex justify-center my-2">
+                  <div className="bg-red-500/20 text-red-300 border border-red-500/30 px-3 py-2 rounded-lg text-sm max-w-[90%]">
+                    {error}
+                  </div>
+                </div>
+              )}
+
               {chatHistory.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
                   <Rocket className="w-16 h-16 text-purple-400 animate-bounce" />
@@ -132,6 +192,13 @@ const ChatbotWidget = () => {
                       }`}
                     >
                       {msg.message}
+
+                      {msg.confidence && (
+                        <div className="mt-2 opacity-70 text-xs">
+                          Confidence: {Math.round(msg.confidence * 100)}%
+                        </div>
+                      )}
+
                       {msg.similarQuestions?.length > 0 && (
                         <div className="mt-3 text-xs bg-white/10 backdrop-blur-sm rounded-xl p-3 text-purple-100">
                           <p className="font-semibold mb-2">

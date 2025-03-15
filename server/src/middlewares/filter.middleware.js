@@ -1,10 +1,9 @@
 import leoProfanity from "leo-profanity";
 import ApiError from "../utils/apiError.js";
 
-
 export const filterInputMiddleware = (req, res, next) => {
-
   const keysToCheck = [
+    "question", 
     "text",
     "message",
     "name",
@@ -18,12 +17,12 @@ export const filterInputMiddleware = (req, res, next) => {
     "username",
     "bio",
     "feedback",
+    "answer", 
   ];
 
   for (const key of keysToCheck) {
     if (req.body[key] && typeof req.body[key] === "string") {
       if (leoProfanity.check(req.body[key])) {
-
         return next(
           new ApiError(`The ${key} field contains offensive language`, 400)
         );

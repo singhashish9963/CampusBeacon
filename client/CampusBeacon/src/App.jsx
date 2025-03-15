@@ -39,29 +39,30 @@ import { HostelProvider } from "./contexts/hostelContext.jsx";
 import { MenuProvider } from "./contexts/hostelContext.jsx";
 import { OfficialProvider } from "./contexts/hostelContext.jsx";
 import { ComplaintProvider } from "./contexts/hostelContext.jsx";
-// import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+import { NotificationsProvider } from "./contexts/hostelContext.jsx";
 import { NotificationProvider } from "./contexts/notificationContext.jsx";
+import Dashboard from "./pages/HostelPages/Dashboard.jsx";
+// import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
 
 // import HostelPage from "./pages/HostelPages/HostelPage.jsx";
 
 import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
-
+import AdminPanel from "./pages/God/AdminPanel.jsx";
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <AttendanceProvider>
-          <ChatbotProvider>
-            <EateriesProvider>
-              {/* <ChatContextProvider> */}
-              <ContactContextProvider>
-                <BuyAndSellProvider>
-                  <LostAndFoundProvider>
-                    <HostelProvider>
-                      <MenuProvider>
-                        <OfficialProvider>
-
+        <NotificationsProvider>
+          <AttendanceProvider>
+            <ChatbotProvider>
+              <EateriesProvider>
+                <ContactContextProvider>
+                  <BuyAndSellProvider>
+                    <LostAndFoundProvider>
+                      <HostelProvider>
+                        <MenuProvider>
+                          <OfficialProvider>
                             <ComplaintProvider>
                               <ProfileProvider>
                                 <RidesProvider>
@@ -138,6 +139,10 @@ function App() {
                                             path="/DJGH"
                                             element={<DJGH />}
                                           />
+                                          <Route
+                                            path="/dashboard"
+                                            element={<Dashboard />}
+                                          />
                                           {/* Protected Routes */}
                                           <Route element={<ProtectedRoute />}>
                                             <Route
@@ -147,6 +152,10 @@ function App() {
                                             <Route
                                               path="/marketplace"
                                               element={<Marketplace />}
+                                            />
+                                            <Route
+                                              path="/god/*"
+                                              element={<AdminPanel />}
                                             />
                                             <Route
                                               path="/chat"
@@ -168,8 +177,6 @@ function App() {
                                               path="/eatries"
                                               element={<CollegeEateries />}
                                             />
-                                            {/* <Route path="/hostels" element={<AdminHostelPage />} />
-                                  <Route path="/hostels/:hostel_id" element={<HostelPage />} /> */}
                                           </Route>
                                           {/* Redirect unknown paths */}
                                           <Route
@@ -186,17 +193,16 @@ function App() {
                                 </RidesProvider>
                               </ProfileProvider>
                             </ComplaintProvider>
-
-                        </OfficialProvider>
-                      </MenuProvider>
-                    </HostelProvider>
-                  </LostAndFoundProvider>
-                </BuyAndSellProvider>
-              </ContactContextProvider>
-              {/* </ChatContextProvider> */}
-            </EateriesProvider>
-          </ChatbotProvider>
-        </AttendanceProvider>
+                          </OfficialProvider>
+                        </MenuProvider>
+                      </HostelProvider>
+                    </LostAndFoundProvider>
+                  </BuyAndSellProvider>
+                </ContactContextProvider>
+              </EateriesProvider>
+            </ChatbotProvider>
+          </AttendanceProvider>
+        </NotificationsProvider>
       </NotificationProvider>
     </AuthProvider>
   );

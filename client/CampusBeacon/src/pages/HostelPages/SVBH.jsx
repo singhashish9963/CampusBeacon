@@ -1,144 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Utensils, Phone, Mail, Bell, Wrench } from "lucide-react";
 import { FaUsersGear } from "react-icons/fa6";
-import axios from "axios";
-
-const sendEmailForComplaint = async (
-  emails,
-  complaintType,
-  complaintDescription
-) => {
-  try {
-    const response = await axios.post("/api/sendComplaintEmail", {
-      emails,
-      complaintType,
-      complaintDescription,
-    });
-    if (response.status !== 200) {
-      console.error("Failed to send emails");
-    }
-  } catch (error) {
-    console.error("Error sending emails", error);
-  }
-};
+import { useComplaints } from "../../contexts/hostelContext";
+import { useOfficial } from "../../contexts/hostelContext";
+import { useNotifications } from "../../contexts/hostelContext";
 
 const SVBH = () => {
+  // get current day and time
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // complaint local state (used for filing a complaint)
   const [selectedComplaintType, setSelectedComplaintType] = useState("");
   const [complaintDescription, setComplaintDescription] = useState("");
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      message:
-        "Due to the non-availability of supplies in Allahabad, the regular mess menu will not be followed for the next few days. The details of the next meal will be shared via notification.",
-      type: "notice",
-      timestamp: new Date(),
-    },
-    {
-      id: 2,
-      message:
-        "At midnight, two students were discovered stealing carrots from the mess. If this behavior is repeated, they will face penalties.",
-      type: "warning",
-      timestamp: new Date(),
-    },
-  ]);
-
-  const hostelOfficials = [
-    {
-      designation: "Hostel President",
-      name: "Mr. Ayush Kunwar Singh",
-      phone: "884077607",
-      email: "aks23ks@gmail.com",
-    },
-    {
-      designation: "All Floor Representative (Electrical Maintenance)",
-      name: "Mr. Vishal Singh",
-      phone: "9685140993",
-      email: "vishalsingh9144247902@gmail.com",
-    },
-    {
-      designation: "All Floor Representative (Civil Maintenance)",
-      name: "Mr. Aishvary Dwivedi",
-      phone: "9166514968",
-      email: "aishvarydwivedi8@gmail.com",
-    },
-    {
-      designation:
-        "OverAll Floor Representative (Lift Maintenance & Water Supply Maintenance)",
-      name: "Mr. Mahendra Kumar",
-      phone: "7742876688",
-      email: "mjrandha@gmail.com",
-    },
-    {
-      designation: "1st Floor Representative",
-      name: "Mr. Iswar Kumavat",
-      phone: "637581855",
-      email: "aatmaram1435@gmail.com",
-    },
-    {
-      designation: "2nd Floor Representative",
-      name: "Mr. Nakul Bansal",
-      phone: "7225991488",
-      email: "nakulbansal2103@gmail.com",
-    },
-    {
-      designation: "3rd Floor Representative",
-      name: "Mr. Krishna Yadav",
-      phone: "8290649988",
-      email: "krishna20246084@mnnit.ac.in",
-    },
-    {
-      designation: "4th Floor Representative",
-      name: "Mr. Hemant Pal",
-      phone: "9555623647",
-      email: "hemantpal2529@gmail.com",
-    },
-    {
-      designation: "5th Floor Representative",
-      name: "Mr. Aishvary Singh",
-      phone: "9819667631",
-      email: "singhsumit4@gmail.com",
-    },
-    {
-      designation: "6th Floor Representative",
-      name: "Mr. Pratham Jain",
-      phone: "743300295",
-      email: "theprathamjain@gmail.com",
-    },
-    {
-      designation: "7th Floor Representative",
-      name: "Mr. Garvit Jain",
-      phone: "79761687270",
-      email: "jaingarvit862@gmail.com",
-    },
-    {
-      designation: "Mess Manager I",
-      name: "Mr. Kaushal Yadav",
-      phone: "8852010214",
-      email: "kaushal.20241313@mnnit.ac.in",
-    },
-    {
-      designation: "Mess Manager II",
-      name: "Mr. Shivam Verma",
-      phone: "7983684607",
-      email: "rohitash12909@gmail.com",
-    },
-    {
-      designation: "Mess Manager III",
-      name: "Mr. Sujal Jain",
-      phone: "7067002427",
-      email: "jainsujal431@gmail.com",
-    },
-    {
-      designation: "Mess Manager IV",
-      name: "Mr. Anmol Saxena",
-      phone: "6395140791",
-      email: "anmolsken2025@gmail.com",
-    },
-  ];
-
   const complaintTypes = [
     "Maintenance Issue",
     "Food Complaint",
@@ -147,33 +22,18 @@ const SVBH = () => {
     "Other",
   ];
 
-  const submitComplaint = async () => {
-    if (selectedComplaintType && complaintDescription) {
-      const allEmails = hostelOfficials.map((official) => official.email);
+  // Context hooks
+  const { complaints, createComplaint, fetchAllComplaints } = useComplaints();
+  const { officials, createOfficial, deleteOfficial, fetchAllOfficials } =
+    useOfficial();
+  const {
+    notifications,
+    createNotification,
+    deleteNotification,
+    fetchNotifications,
+  } = useNotifications();
 
-      await sendEmailForComplaint(
-        allEmails,
-        selectedComplaintType,
-        complaintDescription
-      );
-
-      console.log("Sending complaint to emails:", allEmails.join(", "));
-
-      const newNotification = {
-        id: Date.now(),
-        message: `New ${selectedComplaintType} complaint: ${complaintDescription}. Sent to: ${allEmails.join(
-          ", "
-        )}`,
-        type: "warning",
-        timestamp: new Date(),
-      };
-
-      setNotifications([newNotification, ...notifications]);
-      setSelectedComplaintType("");
-      setComplaintDescription("");
-    }
-  };
-
+  // Dummy mess menu data (this might eventually come from your MenuContext)
   const daysOfWeek = [
     "Sunday",
     "Monday",
@@ -183,7 +43,6 @@ const SVBH = () => {
     "Friday",
     "Saturday",
   ];
-
   const menu = {
     Monday: {
       Breakfast:
@@ -241,11 +100,73 @@ const SVBH = () => {
     return "Dinner";
   };
 
+  // Handle filing a complaint using the ComplaintContext's method
+  const submitComplaint = async () => {
+    if (selectedComplaintType && complaintDescription) {
+      try {
+        const complaintData = {
+          complaintType: selectedComplaintType,
+          complaintDescription,
+          // You can also attach additional info here if needed.
+        };
+        await createComplaint(complaintData);
+        await createNotification({
+          message: `New ${selectedComplaintType} complaint filed: ${complaintDescription}`,
+          type: "warning",
+        });
+        setSelectedComplaintType("");
+        setComplaintDescription("");
+      } catch (error) {
+        console.error("Failed to file complaint", error);
+      }
+    }
+  };
+
+  // Example handlers for Official CRUD
+  const handleAddOfficial = async () => {
+    const newOfficial = {
+      designation: "New Official",
+      name: "John Doe",
+      phone: "1234567890",
+      email: "johndoe@example.com",
+    };
+    try {
+      await createOfficial(newOfficial);
+    } catch (error) {
+      console.error("Error adding official", error);
+    }
+  };
+
+  const handleDeleteOfficial = async (id) => {
+    try {
+      await deleteOfficial(id);
+    } catch (error) {
+      console.error("Error deleting official", error);
+    }
+  };
+
+  const handleDeleteNotification = async (id) => {
+    try {
+      await deleteNotification(id);
+    } catch (error) {
+      console.error("Error deleting notification", error);
+    }
+  };
+
+  // Fetch context data on component mount
+  useEffect(() => {
+    fetchAllOfficials();
+    fetchNotifications();
+    fetchAllComplaints();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 py-8">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left side: Mess Menu, Notifications & Complaint */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Mess Menu Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -286,6 +207,7 @@ const SVBH = () => {
               </div>
             </motion.div>
 
+            {/* Notifications Section */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -297,24 +219,39 @@ const SVBH = () => {
               <div className="space-y-4">
                 {notifications.map((notif) => (
                   <motion.div
-                    key={notif.id}
+                    key={notif.notification_id || notif.id}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     className={`p-4 rounded-lg border ${
                       notif.type === "warning"
                         ? "bg-yellow-500/20 border-yellow-500"
                         : "bg-blue-500/20 border-blue-500"
-                    }`}
+                    } flex justify-between items-center`}
                   >
-                    <p className="text-white">{notif.message}</p>
-                    <p className="text-sm text-gray-400 mt-2">
-                      {notif.timestamp.toLocaleTimeString()}
-                    </p>
+                    <div>
+                      <p className="text-white">{notif.message}</p>
+                      {notif.timestamp && (
+                        <p className="text-sm text-gray-400 mt-2">
+                          {new Date(notif.timestamp).toLocaleTimeString()}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      onClick={() =>
+                        handleDeleteNotification(
+                          notif.notification_id || notif.id
+                        )
+                      }
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      Delete
+                    </button>
                   </motion.div>
                 ))}
               </div>
             </motion.div>
 
+            {/* Complaint Section */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -345,40 +282,62 @@ const SVBH = () => {
                 onClick={submitComplaint}
                 className="w-full bg-purple-600 hover:bg-purple-700 text-white p-2 rounded-lg transition-colors"
               >
-                Submit
+                Submit Complaint
               </button>
             </motion.div>
           </div>
 
+          {/* Right side: Officials and management buttons */}
           <div className="space-y-8">
+            {/* Officials Section */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-purple-500/50"
             >
-              <h2 className="text-white font-bold text-2xl mb-4 flex items-center">
-                <FaUsersGear className="mr-2" /> SVBH Officials
-              </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {hostelOfficials.map((official) => (
+              <div className="flex items-center justify-between">
+                <h2 className="text-white font-bold text-2xl flex items-center">
+                  <FaUsersGear className="mr-2" /> SVBH Officials
+                </h2>
+                <button
+                  onClick={handleAddOfficial}
+                  className="bg-green-600 hover:bg-green-700 px-3 py-1 rounded text-sm transition-colors"
+                >
+                  Add
+                </button>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+                {officials.map((official) => (
                   <motion.div
-                    key={official.name}
+                    key={official.official_id || official.id}
                     whileHover={{ scale: 1.02 }}
-                    className="p-4 bg-black/30 rounded-lg border border-purple-500/30"
+                    className="p-4 bg-black/30 rounded-lg border border-purple-500/30 flex flex-col justify-between"
                   >
-                    <h3 className="text-white font-semibold">
-                      {official.name}
-                    </h3>
-                    <p className="text-purple-300 text-sm">
-                      {official.designation}
-                    </p>
-                    <p className="text-gray-400 text-sm flex items-center mt-2">
-                      <Phone className="mr-2 h-4 w-4" />
-                      +91 {official.phone}
-                    </p>
-                    <p className="text-gray-400 text-sm flex items-center mt-1">
-                      <Mail className="mr-2 h-4 w-4" /> {official.email}
-                    </p>
+                    <div>
+                      <h3 className="text-white font-semibold">
+                        {official.name}
+                      </h3>
+                      <p className="text-purple-300 text-sm">
+                        {official.designation}
+                      </p>
+                      <p className="text-gray-400 text-sm flex items-center mt-2">
+                        <Phone className="mr-2 h-4 w-4" />
+                        +91 {official.phone}
+                      </p>
+                      <p className="text-gray-400 text-sm flex items-center mt-1">
+                        <Mail className="mr-2 h-4 w-4" /> {official.email}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() =>
+                        handleDeleteOfficial(
+                          official.official_id || official.id
+                        )
+                      }
+                      className="mt-2 bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs transition-colors"
+                    >
+                      Remove
+                    </button>
                   </motion.div>
                 ))}
               </div>
