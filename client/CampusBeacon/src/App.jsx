@@ -55,6 +55,8 @@ import OfficialPage from "./pages/HostelPages/OfficialPage.jsx";
 import { CompassIcon } from "lucide-react";
 import ComplaintPage from "./pages/HostelPages/ComplaintPage.jsx";
 import NotificationsPage from "./pages/HostelPages/NotificationPage.jsx";
+import SeeHostel from "./pages/HostelPages/SeeHostel.jsx";
+import HostelSelector from "./pages/HostelPages/HostelSelector.jsx";
 
 function App() {
   return (
@@ -165,6 +167,10 @@ function App() {
                                               <Route
                                             path='/hostel-notification'
                                             element={<NotificationsPage/>}
+                                            />
+                                             <Route
+                                            path='/viewpagehostel'
+                                            element={<HostelSelector/>}
                                             />
                                           <Route
                                             path="/dashboard"
