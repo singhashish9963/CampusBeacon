@@ -26,14 +26,14 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
 });
 
 // Sync Models
-// sequelize
-//   .sync()
-//   .then(() => {
-//     console.log("Database & tables have been updated!");
-//   })
-//   .catch((error) => {
-//     console.error("Error updating database schema:", error);
-//   });
+sequelize
+  .sync({alter:true})
+  .then(() => {
+    console.log("Database & tables have been updated!");
+  })
+  .catch((error) => {
+    console.error("Error updating database schema:", error);
+  });
 
 // Connect to Database
 export const connectDb = asyncHandler(async () => {

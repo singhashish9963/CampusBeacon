@@ -1,9 +1,10 @@
-import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
+import { DataTypes } from "sequelize";
 import User from "./user.model.js";
 import Subject from "./subject.model.js";
 
-const UserAttendance = sequelize.define(
+// User Attendance Model
+export const UserAttendance = sequelize.define(
   "user_attendance",
   {
     id: {
@@ -11,22 +12,20 @@ const UserAttendance = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    userId: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: "user_id",
       references: {
-        model: "users",
+        model: User,
         key: "id",
       },
       onDelete: "CASCADE",
     },
-    subjectId: {
+    subject_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: "subject_id",
       references: {
-        model: "subjects",
+        model: Subject,
         key: "id",
       },
       onDelete: "CASCADE",
@@ -36,18 +35,27 @@ const UserAttendance = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("Present", "Absent", "Cancelled"),
+      type: DataTypes.ENUM("Present", "Absent", "Excused", "Late"),
       allowNull: false,
+      defaultValue: "Present",
     },
   },
   {
-    tableName: "user_attendance",
     timestamps: true,
-    underscored: true,
+    tableName: "user_attendance",
+    indexes: [
+      // Add a unique index to prevent duplicate entries
+      {
+        unique: true,
+        fields: ["user_id", "subject_id", "date"],
+        name: "unique_attendance_entry",
+      },
+    ],
   }
 );
 
-const AttendanceStats = sequelize.define(
+// Attendance Statistics Model
+export const AttendanceStats = sequelize.define(
   "attendance_stats",
   {
     id: {
@@ -55,42 +63,50 @@ const AttendanceStats = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    userId: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: "user_id",
       references: {
-        model: "users",
+        model: User,
         key: "id",
       },
       onDelete: "CASCADE",
     },
-    subjectId: {
+    subject_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: "subject_id",
       references: {
-        model: "subjects",
+        model: Subject,
         key: "id",
       },
       onDelete: "CASCADE",
     },
-    totalClasses: {
+    total_classes: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       defaultValue: 0,
-      field: "total_classes",
     },
-    totalPresent: {
+    total_present: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       defaultValue: 0,
-      field: "total_present",
+    },
+    last_updated: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
     },
   },
   {
-    tableName: "attendance_stats",
     timestamps: true,
-    underscored: true,
+    tableName: "attendance_stats",
+    indexes: [
+      {
+        unique: true,
+        fields: ["user_id", "subject_id"],
+        name: "unique_user_subject_stats",
+      },
+    ],
   }
 );
 
-export { UserAttendance, AttendanceStats };
+export default { UserAttendance, AttendanceStats };

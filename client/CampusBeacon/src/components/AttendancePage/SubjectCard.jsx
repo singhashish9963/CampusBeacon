@@ -16,7 +16,7 @@ const SubjectCard = ({ subject, stats, onEdit, onRemove, defaultOptions }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Calculate attendance status based on percentage and goal
+  // Determine attendance status based on percentage and goal
   const getAttendanceStatus = () => {
     const percent = stats.attendancePercent;
     if (percent >= subject.goal) return "good";
@@ -24,7 +24,6 @@ const SubjectCard = ({ subject, stats, onEdit, onRemove, defaultOptions }) => {
     return "danger";
   };
 
-  // Format numbers for display
   const formatNumber = (num) => Number(num).toFixed(1);
 
   const handleRemove = async () => {
@@ -35,7 +34,7 @@ const SubjectCard = ({ subject, stats, onEdit, onRemove, defaultOptions }) => {
 
     try {
       setLoading(true);
-      // New removeUserSubject API now only requires subjectId
+      // removeUserSubject now only requires subject.id as parameter
       const success = await removeUserSubject(subject.id);
       if (success) {
         await refreshUserSubjects(currentUser.id);

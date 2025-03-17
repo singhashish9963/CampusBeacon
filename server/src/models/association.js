@@ -14,6 +14,7 @@ import {
 } from "./hostels.model.js";
 import { Branch, Year, StudyMaterial } from "./resources.model.js";
 import Rides from "./ride.model.js";
+
 export const initializeAssociations = () => {
   // User - LostAndFound associations
   User.hasMany(LostAndFound, {
@@ -35,7 +36,7 @@ export const initializeAssociations = () => {
   User.belongsToMany(Subject, { through: UserSubjects });
   Subject.belongsToMany(User, { through: UserSubjects });
 
-  // Attendance associations
+  // Attendance associations - FIXED: standardized to user_id and subject_id
   User.hasMany(UserAttendance, {
     foreignKey: "user_id",
     onDelete: "CASCADE",
@@ -47,7 +48,7 @@ export const initializeAssociations = () => {
   });
   UserAttendance.belongsTo(Subject, { foreignKey: "subject_id" });
 
-  // Attendance Stats associations
+  // Attendance Stats associations - FIXED: standardized to user_id and subject_id
   User.hasMany(AttendanceStats, {
     foreignKey: "user_id",
     onDelete: "CASCADE",
@@ -101,8 +102,6 @@ export const initializeAssociations = () => {
     as: "creator",
   });
 };
-
-
 
 export {
   User,

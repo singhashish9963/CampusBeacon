@@ -5,8 +5,6 @@ import {
   useMotionValue,
   useTransform,
 } from "framer-motion";
-
-// Component imports
 import SubjectForm from "../components/AttendancePage/SubjectForm";
 import DashboardView from "../components/AttendancePage/DashboardView";
 import CalendarView from "../components/AttendancePage/CalendarView";
@@ -22,7 +20,8 @@ import { useAuth } from "../contexts/AuthContext";
 
 const AttendanceManager = () => {
   const {
-    subjects,
+    // only use userSubjects so that only student-selected subjects are shown
+    userSubjects,
     loading: contextLoading,
     error: contextError,
     fetchSubjects,
@@ -33,7 +32,7 @@ const AttendanceManager = () => {
     getAttendanceStats,
   } = useAttendanceContext();
 
-  const { user } = useAuth(); // Get current user from auth context
+  const { user } = useAuth();
 
   // Local States
   const [activeTab, setActiveTab] = useState("dashboard");
@@ -50,16 +49,16 @@ const AttendanceManager = () => {
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [trendData, setTrendData] = useState([]);
 
-  // Animation values
+  // Animation values for background motion
   const y = useMotionValue(0);
   const rotate = useTransform(y, [-100, 100], [-10, 10]);
 
-  // Initialize and fetch data
+  // On mount, fetch the subjects (userSubjects will be populated in context)
   useEffect(() => {
     fetchSubjects();
   }, [fetchSubjects]);
 
-  // Fetch attendance stats when subject is selected
+  // When a subject is selected, fetch its stats
   useEffect(() => {
     if (selectedSubjectId) {
       const fetchStats = async () => {
@@ -80,7 +79,7 @@ const AttendanceManager = () => {
     }
   }, [selectedSubjectId, getAttendanceStats]);
 
-  // Update trend data when selected subject changes
+  // Update the trend data when a subject is selected
   useEffect(() => {
     if (selectedSubjectId) {
       updateTrendData();
@@ -115,14 +114,12 @@ const AttendanceManager = () => {
           const totalCount = records.length;
           const attendance =
             totalCount > 0 ? (presentCount / totalCount) * 100 : 0;
-
           return {
             month: monthName,
             attendance: parseFloat(attendance.toFixed(2)),
           };
         })
       );
-
       setTrendData(data);
     } catch (error) {
       setNotification({
@@ -132,6 +129,7 @@ const AttendanceManager = () => {
     }
   };
 
+  // The calculateStats function calculates statistics to display in the dashboard and subject cards.
   const calculateStats = (subject) => {
     const stats = attendanceStats[subject.id] || {
       percentage: 0,
@@ -139,13 +137,13 @@ const AttendanceManager = () => {
       totalPresent: 0,
     };
 
-    const requiredPercentage = 75; // Minimum required attendance
+    const requiredPercentage = 75; // Minimum required attendance threshold
     const currentPercentage = stats.percentage;
+    // Calculate how many classes needed to reach the required attendance threshold
     const classesNeeded = Math.ceil(
       (requiredPercentage * stats.totalClasses - 100 * stats.totalPresent) /
         (100 - requiredPercentage)
     );
-
     return {
       attendancePercent: currentPercentage,
       status:
@@ -169,13 +167,18 @@ const AttendanceManager = () => {
 
     try {
       setLoading(true);
-      await addUserSubject(user.id, formData.id);
-      setShowSubjectModal(false);
-      await fetchSubjects();
-      setNotification({
-        type: "success",
-        message: "Subject added successfully!",
-      });
+      // Use addUserSubject from context, which requires the subject id
+      const result = await addUserSubject(formData.id);
+      if (result) {
+        setShowSubjectModal(false);
+        await fetchSubjects();
+        setNotification({
+          type: "success",
+          message: "Subject added successfully!",
+        });
+      } else {
+        throw new Error("Failed to add subject");
+      }
     } catch (error) {
       setNotification({
         type: "error",
@@ -194,10 +197,9 @@ const AttendanceManager = () => {
       });
       return;
     }
-
     try {
       setLoading(true);
-      await removeUserSubject(user.id, subjectId);
+      await removeUserSubject(subjectId);
       await fetchSubjects();
       setNotification({
         type: "success",
@@ -217,8 +219,9 @@ const AttendanceManager = () => {
     try {
       setLoading(true);
       await markAttendanceAPI(subjectId, date, status);
-      await getAttendanceStats(subjectId); // Refresh stats
-      await updateTrendData(); // Refresh trend data
+      // Refresh stats and trend data
+      await getAttendanceStats(subjectId);
+      await updateTrendData();
       setNotification({
         type: "success",
         message: `Attendance marked as ${status} successfully!`,
@@ -276,11 +279,11 @@ const AttendanceManager = () => {
           >
             {activeTab === "dashboard" && (
               <DashboardView
-                subjects={subjects}
                 calculateStats={calculateStats}
                 onAddSubject={() => setShowSubjectModal(true)}
                 onRemoveSubject={handleRemoveSubject}
-                trendData={trendData}
+                onEditSubject={setEditSubjectData}
+                defaultOptions={{ scale: 1, speed: 300 }}
               />
             )}
             {activeTab === "calendar" && (
@@ -289,7 +292,7 @@ const AttendanceManager = () => {
                 setCurrentMonth={setCurrentMonth}
                 selectedDate={selectedDate}
                 setSelectedDate={setSelectedDate}
-                subjects={subjects}
+                subjects={userSubjects}
                 selectedSubjectId={selectedSubjectId}
                 setSelectedSubjectId={setSelectedSubjectId}
                 markAttendance={markAttendanceHandler}
@@ -298,10 +301,11 @@ const AttendanceManager = () => {
             )}
             {activeTab === "settings" && (
               <SettingsView
-                subjects={subjects}
+                subjects={userSubjects}
                 attendanceStats={attendanceStats}
               />
             )}
+            {activeTab === "achievements" && <AchievementsView />}
           </motion.div>
         </AnimatePresence>
       </div>
