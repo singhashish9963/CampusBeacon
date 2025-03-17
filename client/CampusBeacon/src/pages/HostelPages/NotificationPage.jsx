@@ -1,74 +1,151 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { AlertCircle, X, ChevronDown } from "lucide-react";
-import axios from "axios";
+import { useHostelNotifications, useHostel } from "../../contexts/hostelContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { useHostel, useNotifications } from "../../contexts/hostelContext";
+import axios from "axios";
 
-const NotificationsPage = () => {
+const NotificationPage = () => {
   const navigate = useNavigate();
   const { hostels, loading: hostelsLoading, fetchHostels } = useHostel();
-  const { user, loading: authLoading } = useAuth();
   const {
-    notifications, 
-    loading, 
-    error, 
-    fetchNotifications, 
-    createNotification, 
-    deleteNotification
-  } = useNotifications();
+    notifications,
+    loading,
+    error,
+    fetchHostelNotifications,
+    createNotification,
+    updateNotification,
+    deleteNotification,
+  } = useHostelNotifications();
+  const { user, loading: authLoading } = useAuth();
   
+  // State management
   const [hostelDetails, setHostelDetails] = useState(null);
   const [selectedHostel, setSelectedHostel] = useState(null);
+  const [newNotification, setNewNotification] = useState({
+    message: "",
+    image: null
+  });
   const [notification, setNotification] = useState(null);
   const [notificationLoading, setNotificationLoading] = useState(false);
   const [hostelSelectOpen, setHostelSelectOpen] = useState(false);
+  const [editMode, setEditMode] = useState(null);
   
-  // New state for notification form data
-  const [newNotification, setNewNotification] = useState({
-    message: "",
-    file: null,
-  });
+  // Create API instance once
+  const api = useMemo(() => axios.create({
+    baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+    withCredentials: true,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }), []);
 
-  // Effect to check authentication and fetch hostels
+  // Authentication check and fetch hostels only once
   useEffect(() => {
-    if (!user && !authLoading) navigate("/login");
-    // Using fetchHostels from the context
-    fetchHostels();
-  }, [user, authLoading, navigate, fetchHostels]);
+    if (!user && !authLoading) {
+      navigate("/login");
+      return;
+    }
+    
+    if (!hostelsLoading && !hostels.length) {
+      fetchHostels();
+    }
+  }, [user, authLoading, navigate, fetchHostels, hostelsLoading, hostels.length]);
 
-  // Effect to fetch notifications when selected hostel changes
+  // Fetch notifications only when selected hostel changes
   useEffect(() => {
-    if (selectedHostel) {
-      fetchNotifications(selectedHostel.hostel_id);
+    if (selectedHostel?.hostel_id) {
+      fetchHostelNotifications(selectedHostel.hostel_id);
       fetchHostelDetails(selectedHostel.hostel_id);
     }
-  }, [selectedHostel, fetchNotifications]);
+  }, [selectedHostel?.hostel_id]);
 
-  const fetchHostelDetails = async (hostel_id) => {
+  // Memoized hostel details fetch function
+  const fetchHostelDetails = useCallback(async (hostel_id) => {
+    if (!hostel_id) return;
+    
     try {
-      const api = axios.create({
-        baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-        withCredentials: true,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
       const response = await api.get(`/hostels/hostels/${hostel_id}`);
       setHostelDetails(response.data);
     } catch (error) {
       console.error("Error fetching hostel details:", error.response || error);
     }
-  };
+  }, [api]);
 
-  const showNotification = (message, type = "success") => {
+  // Notification display function
+  const showNotification = useCallback((message, type = "success") => {
     setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
-  };
+    const timer = setTimeout(() => setNotification(null), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  const handleDeleteNotification = async (notification_id) => {
-    if (confirm("Are you sure you want to delete this notification?")) {
+  // Image upload handler
+  const handleImageUpload = useCallback((e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setNewNotification(prev => ({
+        ...prev,
+        image: file
+      }));
+    }
+  }, []);
+
+  // Create/Update notification handler
+  const handleCreateOrUpdateNotification = useCallback(async () => {
+    if (!selectedHostel) {
+      showNotification("Please select a hostel first", "error");
+      return;
+    }
+
+    if (!newNotification.message) {
+      showNotification("Please enter a message before submitting.", "error");
+      return;
+    }
+
+    setNotificationLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('hostel_id', selectedHostel.hostel_id);
+      formData.append('message', newNotification.message);
+      
+      if (newNotification.image) {
+        formData.append('image', newNotification.image);
+      }
+
+      if (editMode) {
+        await updateNotification(editMode, formData);
+        showNotification("Notification updated successfully!", "success");
+      } else {
+        await createNotification(formData);
+        showNotification("Notification created successfully!", "success");
+      }
+      
+      setNewNotification({
+        message: "",
+        image: null
+      });
+      setEditMode(null);
+    } catch (err) {
+      console.error("Error creating/updating notification:", err);
+      showNotification("Error saving notification, please try again.", "error");
+    } finally {
+      setNotificationLoading(false);
+    }
+  }, [selectedHostel, newNotification, editMode, createNotification, updateNotification, showNotification]);
+
+  // Edit notification handler
+  const handleEdit = useCallback((notification) => {
+    setEditMode(notification.notification_id);
+    setNewNotification({
+      message: notification.message,
+      image: null
+    });
+  }, []);
+
+  // Delete notification handler
+  const handleDelete = useCallback(async (notification_id) => {
+    if (window.confirm("Are you sure you want to delete this notification?")) {
       try {
         await deleteNotification(notification_id);
         showNotification("Notification deleted successfully!", "success");
@@ -77,49 +154,32 @@ const NotificationsPage = () => {
         showNotification("Error deleting notification, please try again.", "error");
       }
     }
-  };
+  }, [deleteNotification, showNotification]);
 
-  const handleCreateNotification = async () => {
-    if (!selectedHostel) {
-      showNotification("Please select a hostel first", "error");
-      return;
-    }
-
-    if (!newNotification.message) {
-      showNotification("Please fill in the message.", "error");
-      return;
-    }
-
-    setNotificationLoading(true);
-    try {
-      await createNotification({
-        hostel_id: selectedHostel.hostel_id,
-        ...newNotification,
-      });
-      showNotification("Notification created successfully!", "success");
-      setNewNotification({ message: "", file: null });
-    } catch (err) {
-      console.error("Error creating notification:", err.response || err);
-      showNotification("Error creating notification, please try again.", "error");
-    } finally {
-      setNotificationLoading(false);
-    }
-  };
-
-  const handleChange = (e) => {
+  // Form input change handler
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
     setNewNotification(prev => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
-  };
+  }, []);
 
-  const handleFileChange = (e) => {
-    setNewNotification(prev => ({
-      ...prev,
-      file: e.target.files[0]
-    }));
-  };
+  // Toggle hostel dropdown
+  const toggleHostelSelect = useCallback(() => {
+    setHostelSelectOpen(prev => !prev);
+  }, []);
+
+  // Select hostel handler
+  const selectHostel = useCallback((hostel) => {
+    setSelectedHostel(hostel);
+    setHostelSelectOpen(false);
+  }, []);
+
+  // Dismiss notification
+  const dismissNotification = useCallback(() => {
+    setNotification(null);
+  }, []);
 
   if (authLoading) return <p>Checking authentication...</p>;
   if (!user) return null;
@@ -137,16 +197,14 @@ const NotificationsPage = () => {
             >
               <AlertCircle size={20} />
               <span>{notification.message}</span>
-              <button onClick={() => setNotification(null)} className="ml-2">
+              <button onClick={dismissNotification} className="ml-2">
                 <X size={18} />
               </button>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-center mb-6">
-          Manage Hostel Notifications
-        </h1>
+        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-center mb-6">Manage Hostel Notifications</h1>
 
         {/* Hostel Selector */}
         <div className="bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50 p-6 mb-8 w-full">
@@ -157,7 +215,7 @@ const NotificationsPage = () => {
           ) : (
             <div className="relative">
               <button 
-                onClick={() => setHostelSelectOpen(!hostelSelectOpen)}
+                onClick={toggleHostelSelect}
                 className="w-full p-3 rounded-lg text-white bg-blue-500 hover:bg-blue-600 text-left flex justify-between items-center"
               >
                 <span>{selectedHostel ? selectedHostel.hostel_name : "Select a hostel"}</span>
@@ -171,10 +229,7 @@ const NotificationsPage = () => {
                       <div 
                         key={hostel.hostel_id} 
                         className="p-3 hover:bg-gray-700 cursor-pointer transition duration-200"
-                        onClick={() => {
-                          setSelectedHostel(hostel);
-                          setHostelSelectOpen(false);
-                        }}
+                        onClick={() => selectHostel(hostel)}
                       >
                         {hostel.hostel_name}
                       </div>
@@ -193,39 +248,44 @@ const NotificationsPage = () => {
             {loading && <p className="text-center text-lg text-gray-500">Loading notifications...</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
 
-            {/* Create Notification Form */}
+            {/* Create/Edit Notification Form */}
             <div className="bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50 p-6 mb-8 w-full">
               <h2 className="text-2xl text-white font-semibold mb-4">
-                Create New Notification for {selectedHostel.hostel_name}
+                {editMode ? "Edit Notification" : "Create New Notification"} for {selectedHostel.hostel_name}
               </h2>
               
               <div className="mb-4">
                 <label className="block text-white text-lg font-medium mb-2">Message:</label>
                 <textarea
                   name="message"
-                  placeholder="Enter Notification Message"
-                  className="border bg-white p-3 w-full rounded-lg"
-                  rows={4}
                   value={newNotification.message}
                   onChange={handleChange}
+                  className="border bg-white p-3 w-full rounded-lg min-h-[100px]"
+                  placeholder="Enter Notification Message"
                 />
               </div>
               
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Attachment (optional):</label>
+                <label className="block text-white text-lg font-medium mb-2">Upload Image:</label>
                 <input
                   type="file"
-                  onChange={handleFileChange}
+                  name="image"
+                  accept="image/*"
+                  onChange={handleImageUpload}
                   className="border bg-white p-3 w-full rounded-lg"
                 />
               </div>
 
               <button
-                onClick={handleCreateNotification}
+                onClick={handleCreateOrUpdateNotification}
                 className={`w-full p-3 rounded-lg text-white ${notificationLoading ? "bg-gray-500" : "bg-blue-500 hover:bg-blue-600"}`}
                 disabled={notificationLoading}
               >
-                {notificationLoading ? "Processing..." : "Create Notification"}
+                {notificationLoading
+                  ? "Processing..."
+                  : editMode
+                  ? "Update Notification"
+                  : "Create Notification"}
               </button>
             </div>
 
@@ -249,20 +309,28 @@ const NotificationsPage = () => {
                           animation: "gradient 5s ease infinite",
                         }}
                       >
-                        <div className="bg-white/60 p-4 rounded-lg">
-                          <h3 className="text-xl font-bold mb-2">{notif.message}</h3>
+                        <div className="p-4 rounded-lg bg-white/60">
+                          <p className="mb-4 text-gray-700">{notif.message}</p>
+                          
                           {notif.file_url && (
-                            <div className="mb-2">
+                            <div className="mb-4">
                               <img 
                                 src={notif.file_url} 
-                                alt="Notification" 
-                                className="max-w-full h-auto rounded-lg"
+                                alt="Notification image" 
+                                className="max-w-full rounded-lg" 
                               />
                             </div>
                           )}
-                          <div className="mt-4 flex justify-end">
+                          
+                          <div className="mt-4 flex space-x-4">
                             <button
-                              onClick={() => handleDeleteNotification(notif.notification_id)}
+                              onClick={() => handleEdit(notif)}
+                              className="text-blue-600 hover:text-blue-800 transition duration-200"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDelete(notif.notification_id)}
                               className="text-red-600 hover:text-red-800 transition duration-200"
                             >
                               Delete
@@ -288,4 +356,4 @@ const NotificationsPage = () => {
   );
 };
 
-export default NotificationsPage;
+export default NotificationPage;

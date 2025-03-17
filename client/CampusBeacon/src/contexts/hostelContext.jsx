@@ -530,9 +530,9 @@ export const useComplaints = () => {
         Notifications Context
 =============================
 */
-const NotificationsContext = createContext();
+const HostelNotificationsContext = createContext();
 
-export const NotificationsProvider = ({ children }) => {
+export const HostelNotificationsProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -613,7 +613,7 @@ export const NotificationsProvider = ({ children }) => {
   };
 
   return (
-    <NotificationsContext.Provider
+    <HostelNotificationsContext.Provider
       value={{
         notifications,
         loading,
@@ -626,8 +626,8 @@ export const NotificationsProvider = ({ children }) => {
       }}
     >
       {children}
-    </NotificationsContext.Provider>
+    </HostelNotificationsContext.Provider>
   );
 };
 
-export const useNotifications = () => useContext(NotificationsContext);
+export const useHostelNotifications = () => useContext(HostelNotificationsContext);

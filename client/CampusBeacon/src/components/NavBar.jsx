@@ -58,6 +58,11 @@ function NavBar() {
       name:"Hostel Notifications Create",
       path:"/hostel-notification",
       description:"Crud on hostel notifications"
+    },
+    {
+      name:"ViewPage Hostel Create",
+      path:"/viewpagehostel",
+      description:"-"
     }
    ];
   const hostelOptions = [

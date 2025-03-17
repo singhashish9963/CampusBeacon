@@ -4,7 +4,7 @@ import { Utensils, Phone, Mail, Bell, Wrench } from "lucide-react";
 import { FaUsersGear } from "react-icons/fa6";
 import { useComplaints } from "../../contexts/hostelContext";
 import { useOfficial } from "../../contexts/hostelContext";
-import { useNotifications } from "../../contexts/hostelContext";
+import { useHostelNotifications } from "../../contexts/hostelContext";
 
 const SVBH = () => {
   // get current day and time

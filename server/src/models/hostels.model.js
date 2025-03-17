@@ -235,8 +235,8 @@ const Complaint = sequelize.define(
        Notification Model
 =============================
 */
-const Notification = sequelize.define(
-  "Notification",
+const HostelNotification = sequelize.define(
+  "HostelNotification",
   {
     notification_id: {
       type: DataTypes.INTEGER,
@@ -269,8 +269,8 @@ const Notification = sequelize.define(
   },
   {
     timestamps: true,
-    tableName: "notifications",
+    tableName: "hostelnotifications",
   }
 );
 
-export { Hostel, Menu, Official, Complaint, Notification };
+export { Hostel, Menu, Official, Complaint, HostelNotification };
