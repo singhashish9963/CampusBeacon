@@ -8,7 +8,7 @@ import {
   useMenu, 
   useComplaints, 
   useOfficial, 
-  useNotifications 
+  useHostelNotifications 
 } from "../../contexts/hostelContext";
 import axios from "axios";
 
@@ -79,7 +79,7 @@ const SeeHostel = ({ hostelId }) => {
   const { hostels, fetchHostels } = useHostel();
   const { menus, fetchMenuByHostel } = useMenu();
   const { complaints, loading, error, fetchAllComplaints, createComplaint, editComplaint, deleteComplaint } = useComplaints();
-  const { notifications, fetchHostelNotifications, createNotification, deleteNotification } = useNotifications();
+  const { notifications, fetchHostelNotifications, createNotification, deleteNotification } = useHostelNotifications();
 
   // Create API instance
   const createApiInstance = () => {

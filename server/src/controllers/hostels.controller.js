@@ -6,7 +6,7 @@ import {
   Menu,
   Official,
   Complaint,
-  Notification,
+  HostelNotification,
 } from "../models/hostels.model.js";
 
 /*
@@ -495,7 +495,7 @@ export const createNotification = asyncHandler(async (req, res) => {
   if (req.file) {
     file_url = await uploadImageToCloudinary(req.file.path, "notifications");
   }
-  const notification = await Notification.create({
+  const notification = await HostelNotification.create({
     hostel_id,
     message,
     file_url,
@@ -508,7 +508,7 @@ export const createNotification = asyncHandler(async (req, res) => {
 });
 
 export const getNotifications = asyncHandler(async (req, res) => {
-  const notifications = await Notification.findAll();
+  const notifications = await HostelNotification.findAll();
   res
     .status(200)
     .json(
@@ -524,7 +524,7 @@ export const getHostelNotifications = asyncHandler(async (req, res) => {
   const { hostel_id } = req.params;
   const hostel = await Hostel.findByPk(hostel_id);
   if (!hostel) throw new ApiError("Hostel not found", 404);
-  const notifications = await Notification.findAll({ where: { hostel_id } });
+  const notifications = await HostelNotification.findAll({ where: { hostel_id } });
   res
     .status(200)
     .json(
@@ -539,7 +539,7 @@ export const getHostelNotifications = asyncHandler(async (req, res) => {
 export const updateNotification = asyncHandler(async (req, res) => {
   const { notification_id } = req.params;
   const { hostel_id, message } = req.body;
-  const notification = await Notification.findByPk(notification_id);
+  const notification = await HostelNotification.findByPk(notification_id);
   if (!notification) throw new ApiError("Notification not found", 404);
   if (hostel_id) {
     const hostel = await Hostel.findByPk(hostel_id);
@@ -563,7 +563,7 @@ export const updateNotification = asyncHandler(async (req, res) => {
 
 export const deleteNotification = asyncHandler(async (req, res) => {
   const { notification_id } = req.params;
-  const deleted = await Notification.destroy({ where: { notification_id } });
+  const deleted = await HostelNotification.destroy({ where: { notification_id } });
   if (!deleted) throw new ApiError("Notification not found", 404);
   res
     .status(200)
