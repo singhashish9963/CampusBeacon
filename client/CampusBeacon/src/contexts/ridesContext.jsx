@@ -169,6 +169,36 @@ export const RidesProvider = ({ children }) => {
     }
   }, []);
 
+  // Join ride
+  const joinRide = useCallback(
+    async (rideId) => {
+      try {
+        setLoading(true);
+        const response = await api.post(`/rides/${rideId}/join`);
+        if (response.data.success) {
+          // Optionally update the current ride if it's the one joined
+          if (currentRide && currentRide.id === rideId) {
+            // For example, merge participants data into currentRide
+            setCurrentRide((prev) => ({
+              ...prev,
+              participants: response.data.data,
+            }));
+          }
+          return response.data.data;
+        }
+        throw new Error(response.data.message);
+      } catch (err) {
+        const errorMessage =
+          err.response?.data?.message || "Error joining ride";
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [currentRide]
+  );
+
   const clearError = useCallback(() => setError(null), []);
 
   // Client-side filtering and sorting of rides (and related state)
@@ -188,7 +218,6 @@ export const RidesProvider = ({ children }) => {
   });
 
   // Count active filters (search term counts as one filter)
-  // This effect can be used by consuming components if needed.
   React.useEffect(() => {
     const count = Object.entries(filters).reduce((acc, [key, value]) => {
       if (key !== "sortBy" && value !== null && value !== "all") {
@@ -391,6 +420,34 @@ export const RidesProvider = ({ children }) => {
       console.error("Error submitting ride:", err);
     }
   };
+   const unjoinRide = useCallback(
+     async (rideId) => {
+       try {
+         setLoading(true);
+         const response = await api.delete(`/rides/${rideId}/join`);
+         if (response.data.success) {
+           if (currentRide && currentRide.id === rideId) {
+             setCurrentRide((prev) => ({
+               ...prev,
+               participants: response.data.data,
+             }));
+           }
+           await getAllRides();
+           return response.data.data;
+         }
+         throw new Error(response.data.message);
+       } catch (err) {
+         const errorMessage =
+           err.response?.data?.message || "Error cancelling ride join";
+         setError(errorMessage);
+         throw new Error(errorMessage);
+       } finally {
+         setLoading(false);
+       }
+     },
+     [currentRide, getAllRides]
+   );
+
 
   const value = {
     rides,
@@ -404,6 +461,8 @@ export const RidesProvider = ({ children }) => {
     getAllRides,
     getUserRides,
     getRideById,
+    joinRide, // New join ride function
+    unjoinRide,
     clearError,
     searchTerm,
     setSearchTerm,

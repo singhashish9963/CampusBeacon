@@ -14,6 +14,7 @@ import {
 } from "./hostels.model.js";
 import { Branch, Year, StudyMaterial } from "./resources.model.js";
 import Rides from "./ride.model.js";
+import RideParticipant from "./rideParticipant.model.js";
 
 export const initializeAssociations = () => {
   // User - LostAndFound associations
@@ -101,6 +102,8 @@ export const initializeAssociations = () => {
     foreignKey: "creatorId",
     as: "creator",
   });
+  Rides.hasMany(RideParticipant, { foreignKey: "rideId", as: "participants" });
+  RideParticipant.belongsTo(Rides, { foreignKey: "rideId" });
 };
 
 export {
