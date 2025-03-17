@@ -304,6 +304,42 @@ export const deleteOfficial = asyncHandler(async (req, res, next) => {
        Complaint Controllers 
 =============================
 */
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // or another email service
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+const sendComplaintEmail = async (complaint) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USERNAME,
+      to: complaint.official_email,
+      subject: `New Complaint: ${complaint.complaint_type}`,
+      html: `
+        <h2>New Complaint Submitted</h2>
+        <p><strong>Complaint ID:</strong> ${complaint.complaint_id}</p>
+        <p><strong>Hostel:</strong> ${complaint.hostel_id}</p>
+        <p><strong>Student:</strong> ${complaint.student_name} (${complaint.student_email})</p>
+        <p><strong>Complaint Type:</strong> ${complaint.complaint_type}</p>
+        <p><strong>Description:</strong> ${complaint.complaint_description}</p>
+        <p><strong>Due Date:</strong> ${new Date(complaint.due_date).toLocaleDateString()}</p>
+        <p>Please address this complaint before the due date.</p>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent: ' + info.response);
+    return true;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return false;
+  }
+};
+
 
 export const createComplaint = asyncHandler(async (req, res) => {
   const {
@@ -341,6 +377,9 @@ export const createComplaint = asyncHandler(async (req, res) => {
     complaint_description,
     due_date,
   });
+
+  await sendComplaintEmail(complaint);
+
   res
     .status(201)
     .json(new ApiResponse(201, complaint, "Complaint submitted successfully!"));
