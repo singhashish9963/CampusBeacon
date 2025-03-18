@@ -146,13 +146,13 @@ const LoginSignup = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
-            className="mt-30 mb-30 relative w-full max-w-[900px] md:h-[600px] h-[1000px] rounded-2xl overflow-hidden md:flex shadow-2xl"
+            className="mt-30 mb-30 relative w-full max-w-[900px] md:h-[600px] h-auto rounded-2xl overflow-hidden md:flex shadow-2xl"
             style={{
               background: "rgba(0, 0, 0, 0.7)",
               backdropFilter: "blur(10px)",
             }}
           >
-            {/* Sliding Panel */}
+            {/* Sliding Panel - visible only on desktop */}
             <motion.div
               animate={{ x: isSignUp ? "100%" : "0%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -183,8 +183,103 @@ const LoginSignup = () => {
               </div>
             </motion.div>
 
-            {/* Sign Up Form */}
-            <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg md:border-hidden">
+            {/* Mobile version with flip animation */}
+            <AnimatePresence mode="wait">
+              <motion.div 
+                key={isSignUp ? "signUp" : "signIn"}
+                initial={{ 
+                  rotateY: isSignUp ? -90 : 90, 
+                  opacity: 0 
+                }}
+                animate={{ 
+                  rotateY: 0, 
+                  opacity: 1 
+                }}
+                exit={{ 
+                  rotateY: isSignUp ? 90 : -90, 
+                  opacity: 0 
+                }}
+                transition={{ 
+                  duration: 0.6, 
+                  type: "spring", 
+                  stiffness: 300, 
+                  damping: 30 
+                }}
+                className="w-full md:hidden perspective-1000"
+                style={{ 
+                  backfaceVisibility: "hidden",
+                  transformStyle: "preserve-3d"
+                }}
+              >
+                {isSignUp ? (
+                  <div className="p-6 w-full">
+                    <h2 className="text-3xl font-bold text-white mb-6 text-center">
+                      Create New Account
+                    </h2>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-lg"
+                      >
+                        {error}
+                      </motion.div>
+                    )}
+                    <AuthForm type="signUp" />
+                    <div className="mt-6 flex justify-center">
+                      <button
+                        onClick={() => {
+                          setIsSignUp(false);
+                          setError(null);
+                        }}
+                        className="text-purple-400 hover:text-purple-300 transition-colors"
+                      >
+                        Already have an account? Sign In
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-6 w-full">
+                    <h2 className="text-3xl font-bold text-white mb-6 text-center">
+                      Welcome Back!
+                    </h2>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-lg"
+                      >
+                        {error}
+                      </motion.div>
+                    )}
+                    <AuthForm type="signIn" />
+                    <div className="mt-4 flex flex-col items-center space-y-3">
+                      <button
+                        className="text-purple-400 hover:text-purple-300 transition-colors"
+                        onClick={() => {
+                          setAuthMode("forgotPassword");
+                          setError(null);
+                        }}
+                      >
+                        Forgot Password?
+                      </button>
+                      <button
+                        onClick={() => {
+                          setIsSignUp(true);
+                          setError(null);
+                        }}
+                        className="text-purple-400 hover:text-purple-300 transition-colors"
+                      >
+                        New here? Create Account
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Desktop Sign Up Form - visible only on desktop */}
+            <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg md:border-hidden hidden md:block">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Create New Account
               </h2>
@@ -200,8 +295,8 @@ const LoginSignup = () => {
               <AuthForm type={isSignUp ? "signUp" : "signIn"} />
             </div>
 
-            {/* Sign In Form */}
-            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden">
+            {/* Desktop Sign In Form - visible only on desktop */}
+            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden hidden md:block">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Welcome Back!
               </h2>

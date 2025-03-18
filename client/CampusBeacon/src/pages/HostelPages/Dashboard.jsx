@@ -5,7 +5,7 @@ import { FaUsersGear } from "react-icons/fa6";
 import {
   useMenu,
   useOfficial,
-  useNotifications,
+  useHostelNotifications,
   useComplaints,
 } from "../../contexts/hostelContext";
 

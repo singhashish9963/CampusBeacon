@@ -10,7 +10,7 @@ import {
   Hostel,
   Official,
   Complaint,
-  Notification,
+  HostelNotification,
 } from "./hostels.model.js";
 import { Branch, Year, StudyMaterial } from "./resources.model.js";
 import Rides from "./ride.model.js";
@@ -78,8 +78,8 @@ export const initializeAssociations = () => {
   Complaint.belongsTo(Official, { foreignKey: "official_id" });
 
   // Hostel - Notification associations
-  Hostel.hasMany(Notification, { foreignKey: "hostel_id" });
-  Notification.belongsTo(Hostel, { foreignKey: "hostel_id" });
+  Hostel.hasMany(HostelNotification, { foreignKey: "hostel_id" });
+  HostelNotification.belongsTo(Hostel, { foreignKey: "hostel_id" });
 
   // Resources associations
   Branch.hasMany(Year, { foreignKey: "branch_id", onDelete: "CASCADE" });

@@ -35,25 +35,31 @@ import CampusExplorer from "./pages/utilityPages/campusExplorer.jsx";
 import MNNITTimeCapsule from "./pages/utilityPages/mnnitTimeCapsule.jsx";
 import RideShare from "./pages/rideShare.jsx";
 import RidesProvider from "./contexts/ridesContext.jsx";
-import { HostelProvider } from "./contexts/hostelContext.jsx";
+import { HostelNotificationsProvider, HostelProvider } from "./contexts/hostelContext.jsx";
 import { MenuProvider } from "./contexts/hostelContext.jsx";
 import { OfficialProvider } from "./contexts/hostelContext.jsx";
 import { ComplaintProvider } from "./contexts/hostelContext.jsx";
-import { NotificationsProvider } from "./contexts/hostelContext.jsx";
-import { NotificationProvider } from "./contexts/notificationContext.jsx";
 import Dashboard from "./pages/HostelPages/Dashboard.jsx";
 // import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
 
 // import HostelPage from "./pages/HostelPages/HostelPage.jsx";
-
+import { NotificationProvider } from "./contexts/notificationContext.jsx";
 import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
 import AdminPanel from "./pages/God/AdminPanel.jsx";
+import MenuPage from "./pages/HostelPages/MenuPage.jsx";
+import HostelPage from "./pages/HostelPages/HostelPage.jsx";
+import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
+import OfficialPage from "./pages/HostelPages/OfficialPage.jsx";
+import { CompassIcon } from "lucide-react";
+import ComplaintPage from "./pages/HostelPages/ComplaintPage.jsx";
+import NotificationsPage from "./pages/HostelPages/NotificationPage.jsx";
+import SeeHostel from "./pages/HostelPages/SeeHostel.jsx";
+import HostelSelector from "./pages/HostelPages/HostelSelector.jsx";
 
 function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <NotificationsProvider>
           <AttendanceProvider>
             <ChatbotProvider>
               <EateriesProvider>
@@ -63,6 +69,7 @@ function App() {
                       <HostelProvider>
                         <MenuProvider>
                           <OfficialProvider>
+                            <HostelNotificationsProvider>
                             <ComplaintProvider>
                               <ProfileProvider>
                                 <RidesProvider>
@@ -140,6 +147,30 @@ function App() {
                                             element={<DJGH />}
                                           />
                                           <Route
+                                            path='/Menu'
+                                            element={<MenuPage/>}
+                                            />
+                                             <Route
+                                            path='/hostelcreate'
+                                            element={<AdminHostelPage/>}
+                                            />
+                                            <Route
+                                            path='/official'
+                                            element={<OfficialPage/>}
+                                            />
+                                             <Route
+                                            path='/complaints'
+                                            element={<ComplaintPage/>}
+                                            />
+                                              <Route
+                                            path='/hostel-notification'
+                                            element={<NotificationsPage/>}
+                                            />
+                                             <Route
+                                            path='/viewpagehostel'
+                                            element={<HostelSelector/>}
+                                            />
+                                          <Route
                                             path="/dashboard"
                                             element={<Dashboard />}
                                           />
@@ -193,6 +224,7 @@ function App() {
                                 </RidesProvider>
                               </ProfileProvider>
                             </ComplaintProvider>
+                            </HostelNotificationsProvider>
                           </OfficialProvider>
                         </MenuProvider>
                       </HostelProvider>
@@ -202,8 +234,7 @@ function App() {
               </EateriesProvider>
             </ChatbotProvider>
           </AttendanceProvider>
-        </NotificationsProvider>
-      </NotificationProvider>
+          </NotificationProvider>
     </AuthProvider>
   );
 }

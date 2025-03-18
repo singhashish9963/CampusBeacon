@@ -30,11 +30,41 @@ function NavBar() {
         { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
         { name: "Buy & Sell", path: "/marketplace", icon: HiShoppingBag },
         { name: "Profile", path: "/profile", icon: HiUser },
-        { name: "Hostel", path: "/hostels", icon: HiUser }
-         
+        { name: "Hostel", path: "/hostels", icon: HiUser },         
       ]
     : [{ name: "Home", path: "/", icon: HiHome }];
-
+   const hostelAdminOptions=[
+    {
+      name:"Menu Create",
+      path:'/Menu',
+      description:"Crud on Menu"
+    },
+    {
+      name:"Hostel create",
+      path:"/hostelcreate",
+      description:"CRUD on hostel ",
+    },
+    {
+      name:"Official create",
+      path:"/official",
+      description:"Crud on official",
+    },
+    {
+      name:"Complaints create",
+      path:"/complaints",
+      description:"Crud on complaints"
+    },
+    {
+      name:"Hostel Notifications Create",
+      path:"/hostel-notification",
+      description:"Crud on hostel notifications"
+    },
+    {
+      name:"ViewPage Hostel Create",
+      path:"/viewpagehostel",
+      description:"-"
+    }
+   ];
   const hostelOptions = [
     {
       name: "SVBH",
@@ -220,9 +250,31 @@ function NavBar() {
                     {/* Mobile Hostel Section */}
                     <div className="mt-4 border-t border-white/10 pt-4">
                       <div className="px-4 py-2 text-sm text-gray-400">
+                        HostelAdmin
+                      </div>
+                      {hostelAdminOptions.map((option) => (
+                        <Link
+                          key={option.name}
+                          to={option.path}
+                          className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+                        >
+                          <HiOfficeBuilding className="w-6 h-6" />
+                          <div>
+                            <div>{option.name}</div>
+                            {option.description && (
+                              <div className="text-sm text-gray-400">
+                                {option.description}
+                              </div>
+                            )}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                    <div className="mt-4 border-t border-white/10 pt-4">
+                      <div className="px-4 py-2 text-sm text-gray-400">
                         Hostels
                       </div>
-                      {hostelOptions.map((option) => (
+                      {hostelAdminOptions.map((option) => (
                         <Link
                           key={option.name}
                           to={option.path}
@@ -338,6 +390,12 @@ function NavBar() {
 
                     {isAuthenticated && (
                       <>
+                      <DropdownMenu
+                          title="HostelAdmin"
+                          options={hostelAdminOptions}
+                          dropdownKey="hostelAdmin"
+                          icon={HiOfficeBuilding}
+                        />
                         <DropdownMenu
                           title="Hostel"
                           options={hostelOptions}

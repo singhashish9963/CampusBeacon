@@ -6,7 +6,7 @@ import {
   Menu,
   Official,
   Complaint,
-  Notification,
+  HostelNotification,
 } from "../models/hostels.model.js";
 
 /*
@@ -304,6 +304,42 @@ export const deleteOfficial = asyncHandler(async (req, res, next) => {
        Complaint Controllers 
 =============================
 */
+import nodemailer from 'nodemailer';
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // or another email service
+  auth: {
+    user: process.env.EMAIL_USERNAME,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+const sendComplaintEmail = async (complaint) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USERNAME,
+      to: complaint.official_email,
+      subject: `New Complaint: ${complaint.complaint_type}`,
+      html: `
+        <h2>New Complaint Submitted</h2>
+        <p><strong>Complaint ID:</strong> ${complaint.complaint_id}</p>
+        <p><strong>Hostel:</strong> ${complaint.hostel_id}</p>
+        <p><strong>Student:</strong> ${complaint.student_name} (${complaint.student_email})</p>
+        <p><strong>Complaint Type:</strong> ${complaint.complaint_type}</p>
+        <p><strong>Description:</strong> ${complaint.complaint_description}</p>
+        <p><strong>Due Date:</strong> ${new Date(complaint.due_date).toLocaleDateString()}</p>
+        <p>Please address this complaint before the due date.</p>
+      `
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent: ' + info.response);
+    return true;
+  } catch (error) {
+    console.error('Error sending email:', error);
+    return false;
+  }
+};
+
 
 export const createComplaint = asyncHandler(async (req, res) => {
   const {
@@ -341,6 +377,9 @@ export const createComplaint = asyncHandler(async (req, res) => {
     complaint_description,
     due_date,
   });
+
+  await sendComplaintEmail(complaint);
+
   res
     .status(201)
     .json(new ApiResponse(201, complaint, "Complaint submitted successfully!"));
@@ -456,7 +495,7 @@ export const createNotification = asyncHandler(async (req, res) => {
   if (req.file) {
     file_url = await uploadImageToCloudinary(req.file.path, "notifications");
   }
-  const notification = await Notification.create({
+  const notification = await HostelNotification.create({
     hostel_id,
     message,
     file_url,
@@ -469,7 +508,7 @@ export const createNotification = asyncHandler(async (req, res) => {
 });
 
 export const getNotifications = asyncHandler(async (req, res) => {
-  const notifications = await Notification.findAll();
+  const notifications = await HostelNotification.findAll();
   res
     .status(200)
     .json(
@@ -485,7 +524,7 @@ export const getHostelNotifications = asyncHandler(async (req, res) => {
   const { hostel_id } = req.params;
   const hostel = await Hostel.findByPk(hostel_id);
   if (!hostel) throw new ApiError("Hostel not found", 404);
-  const notifications = await Notification.findAll({ where: { hostel_id } });
+  const notifications = await HostelNotification.findAll({ where: { hostel_id } });
   res
     .status(200)
     .json(
@@ -500,7 +539,7 @@ export const getHostelNotifications = asyncHandler(async (req, res) => {
 export const updateNotification = asyncHandler(async (req, res) => {
   const { notification_id } = req.params;
   const { hostel_id, message } = req.body;
-  const notification = await Notification.findByPk(notification_id);
+  const notification = await HostelNotification.findByPk(notification_id);
   if (!notification) throw new ApiError("Notification not found", 404);
   if (hostel_id) {
     const hostel = await Hostel.findByPk(hostel_id);
@@ -524,7 +563,7 @@ export const updateNotification = asyncHandler(async (req, res) => {
 
 export const deleteNotification = asyncHandler(async (req, res) => {
   const { notification_id } = req.params;
-  const deleted = await Notification.destroy({ where: { notification_id } });
+  const deleted = await HostelNotification.destroy({ where: { notification_id } });
   if (!deleted) throw new ApiError("Notification not found", 404);
   res
     .status(200)

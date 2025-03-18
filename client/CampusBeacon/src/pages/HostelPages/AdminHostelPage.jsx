@@ -19,7 +19,7 @@ const AdminHostelPage = () => {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!user && !authLoading) navigate("/login");
-    fetchHostels(); // ✅ Fetch hostels once authentication is checked
+    fetchHostels(); 
   }, [user, authLoading, fetchHostels]);
 
   if (authLoading) return <p>Checking authentication...</p>;
