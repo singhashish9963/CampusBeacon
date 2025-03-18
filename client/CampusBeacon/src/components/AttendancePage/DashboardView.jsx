@@ -8,7 +8,6 @@ import TimeDisplay from "./TimeDisplay";
 import { useAttendanceContext } from "../../contexts/attendanceContext";
 
 const DashboardView = ({
-  subjects,
   calculateStats,
   onAddSubject,
   onEditSubject,
@@ -16,12 +15,12 @@ const DashboardView = ({
   defaultOptions,
 }) => {
   const {
+    userSubjects, // use userSubjects from context so only selected subjects appear
     getAttendanceRecords,
     loading,
     error,
     currentDateTime,
     currentUser,
-    refreshUserSubjects,
   } = useAttendanceContext();
 
   const [trendData, setTrendData] = useState([]);
@@ -73,7 +72,7 @@ const DashboardView = ({
         };
       }).reverse();
 
-      if (!subjects?.length) {
+      if (!userSubjects?.length) {
         setTrendData(
           lastSixMonths.map(({ month }) => ({
             month,
@@ -83,9 +82,9 @@ const DashboardView = ({
         return;
       }
 
-      // Fetch records for all subjects
+      // Fetch records for all userSubjects
       const allSubjectsRecords = await Promise.all(
-        subjects.map(async (subject) => {
+        userSubjects.map(async (subject) => {
           try {
             const records = await getAttendanceRecords(subject.id);
             return { subjectId: subject.id, records: records || [] };
@@ -125,16 +124,16 @@ const DashboardView = ({
       setTrendData(getDefaultTrendData());
     }
   }, [
-    subjects,
+    userSubjects,
     getAttendanceRecords,
     filterRecordsByMonth,
     calculateMonthlyData,
     getDefaultTrendData,
   ]);
 
-  // Calculate dashboard statistics
+  // Calculate dashboard statistics based on userSubjects
   const calculateDashboardStats = useCallback(() => {
-    if (!subjects?.length) {
+    if (!userSubjects?.length) {
       return {
         bestSubject: null,
         averageAttendance: 0,
@@ -144,23 +143,23 @@ const DashboardView = ({
 
     try {
       // Find best performing subject
-      const bestSubject = [...subjects].sort((a, b) => {
+      const bestSubject = [...userSubjects].sort((a, b) => {
         const statA = calculateStats(a).attendancePercent;
         const statB = calculateStats(b).attendancePercent;
         return statB - statA;
       })[0];
 
       // Calculate average attendance
-      const totalAttendance = subjects.reduce(
+      const totalAttendance = userSubjects.reduce(
         (sum, subject) => sum + calculateStats(subject).attendancePercent,
         0
       );
       const averageAttendance = parseFloat(
-        (totalAttendance / subjects.length).toFixed(1)
+        (totalAttendance / userSubjects.length).toFixed(1)
       );
 
       // Calculate goals met
-      const goalsMet = subjects.filter(
+      const goalsMet = userSubjects.filter(
         (subject) => calculateStats(subject).attendancePercent >= subject.goal
       ).length;
 
@@ -169,9 +168,9 @@ const DashboardView = ({
       console.error("Error calculating dashboard stats:", error);
       return { bestSubject: null, averageAttendance: 0, goalsMet: 0 };
     }
-  }, [subjects, calculateStats]);
+  }, [userSubjects, calculateStats]);
 
-  // Fetch trend data when subjects change
+  // Fetch trend data when userSubjects change
   useEffect(() => {
     fetchAttendanceTrend();
   }, [fetchAttendanceTrend]);
@@ -238,7 +237,7 @@ const DashboardView = ({
         <StatsCard
           icon={Target}
           title="Goals Met"
-          value={`${goalsMet}/${subjects.length} Subjects`}
+          value={`${goalsMet}/${userSubjects.length} Subjects`}
           colorClass="from-purple-500/20 to-purple-600/20 border border-purple-500/30"
           loading={loading}
         />
@@ -256,12 +255,12 @@ const DashboardView = ({
               className="animate-pulse rounded-xl border border-purple-500/30 bg-purple-900/20 h-48"
             />
           ))
-        ) : subjects.length === 0 ? (
+        ) : userSubjects.length === 0 ? (
           <div className="col-span-2 text-center py-12 text-gray-400">
             No subjects added yet. Click "Add Subject" to get started.
           </div>
         ) : (
-          subjects.map((subject) => (
+          userSubjects.map((subject) => (
             <SubjectCard
               key={subject.id}
               subject={subject}

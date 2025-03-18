@@ -2,8 +2,27 @@ import React from "react";
 import { motion } from "framer-motion";
 import { isRideActive } from "../../utils/dateUtils";
 import RideCard from "./RideCard";
+import { useRides } from "../../contexts/ridesContext";
 
-const RideGrid = ({ rides, currentUser, onEdit, onDelete }) => {
+const RideGrid = ({ currentUser, onEdit, onDelete }) => {
+  const { rides, joinRide, unjoinRide } = useRides();
+
+  const handleJoin = async (rideId) => {
+    try {
+      await joinRide(rideId);
+    } catch (error) {
+      console.error("Error joining ride:", error);
+    }
+  };
+
+  const handleUnjoin = async (rideId) => {
+    try {
+      await unjoinRide(rideId);
+    } catch (error) {
+      console.error("Error cancelling join:", error);
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -25,7 +44,9 @@ const RideGrid = ({ rides, currentUser, onEdit, onDelete }) => {
             ride={ride}
             currentUser={currentUser}
             onEdit={() => onEdit(ride)}
-            onDelete={onDelete}
+            onDelete={() => onDelete(ride.id)}
+            onJoin={handleJoin}
+            onUnjoin={handleUnjoin}
           />
         </motion.div>
       ))}

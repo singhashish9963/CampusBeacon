@@ -3,11 +3,18 @@ import { motion } from "framer-motion";
 import { Users, IndianRupee, Phone, Edit, Trash2, User } from "lucide-react";
 import { formatDateTime, isRideActive } from "../../utils/dateUtils";
 
-const RideCard = ({ ride, onEdit, onDelete, currentUser, onJoin }) => {
+const RideCard = ({
+  ride,
+  onEdit,
+  onDelete,
+  currentUser,
+  onJoin,
+  onUnjoin,
+}) => {
   const isCreator = ride.creatorId === currentUser?.id;
+  // Determine if the current user has joined the ride
   const hasJoined = ride.participants?.some((p) => p.id === currentUser?.id);
 
-  // Added error handling for missing properties
   if (!ride) {
     return <div className="p-6 text-red-500">Invalid ride data</div>;
   }
@@ -17,12 +24,11 @@ const RideCard = ({ ride, onEdit, onDelete, currentUser, onJoin }) => {
       <div className="flex justify-between items-start mb-4">
         <div>
           <h2 className="text-2xl font-bold text-white mb-2">
-            {ride.pickupLocation} → {ride.dropLocation}
+            {ride.pickupLocation} &rarr; {ride.dropLocation}
           </h2>
           <p className="text-gray-400">
             {formatDateTime(ride.departureDateTime)}
           </p>
-          {/* Added creator info with fallback for missing data */}
           <div className="flex items-center mt-2 text-gray-400">
             <User className="w-4 h-4 mr-2" />
             <span>
@@ -31,7 +37,6 @@ const RideCard = ({ ride, onEdit, onDelete, currentUser, onJoin }) => {
             </span>
           </div>
         </div>
-
         {isCreator && (
           <div className="flex space-x-2">
             <motion.button
@@ -72,7 +77,7 @@ const RideCard = ({ ride, onEdit, onDelete, currentUser, onJoin }) => {
 
         {ride.phoneNumber && (
           <p className="text-gray-300 flex items-center">
-            <Phone className="w-4 h-4 mr-2 text-purple-400" />
+            <Phone className="w-4 h-4 mr-2 text-purple-400" />{" "}
             {ride.phoneNumber}
           </p>
         )}
@@ -81,7 +86,7 @@ const RideCard = ({ ride, onEdit, onDelete, currentUser, onJoin }) => {
           <p className="text-gray-300 text-sm italic">"{ride.description}"</p>
         )}
 
-        {/* Show participants if any */}
+        {/* Participants Section */}
         {ride.participants && ride.participants.length > 0 && (
           <div className="mt-4">
             <p className="text-gray-400 mb-2">Participants:</p>
@@ -99,31 +104,36 @@ const RideCard = ({ ride, onEdit, onDelete, currentUser, onJoin }) => {
         )}
       </div>
 
-      {/* Only show Join button if not the creator and ride is active */}
+      {/* Display Join or Cancel Join button if the ride is active and the user is not its creator */}
       {!isCreator && isRideActive(ride.departureDateTime) && (
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => onJoin(ride.id)}
-          disabled={hasJoined || ride.availableSeats === 0}
-          className={`w-full py-2 rounded-lg transition-colors flex items-center justify-center
-            ${
-              hasJoined
-                ? "bg-purple-900 text-purple-200"
-                : ride.availableSeats === 0
-                ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                : "bg-purple-600 hover:bg-purple-700 text-white"
-            }`}
-        >
-          {hasJoined
-            ? "Already Joined"
-            : ride.availableSeats === 0
-            ? "Full"
-            : "Join Ride"}
-        </motion.button>
+        <>
+          {hasJoined ? (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onUnjoin(ride.id)}
+              className="w-full py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors flex items-center justify-center"
+            >
+              Cancel Join
+            </motion.button>
+          ) : (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onJoin(ride.id)}
+              disabled={ride.availableSeats === 0}
+              className={`w-full py-2 rounded-lg transition-colors flex items-center justify-center ${
+                ride.availableSeats === 0
+                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
+                  : "bg-purple-600 hover:bg-purple-700 text-white"
+              }`}
+            >
+              {ride.availableSeats === 0 ? "Full" : "Join Ride"}
+            </motion.button>
+          )}
+        </>
       )}
 
-      {/* Show status for creator's own ride */}
       {isCreator && (
         <div className="mt-4 text-center text-gray-400 bg-purple-500/10 py-2 rounded-lg">
           Your Ride Offering

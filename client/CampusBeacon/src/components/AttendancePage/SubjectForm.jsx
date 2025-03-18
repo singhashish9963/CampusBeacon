@@ -17,7 +17,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
   const [formError, setFormError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form state with metadata
   const [formData, setFormData] = useState({
     subjectId: initialData?.id || "",
     name: initialData?.name || "",
@@ -32,7 +31,7 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   const icons = ["📚", "📐", "⚡", "💻", "🧪", "📝", "🎨", "🌍", "🔬", "📊"];
 
-  // Load available subjects on mount
+  // Load available subjects on mount so that the dropdown lists only those subjects available (if needed)
   useEffect(() => {
     const loadSubjects = async () => {
       try {
@@ -42,10 +41,8 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
       }
     };
     loadSubjects();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchSubjects]);
 
-  // Clear form errors after 3 seconds
   useEffect(() => {
     if (formError) {
       const timer = setTimeout(() => setFormError(null), 3000);
@@ -54,7 +51,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
   }, [formError]);
 
   const validateForm = () => {
-    // Validate subject selection when adding a new subject
     if (!initialData && !formData.subjectId) {
       setFormError(
         "Please select a subject from the dropdown or enter a subject ID"
@@ -62,7 +58,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
       return false;
     }
 
-    // Validate required fields
     if (!formData.name.trim()) {
       setFormError("Subject name is required");
       return false;
@@ -73,13 +68,11 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
       return false;
     }
 
-    // Validate goal percentage
     if (formData.goal < 0 || formData.goal > 100) {
       setFormError("Attendance goal must be between 0 and 100%");
       return false;
     }
 
-    // Validate attendance numbers
     if (parseInt(formData.attendedClasses) > parseInt(formData.totalClasses)) {
       setFormError("Attended classes cannot exceed total classes");
       return false;
@@ -93,7 +86,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
 
     setIsSubmitting(true);
     try {
-      // Format data with current timestamp and user details
       const formattedData = {
         ...formData,
         goal: parseInt(formData.goal) || 75,
@@ -108,11 +100,10 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
       }
 
       if (initialData) {
-        // Update existing subject in the user's list
         await refreshUserSubjects(currentUser.id);
         onSubmit(formattedData);
       } else {
-        // Add new subject to the user's list using the updated context function
+        // Use the updated context function that only requires subjectId
         const result = await addUserSubject(formData.subjectId);
         if (result) {
           await refreshUserSubjects(currentUser.id);
@@ -156,7 +147,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
         {initialData ? "Edit Subject" : "Add New Subject"}
       </h3>
 
-      {/* Error Display */}
       {(formError || error) && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -168,7 +158,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
       )}
 
       <div className="space-y-4">
-        {/* Subject Selection Dropdown */}
         {!initialData && (
           <div>
             <label className="block text-gray-400 mb-2">
@@ -190,9 +179,7 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
           </div>
         )}
 
-        {/* Form Fields */}
         <div className="space-y-4">
-          {/* Subject ID (read-only if editing) */}
           <div>
             <label className="block text-gray-400 mb-2">Subject ID</label>
             <input
@@ -208,7 +195,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
             />
           </div>
 
-          {/* Name Field */}
           <div>
             <label className="block text-gray-400 mb-2">Subject Name *</label>
             <input
@@ -224,7 +210,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
             />
           </div>
 
-          {/* Code Field */}
           <div>
             <label className="block text-gray-400 mb-2">Subject Code *</label>
             <input
@@ -240,7 +225,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
             />
           </div>
 
-          {/* Attendance Fields */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-gray-400 mb-2">Total Classes</label>
@@ -276,7 +260,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
             </div>
           </div>
 
-          {/* Goal Field */}
           <div>
             <label className="block text-gray-400 mb-2">
               Attendance Goal (%) *
@@ -295,7 +278,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
             />
           </div>
 
-          {/* Icon Selection */}
           <div>
             <label className="block text-gray-400 mb-2">Icon</label>
             <div className="grid grid-cols-5 gap-2">
@@ -320,7 +302,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
         </div>
       </div>
 
-      {/* Metadata Display */}
       <div className="mt-4 pt-4 border-t border-purple-500/20">
         <div className="text-xs text-gray-500 flex justify-between">
           <span>Last Modified: {formData.lastModified}</span>
@@ -328,7 +309,6 @@ const SubjectForm = ({ onSubmit, onCancel, initialData = null }) => {
         </div>
       </div>
 
-      {/* Action Buttons */}
       <div className="flex justify-end gap-4 mt-6">
         <button
           onClick={onCancel}

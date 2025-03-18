@@ -29,13 +29,11 @@ const RideShare = () => {
   } = useRides();
   const { user: currentUser } = useAuth();
 
-  // Local state for managing modals and editing state
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRide, setEditingRide] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [searchInput, setSearchInput] = useState("");
 
-  // Fetch rides data when this page is mounted
   useEffect(() => {
     const fetchRides = async () => {
       try {
@@ -45,40 +43,14 @@ const RideShare = () => {
         console.error("Error fetching rides:", err);
       }
     };
-
     fetchRides();
   }, [getAllRides, getUserRides]);
 
-  // Handle search input change and update context search term
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
     setSearchTerm(e.target.value);
   };
 
-  // Utility functions for date boundaries (if needed)
-  const getTomorrow = () => {
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    return tomorrow;
-  };
-
-  const getNextWeekStart = () => {
-    const today = new Date();
-    const dayOfWeek = today.getDay();
-    const daysUntilNextMonday = 7 - dayOfWeek + 1;
-    const nextMonday = new Date(today);
-    nextMonday.setDate(today.getDate() + daysUntilNextMonday);
-    return nextMonday;
-  };
-
-  const getNextWeekEnd = () => {
-    const nextMonday = getNextWeekStart();
-    const nextSunday = new Date(nextMonday);
-    nextSunday.setDate(nextMonday.getDate() + 6);
-    return nextSunday;
-  };
-
-  // Form submission handler for creating/updating rides
   const handleFormSubmit = async (formData) => {
     try {
       if (editingRide) {
@@ -96,7 +68,6 @@ const RideShare = () => {
     }
   };
 
-  // Delete handler for rides
   const handleDelete = async (id) => {
     try {
       await deleteRide(id);
@@ -106,7 +77,6 @@ const RideShare = () => {
     }
   };
 
-  // Clear all filters
   const clearAllFilters = () => {
     setSearchInput("");
     setSearchTerm("");
@@ -159,7 +129,6 @@ const RideShare = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-900 via-black to-purple-900 p-4 sm:p-8">
       <div className="container mx-auto max-w-7xl">
-        {/* Header and Filters */}
         <RideHeader
           onOfferRide={() => {
             setEditingRide(null);
@@ -173,8 +142,6 @@ const RideShare = () => {
           onFilterChange={handleFilterChange}
           clearAllFilters={clearAllFilters}
         />
-
-        {/* Results Count */}
         <div className="flex justify-between items-center mb-6">
           <div className="text-gray-300">
             {filteredRides.length > 0 ? (
@@ -205,7 +172,6 @@ const RideShare = () => {
           )}
         </div>
 
-        {/* Rides Grid / Empty State */}
         {filteredRides.length > 0 ? (
           <RideGrid
             rides={filteredRides}
@@ -233,7 +199,6 @@ const RideShare = () => {
           />
         )}
 
-        {/* Modals */}
         <AnimatePresence>
           {isFormOpen && (
             <RideFormModal

@@ -41,7 +41,6 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             required
           />
         </div>
-
         <div className="space-y-3">
           <label className="block text-gray-200 font-medium">
             Drop Location
@@ -71,7 +70,6 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             required
           />
         </div>
-
         <div className="space-y-3">
           <label className="block text-gray-200 font-medium">Total Seats</label>
           <input
@@ -101,7 +99,6 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             required
           />
         </div>
-
         <div className="space-y-3">
           <label className="block text-gray-200 font-medium">
             Phone Number

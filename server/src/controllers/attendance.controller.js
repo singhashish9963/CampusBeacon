@@ -8,7 +8,7 @@ import sequelize from "../db/db.js";
 const ATTENDANCE_THRESHOLD = 75; // Required attendance percentage
 const WARNING_THRESHOLD = 80; // Threshold for warning alerts
 
-// Get detailed attendance report for a specific student
+// Get detailed attendance report for a specific student with improved performance
 export const getStudentAttendanceReport = async (req, res) => {
   try {
     const { userId } = req.params;
@@ -30,10 +30,57 @@ export const getStudentAttendanceReport = async (req, res) => {
       };
     }
 
-    // Get attendance records for all subjects
-    const attendanceData = await UserAttendance.findAll({
+    // PERFORMANCE OPTIMIZATION: Use aggregate queries to calculate statistics directly
+    const subjectStats = await UserAttendance.findAll({
+      attributes: [
+        'subject_id',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'totalClasses'],
+        [sequelize.fn('SUM', sequelize.literal("CASE WHEN status = 'Present' THEN 1 ELSE 0 END")), 'totalPresent'],
+        [sequelize.fn('MAX', sequelize.col('date')), 'lastAttendance']
+      ],
       where: {
-        userId,
+        user_id: userId,
+        ...dateFilter
+      },
+      include: [
+        {
+          model: Subject,
+          attributes: ['name', 'code'],
+        }
+      ],
+      group: ['subject_id', 'Subject.id'],
+      raw: false
+    });
+
+    // Format the results
+    const formattedStats = {};
+    let overallClasses = 0;
+    let overallPresent = 0;
+    
+    subjectStats.forEach(stat => {
+      const subjectId = stat.subject_id;
+      const totalClasses = parseInt(stat.dataValues.totalClasses);
+      const totalPresent = parseInt(stat.dataValues.totalPresent);
+      const attendancePercentage = totalClasses > 0 ? (totalPresent / totalClasses) * 100 : 0;
+      
+      formattedStats[subjectId] = {
+        subjectName: stat.Subject.name,
+        subjectCode: stat.Subject.code,
+        totalClasses,
+        totalPresent,
+        attendancePercentage,
+        lastAttendance: stat.dataValues.lastAttendance,
+        atRisk: attendancePercentage < WARNING_THRESHOLD
+      };
+      
+      overallClasses += totalClasses;
+      overallPresent += totalPresent;
+    });
+
+    // Get individual attendance records for detailed view
+    const attendanceRecords = await UserAttendance.findAll({
+      where: {
+        user_id: userId,
         ...dateFilter,
       },
       include: [
@@ -45,59 +92,13 @@ export const getStudentAttendanceReport = async (req, res) => {
       order: [["date", "DESC"]],
     });
 
-    // Calculate statistics per subject
-    const subjectStats = {};
-    attendanceData.forEach((record) => {
-      const subjectId = record.subjectId;
-      if (!subjectStats[subjectId]) {
-        subjectStats[subjectId] = {
-          subjectName: record.Subject.name,
-          subjectCode: record.Subject.code,
-          totalClasses: 0,
-          totalPresent: 0,
-          attendancePercentage: 0,
-          lastAttendance: null,
-          atRisk: false,
-        };
-      }
-
-      subjectStats[subjectId].totalClasses++;
-      if (record.status === "Present") {
-        subjectStats[subjectId].totalPresent++;
-      }
-      if (
-        !subjectStats[subjectId].lastAttendance ||
-        record.date > subjectStats[subjectId].lastAttendance
-      ) {
-        subjectStats[subjectId].lastAttendance = record.date;
-      }
-    });
-
-    // Calculate percentages and risk status
-    Object.values(subjectStats).forEach((stats) => {
-      stats.attendancePercentage =
-        (stats.totalPresent / stats.totalClasses) * 100;
-      stats.atRisk = stats.attendancePercentage < WARNING_THRESHOLD;
-    });
-
     // Calculate overall statistics
     const overallStats = {
-      totalClasses: Object.values(subjectStats).reduce(
-        (sum, { totalClasses }) => sum + totalClasses,
-        0
-      ),
-      totalPresent: Object.values(subjectStats).reduce(
-        (sum, { totalPresent }) => sum + totalPresent,
-        0
-      ),
-      overallPercentage: 0,
-      subjectsAtRisk: Object.values(subjectStats).filter(
-        (stats) => stats.atRisk
-      ).length,
+      totalClasses: overallClasses,
+      totalPresent: overallPresent,
+      overallPercentage: overallClasses > 0 ? (overallPresent / overallClasses) * 100 : 0,
+      subjectsAtRisk: Object.values(formattedStats).filter(stats => stats.atRisk).length,
     };
-
-    overallStats.overallPercentage =
-      (overallStats.totalPresent / overallStats.totalClasses) * 100;
 
     res.status(200).json({
       message: "Student attendance report generated successfully",
@@ -108,8 +109,8 @@ export const getStudentAttendanceReport = async (req, res) => {
           registrationNumber: user.registration_number,
         },
         overallStats,
-        subjectWiseStats: subjectStats,
-        attendanceRecords: attendanceData,
+        subjectWiseStats: formattedStats,
+        attendanceRecords: attendanceRecords,
       },
     });
   } catch (error) {
@@ -121,7 +122,7 @@ export const getStudentAttendanceReport = async (req, res) => {
   }
 };
 
-// Get attendance report for a specific subject
+// Get attendance report for a specific subject with improved performance
 export const getSubjectAttendanceReport = async (req, res) => {
   try {
     const { subjectId } = req.params;
@@ -143,64 +144,59 @@ export const getSubjectAttendanceReport = async (req, res) => {
       };
     }
 
-    // Get attendance records with user information
-    const attendanceData = await UserAttendance.findAll({
+    // PERFORMANCE OPTIMIZATION: Use aggregate queries to calculate statistics directly
+    const studentStats = await UserAttendance.findAll({
+      attributes: [
+        'user_id',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'totalClasses'],
+        [sequelize.fn('SUM', sequelize.literal("CASE WHEN status = 'Present' THEN 1 ELSE 0 END")), 'totalPresent'],
+        [sequelize.fn('MAX', sequelize.col('date')), 'lastAttendance']
+      ],
       where: {
-        subjectId,
-        ...dateFilter,
+        subject_id: subjectId,
+        ...dateFilter
       },
       include: [
         {
           model: User,
-          attributes: ["id", "name", "registration_number"],
+          attributes: ['id', 'name', 'registration_number'],
+        }
+      ],
+      group: ['user_id', 'User.id'],
+      raw: false
+    });
+
+    // Format the results
+    const formattedStats = {};
+    let totalAttendancePercentage = 0;
+    let atRiskCount = 0;
+    
+    studentStats.forEach(stat => {
+      const userId = stat.user_id;
+      const totalClasses = parseInt(stat.dataValues.totalClasses);
+      const totalPresent = parseInt(stat.dataValues.totalPresent);
+      const attendancePercentage = totalClasses > 0 ? (totalPresent / totalClasses) * 100 : 0;
+      const atRisk = attendancePercentage < WARNING_THRESHOLD;
+      
+      formattedStats[userId] = {
+        studentInfo: {
+          id: stat.User.id,
+          name: stat.User.name,
+          registrationNumber: stat.User.registration_number,
         },
-      ],
-      order: [
-        ["userId", "ASC"],
-        ["date", "DESC"],
-      ],
-    });
-
-    // Calculate statistics per student
-    const studentStats = {};
-    attendanceData.forEach((record) => {
-      const userId = record.userId;
-      if (!studentStats[userId]) {
-        studentStats[userId] = {
-          studentInfo: {
-            id: record.User.id,
-            name: record.User.name,
-            registrationNumber: record.User.registration_number,
-          },
-          totalClasses: 0,
-          totalPresent: 0,
-          attendancePercentage: 0,
-          lastAttendance: null,
-          atRisk: false,
-        };
-      }
-
-      studentStats[userId].totalClasses++;
-      if (record.status === "Present") {
-        studentStats[userId].totalPresent++;
-      }
-      if (
-        !studentStats[userId].lastAttendance ||
-        record.date > studentStats[userId].lastAttendance
-      ) {
-        studentStats[userId].lastAttendance = record.date;
-      }
-    });
-
-    // Calculate percentages and identify at-risk students
-    Object.values(studentStats).forEach((stats) => {
-      stats.attendancePercentage =
-        (stats.totalPresent / stats.totalClasses) * 100;
-      stats.atRisk = stats.attendancePercentage < WARNING_THRESHOLD;
+        totalClasses,
+        totalPresent,
+        attendancePercentage,
+        lastAttendance: stat.dataValues.lastAttendance,
+        atRisk
+      };
+      
+      totalAttendancePercentage += attendancePercentage;
+      if (atRisk) atRiskCount++;
     });
 
     // Generate alerts for students below threshold
-    const alerts = Object.values(studentStats)
+    const alerts = Object.values(formattedStats)
       .filter((stats) => stats.atRisk)
       .map((stats) => ({
         studentName: stats.studentInfo.name,
@@ -212,6 +208,9 @@ export const getSubjectAttendanceReport = async (req, res) => {
         ),
       }));
 
+    const studentCount = Object.keys(formattedStats).length;
+    const averageAttendance = studentCount > 0 ? totalAttendancePercentage / studentCount : 0;
+
     res.status(200).json({
       message: "Subject attendance report generated successfully",
       data: {
@@ -221,19 +220,18 @@ export const getSubjectAttendanceReport = async (req, res) => {
           code: subject.code,
         },
         overallStats: {
-          totalStudents: Object.keys(studentStats).length,
-          studentsAtRisk: alerts.length,
-          averageAttendance: calculateAverageAttendance(studentStats),
+          totalStudents: studentCount,
+          studentsAtRisk: atRiskCount,
+          averageAttendance: averageAttendance,
         },
-        studentWiseStats: studentStats,
+        studentWiseStats: formattedStats,
         alerts: alerts,
       },
     });
   } catch (error) {
     console.error("Error generating subject attendance report:", error);
     res.status(500).json({
-      message:
-        "An error occurred while generating the subject attendance report",
+      message: "An error occurred while generating the subject attendance report",
       error: error.message,
     });
   }
@@ -257,70 +255,55 @@ function calculateRequiredClasses(present, total) {
   return requiredClasses;
 }
 
-// Calculate average attendance for a subject
-function calculateAverageAttendance(studentStats) {
-  const totalPercentages = Object.values(studentStats).reduce(
-    (sum, stats) => sum + stats.attendancePercentage,
-    0
-  );
-  return totalPercentages / Object.keys(studentStats).length;
-}
-
 // Generate attendance alerts
 export const generateAttendanceAlerts = async (req, res) => {
   try {
+    // PERFORMANCE OPTIMIZATION: Use a more efficient query
     const alerts = await UserAttendance.findAll({
       attributes: [
-        "userId",
-        "subjectId",
-        [sequelize.fn("COUNT", sequelize.col("id")), "totalClasses"],
-        [
-          sequelize.fn(
-            "SUM",
-            sequelize.literal("CASE WHEN status = 'Present' THEN 1 ELSE 0 END")
-          ),
-          "totalPresent",
-        ],
+        'user_id',
+        'subject_id',
+        [sequelize.fn('COUNT', sequelize.col('id')), 'totalClasses'],
+        [sequelize.fn('SUM', sequelize.literal("CASE WHEN status = 'Present' THEN 1 ELSE 0 END")), 'totalPresent'],
+        [sequelize.literal(`(SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) * 100.0 / COUNT(*))`), 'percentage']
       ],
       include: [
         {
           model: User,
-          attributes: ["name", "registration_number", "email"],
+          attributes: ['name', 'registration_number', 'email'],
         },
         {
           model: Subject,
-          attributes: ["name", "code"],
-        },
+          attributes: ['name', 'code'],
+        }
       ],
-      group: ["userId", "subjectId", "User.id", "Subject.id"],
-      having: sequelize.literal(
-        `(SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) < ${WARNING_THRESHOLD}`
-      ),
+      group: ['user_id', 'subject_id', 'User.id', 'Subject.id'],
+      having: sequelize.literal(`(SUM(CASE WHEN status = 'Present' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) < ${WARNING_THRESHOLD}`),
     });
 
-    const formattedAlerts = alerts.map((alert) => ({
-      student: {
-        name: alert.User.name,
-        registrationNumber: alert.User.registration_number,
-        email: alert.User.email,
-      },
-      subject: {
-        name: alert.Subject.name,
-        code: alert.Subject.code,
-      },
-      attendance: {
-        percentage: (
-          (alert.dataValues.totalPresent / alert.dataValues.totalClasses) *
-          100
-        ).toFixed(2),
-        totalClasses: parseInt(alert.dataValues.totalClasses),
-        totalPresent: parseInt(alert.dataValues.totalPresent),
-        requiredClasses: calculateRequiredClasses(
-          parseInt(alert.dataValues.totalPresent),
-          parseInt(alert.dataValues.totalClasses)
-        ),
-      },
-    }));
+    const formattedAlerts = alerts.map((alert) => {
+      const totalClasses = parseInt(alert.dataValues.totalClasses);
+      const totalPresent = parseInt(alert.dataValues.totalPresent);
+      const percentage = parseFloat(alert.dataValues.percentage);
+      
+      return {
+        student: {
+          name: alert.User.name,
+          registrationNumber: alert.User.registration_number,
+          email: alert.User.email,
+        },
+        subject: {
+          name: alert.Subject.name,
+          code: alert.Subject.code,
+        },
+        attendance: {
+          percentage: percentage.toFixed(2),
+          totalClasses,
+          totalPresent,
+          requiredClasses: calculateRequiredClasses(totalPresent, totalClasses),
+        },
+      };
+    });
 
     res.status(200).json({
       message: "Attendance alerts generated successfully",
@@ -337,11 +320,8 @@ export const generateAttendanceAlerts = async (req, res) => {
     });
   }
 };
-// ----------------------
-// User Attendance CRUD
-// ----------------------
 
-// Create a new attendance record
+// Create a new attendance record with duplicate check
 export const createAttendance = async (req, res) => {
   try {
     const { userId, subjectId, date, status } = req.body;
@@ -351,12 +331,31 @@ export const createAttendance = async (req, res) => {
       });
     }
 
+    // Check for duplicate entry
+    const existingRecord = await UserAttendance.findOne({
+      where: {
+        user_id: userId,
+        subject_id: subjectId,
+        date: date
+      }
+    });
+
+    if (existingRecord) {
+      return res.status(409).json({
+        message: "Attendance record already exists for this user, subject, and date",
+        data: existingRecord
+      });
+    }
+
     const attendance = await UserAttendance.create({
-      userId: userId,
-      subjectId: subjectId,
+      user_id: userId,
+      subject_id: subjectId,
       date,
       status,
     });
+
+    // Update or create attendance stats
+    await updateAttendanceStats(userId, subjectId);
 
     res.status(201).json({
       message: "Attendance record created successfully",
@@ -424,13 +423,40 @@ export const updateAttendance = async (req, res) => {
       });
     }
 
-    attendance.userId = userId !== undefined ? userId : attendance.userId;
-    attendance.subjectId =
-      subjectId !== undefined ? subjectId : attendance.subjectId;
+    // Check for duplicate if date or subject or user is changing
+    if ((date && date !== attendance.date) || 
+        (subjectId && subjectId !== attendance.subject_id) || 
+        (userId && userId !== attendance.user_id)) {
+      const existingRecord = await UserAttendance.findOne({
+        where: {
+          user_id: userId || attendance.user_id,
+          subject_id: subjectId || attendance.subject_id,
+          date: date || attendance.date,
+          id: { [Op.ne]: id } // Exclude current record
+        }
+      });
+
+      if (existingRecord) {
+        return res.status(409).json({
+          message: "Another attendance record already exists for this user, subject, and date",
+          data: existingRecord
+        });
+      }
+    }
+
+    // Update the record
+    attendance.user_id = userId !== undefined ? userId : attendance.user_id;
+    attendance.subject_id = subjectId !== undefined ? subjectId : attendance.subject_id;
     attendance.date = date !== undefined ? date : attendance.date;
     attendance.status = status !== undefined ? status : attendance.status;
 
     await attendance.save();
+
+    // Update attendance stats
+    await updateAttendanceStats(
+      attendance.user_id, 
+      attendance.subject_id
+    );
 
     res.status(200).json({
       message: "Attendance record updated successfully",
@@ -455,7 +481,16 @@ export const deleteAttendance = async (req, res) => {
         message: "Attendance record not found",
       });
     }
+    
+    // Store user and subject IDs before deletion for stats update
+    const userId = attendance.user_id;
+    const subjectId = attendance.subject_id;
+    
     await attendance.destroy();
+    
+    // Update attendance stats after deletion
+    await updateAttendanceStats(userId, subjectId);
+    
     res.status(200).json({
       message: "Attendance record deleted successfully",
     });
@@ -481,11 +516,28 @@ export const createAttendanceStats = async (req, res) => {
         message: "userId and subjectId are required",
       });
     }
+    
+    // Check if stats already exist
+    const existingStats = await AttendanceStats.findOne({
+      where: {
+        user_id: userId,
+        subject_id: subjectId
+      }
+    });
+    
+    if (existingStats) {
+      return res.status(409).json({
+        message: "Attendance statistics already exist for this user and subject",
+        data: existingStats
+      });
+    }
+    
     const stats = await AttendanceStats.create({
-      userId: userId,
-      subjectId: subjectId,
-      totalClasses: totalClasses || 0,
-      totalPresent: totalPresent || 0,
+      user_id: userId,
+      subject_id: subjectId,
+      total_classes: totalClasses || 0,
+      total_present: totalPresent || 0,
+      last_updated: new Date()
     });
 
     res.status(201).json({
@@ -502,30 +554,45 @@ export const createAttendanceStats = async (req, res) => {
 };
 
 // Get attendance statistics by ID
-// If no stats record is found, default statistics are returned.
 export const getAttendanceStatsById = async (req, res) => {
   try {
     const { id } = req.params;
-    const stats = await AttendanceStats.findByPk(id);
-    if (!stats) {
-      return res.status(200).json({
-        message:
-          "Attendance statistics not found. Returning default statistics.",
-        data: {
-          userId: null,
-          subjectId: id,
-          totalClasses: 0,
-          totalPresent: 0,
-          percentage: 0,
-          formattedPercentage: "0.00%",
-          isAtRisk: true,
-          needsImprovement: true,
+    const stats = await AttendanceStats.findByPk(id, {
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'registration_number'],
         },
+        {
+          model: Subject,
+          attributes: ['id', 'name', 'code'],
+        }
+      ]
+    });
+    
+    if (!stats) {
+      return res.status(404).json({
+        message: "Attendance statistics not found",
       });
     }
+    
+    // Calculate percentage
+    const percentage = stats.total_classes > 0 
+      ? (stats.total_present / stats.total_classes) * 100 
+      : 0;
+    
+    // Format response
+    const formattedStats = {
+      ...stats.toJSON(),
+      percentage: percentage,
+      formattedPercentage: percentage.toFixed(2) + '%',
+      isAtRisk: percentage < WARNING_THRESHOLD,
+      needsImprovement: percentage < ATTENDANCE_THRESHOLD
+    };
+    
     res.status(200).json({
       message: "Attendance statistics retrieved successfully",
-      data: stats,
+      data: formattedStats,
     });
   } catch (error) {
     console.error("Error retrieving attendance statistics:", error);
@@ -539,10 +606,61 @@ export const getAttendanceStatsById = async (req, res) => {
 // Get all attendance statistics
 export const getAllAttendanceStats = async (req, res) => {
   try {
-    const stats = await AttendanceStats.findAll();
+    // PERFORMANCE OPTIMIZATION: Use pagination and filtering
+    const { page = 1, limit = 50, userId, subjectId } = req.query;
+    const offset = (page - 1) * limit;
+    
+    // Build filter conditions
+    const whereConditions = {};
+    if (userId) whereConditions.user_id = userId;
+    if (subjectId) whereConditions.subject_id = subjectId;
+    
+    // Get total count
+    const totalCount = await AttendanceStats.count({
+      where: whereConditions
+    });
+    
+    // Get stats with pagination
+    const stats = await AttendanceStats.findAll({
+      where: whereConditions,
+      include: [
+        {
+          model: User,
+          attributes: ['id', 'name', 'registration_number'],
+        },
+        {
+          model: Subject,
+          attributes: ['id', 'name', 'code'],
+        }
+      ],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['last_updated', 'DESC']]
+    });
+    
+    // Format response
+    const formattedStats = stats.map(stat => {
+      const percentage = stat.total_classes > 0 
+        ? (stat.total_present / stat.total_classes) * 100 
+        : 0;
+      
+      return {
+        ...stat.toJSON(),
+        percentage: percentage,
+        formattedPercentage: percentage.toFixed(2) + '%',
+        isAtRisk: percentage < WARNING_THRESHOLD,
+        needsImprovement: percentage < ATTENDANCE_THRESHOLD
+      };
+    });
+    
     res.status(200).json({
       message: "Attendance statistics retrieved successfully",
-      data: stats,
+      data: {
+        totalRecords: totalCount,
+        totalPages: Math.ceil(totalCount / limit),
+        currentPage: parseInt(page),
+        stats: formattedStats
+      }
     });
   } catch (error) {
     console.error("Error retrieving attendance statistics:", error);
@@ -566,12 +684,30 @@ export const updateAttendanceStats = async (req, res) => {
       });
     }
 
-    stats.userId = userId !== undefined ? userId : stats.userId;
-    stats.subjectId = subjectId !== undefined ? subjectId : stats.subjectId;
-    stats.totalClasses =
-      totalClasses !== undefined ? totalClasses : stats.totalClasses;
-    stats.totalPresent =
-      totalPresent !== undefined ? totalPresent : stats.totalPresent;
+    // Check for duplicate if user or subject is changing
+    if ((userId && userId !== stats.user_id) || 
+        (subjectId && subjectId !== stats.subject_id)) {
+      const existingStats = await AttendanceStats.findOne({
+        where: {
+          user_id: userId || stats.user_id,
+          subject_id: subjectId || stats.subject_id,
+          id: { [Op.ne]: id } // Exclude current record
+        }
+      });
+      
+      if (existingStats) {
+        return res.status(409).json({
+          message: "Attendance statistics already exist for this user and subject",
+          data: existingStats
+        });
+      }
+    }
+
+    stats.user_id = userId !== undefined ? userId : stats.user_id;
+    stats.subject_id = subjectId !== undefined ? subjectId : stats.subject_id;
+    stats.total_classes = totalClasses !== undefined ? totalClasses : stats.total_classes;
+    stats.total_present = totalPresent !== undefined ? totalPresent : stats.total_present;
+    stats.last_updated = new Date();
 
     await stats.save();
 
@@ -606,6 +742,142 @@ export const deleteAttendanceStats = async (req, res) => {
     console.error("Error deleting attendance statistics:", error);
     res.status(500).json({
       message: "An error occurred while deleting the attendance statistics",
+      error: error.message,
+    });
+  }
+};
+
+// Recalculate all attendance statistics
+export const recalculateAllStats = async (req, res) => {
+  try {
+    // Get all unique user-subject combinations
+    const userSubjectPairs = await UserAttendance.findAll({
+      attributes: [
+        'user_id', 
+        'subject_id', 
+        [sequelize.fn('COUNT', sequelize.col('id')), 'total_records']
+      ],
+      group: ['user_id', 'subject_id'],
+      raw: true
+    });
+    
+    // Process each user-subject pair
+    const results = [];
+    for (const pair of userSubjectPairs) {
+      const userId = pair.user_id;
+      const subjectId = pair.subject_id;
+      
+      // Update stats for this pair
+      const updatedStats = await updateAttendanceStats(userId, subjectId);
+      results.push(updatedStats);
+    }
+    
+    res.status(200).json({
+      message: "All attendance statistics recalculated successfully",
+      data: {
+        totalRecords: results.length,
+        results: results
+      }
+    });
+  } catch (error) {
+    console.error("Error recalculating attendance statistics:", error);
+    res.status(500).json({
+      message: "An error occurred while recalculating attendance statistics",
+      error: error.message,
+    });
+  }
+};
+
+// Bulk import attendance records
+export const bulkImportAttendance = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  
+  try {
+    const { records } = req.body;
+    
+    if (!Array.isArray(records) || records.length === 0) {
+      return res.status(400).json({
+        message: "Records must be a non-empty array",
+      });
+    }
+    
+    // Validate all records before processing
+    for (const record of records) {
+      const { userId, subjectId, date, status } = record;
+      if (!userId || !subjectId || !date || !status) {
+        await transaction.rollback();
+        return res.status(400).json({
+          message: "Each record must contain userId, subjectId, date, and status",
+          invalidRecord: record
+        });
+      }
+    }
+    
+    // Process records
+    const results = {
+      created: [],
+      skipped: []
+    };
+    
+    for (const record of records) {
+      const { userId, subjectId, date, status } = record;
+      
+      // Check for duplicate
+      const existingRecord = await UserAttendance.findOne({
+        where: {
+          user_id: userId,
+          subject_id: subjectId,
+          date: date
+        },
+        transaction
+      });
+      
+      if (existingRecord) {
+        results.skipped.push({
+          ...record,
+          reason: "Duplicate record"
+        });
+        continue;
+      }
+      
+      // Create new record
+      const attendance = await UserAttendance.create({
+        user_id: userId,
+        subject_id: subjectId,
+        date,
+        status,
+      }, { transaction });
+      
+      results.created.push(attendance);
+    }
+    
+    // Update stats for affected user-subject pairs
+    const affectedPairs = new Set();
+    results.created.forEach(record => {
+      affectedPairs.add(`${record.user_id}_${record.subject_id}`);
+    });
+    
+    for (const pair of affectedPairs) {
+      const [userId, subjectId] = pair.split('_');
+      await updateAttendanceStats(userId, subjectId, transaction);
+    }
+    
+    await transaction.commit();
+    
+    res.status(201).json({
+      message: "Attendance records imported successfully",
+      data: {
+        total: records.length,
+        created: results.created.length,
+        skipped: results.skipped.length,
+        skippedRecords: results.skipped
+      }
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Error importing attendance records:", error);
+    res.status(500).json({
+      message: "An error occurred while importing attendance records",
       error: error.message,
     });
   }

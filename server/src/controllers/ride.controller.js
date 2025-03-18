@@ -4,6 +4,7 @@ import asyncHandler from "../utils/asyncHandler.js";
 import ApiResponse from "../utils/apiResponse.js";
 import ApiError from "../utils/apiError.js";
 import { Op } from "sequelize";
+import RideParticipant from "../models/rideParticipant.model.js";
 
 export const createRide = asyncHandler(async (req, res) => {
   const {
@@ -209,4 +210,101 @@ export const getUserRides = asyncHandler(async (req, res) => {
     console.error("Error in getUserRides:", error);
     throw new ApiError("Error retrieving user rides: " + error.message, 500);
   }
+});
+
+export const joinRide = asyncHandler(async (req, res) => {
+  const { id } = req.params; // ride ID from URL params
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new ApiError("Authentication required", 401);
+  }
+
+  // Find the ride
+  const ride = await Rides.findByPk(id);
+  if (!ride) {
+    throw new ApiError("Ride not found", 404);
+  }
+
+  // Check if user already joined the ride
+  const existingEntry = await RideParticipant.findOne({
+    where: { rideId: id, userId },
+  });
+  if (existingEntry) {
+    throw new ApiError("You have already joined this ride", 400);
+  }
+
+  // Count the number of participants currently in the ride
+  const joinCount = await RideParticipant.count({ where: { rideId: id } });
+  if (joinCount >= ride.totalSeats) {
+    throw new ApiError("Ride is already full", 400);
+  }
+
+  // Create new join record
+  await RideParticipant.create({ rideId: id, userId });
+
+  // Decrement availableSeats by 1
+  ride.availableSeats = ride.availableSeats - 1;
+  await ride.save();
+
+  // Optionally, fetch all participants to return with the response
+  const participants = await RideParticipant.findAll({
+    where: { rideId: id },
+    include: [
+      {
+        model: User,
+        as: "participant",
+        attributes: ["id", "name", "email"],
+      },
+    ],
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, participants, "Joined ride successfully"));
+});
+export const unjoinRide = asyncHandler(async (req, res) => {
+  const { id } = req.params; // ride ID from URL params
+  const userId = req.user?.id;
+
+  if (!userId) {
+    throw new ApiError("Authentication required", 401);
+  }
+
+  // Find the ride
+  const ride = await Rides.findByPk(id);
+  if (!ride) {
+    throw new ApiError("Ride not found", 404);
+  }
+
+  // Check if user has already joined the ride
+  const existingEntry = await RideParticipant.findOne({
+    where: { rideId: id, userId },
+  });
+  if (!existingEntry) {
+    throw new ApiError("You have not joined this ride", 400);
+  }
+
+  // Remove the join record
+  await existingEntry.destroy();
+
+  // Increment availableSeats by 1
+  ride.availableSeats = ride.availableSeats + 1;
+  await ride.save();
+
+  // Optionally, fetch updated participants list
+  const participants = await RideParticipant.findAll({
+    where: { rideId: id },
+    include: [
+      {
+        model: User,
+        as: "participant",
+        attributes: ["id", "name", "email"],
+      },
+    ],
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, participants, "Cancelled join successfully"));
 });
