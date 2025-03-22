@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Users, IndianRupee, Phone, Edit, Trash2, User } from "lucide-react";
 import { formatDateTime, isRideActive } from "../../utils/dateUtils";
+import { useAuth } from "../../contexts/AuthContext";
 
 const RideCard = ({
   ride,
@@ -11,8 +12,9 @@ const RideCard = ({
   onJoin,
   onUnjoin,
 }) => {
+  const { roles } = useAuth(); // Get roles from Auth context
+  const isAdmin = Array.isArray(roles) && roles.includes("admin");
   const isCreator = ride.creatorId === currentUser?.id;
-  // Determine if the current user has joined the ride
   const hasJoined = ride.participants?.some((p) => p.id === currentUser?.id);
 
   if (!ride) {
@@ -37,7 +39,7 @@ const RideCard = ({
             </span>
           </div>
         </div>
-        {isCreator && (
+        {(isCreator || isAdmin) && (
           <div className="flex space-x-2">
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -86,7 +88,6 @@ const RideCard = ({
           <p className="text-gray-300 text-sm italic">"{ride.description}"</p>
         )}
 
-        {/* Participants Section */}
         {ride.participants && ride.participants.length > 0 && (
           <div className="mt-4">
             <p className="text-gray-400 mb-2">Participants:</p>
@@ -104,7 +105,6 @@ const RideCard = ({
         )}
       </div>
 
-      {/* Display Join or Cancel Join button if the ride is active and the user is not its creator */}
       {!isCreator && isRideActive(ride.departureDateTime) && (
         <>
           {hasJoined ? (
