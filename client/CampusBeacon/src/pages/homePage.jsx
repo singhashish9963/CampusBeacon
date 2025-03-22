@@ -18,13 +18,16 @@ import ImageSlider from "../components/HomePage/ImageSlider.jsx";
 import StarryBackground from "../components/HomePage/StarsBg.jsx";
 import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
 import NotificationIcon from "../components/Notifications/NotificationIcon.jsx";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useSelector } from "react-redux";
 
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
-  const { isAuthenticated, user } = useAuth();
+
+  // Use auth slice instead of Auth Context
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
   const navigate = useNavigate();
 
   // Scroll spy and login status logic

@@ -43,7 +43,7 @@ import Dashboard from "./pages/HostelPages/Dashboard.jsx";
 // import AdminHostelPage from "./pages/HostelPages/AdminHostelPage.jsx";
 
 // import HostelPage from "./pages/HostelPages/HostelPage.jsx";
-import { NotificationProvider } from "./contexts/notificationContext.jsx";
+
 import ChatTestPage from "./pages/Chat/ChatTestPage.jsx";
 import AdminPanel from "./pages/God/AdminPanel.jsx";
 import MenuPage from "./pages/HostelPages/MenuPage.jsx";
@@ -58,12 +58,12 @@ import HostelSelector from "./pages/HostelPages/HostelSelector.jsx";
 
 function App() {
   return (
-    <AuthProvider>
-      <NotificationProvider>
+
+
           <AttendanceProvider>
             <ChatbotProvider>
               <EateriesProvider>
-                <ContactContextProvider>
+                
                   <BuyAndSellProvider>
                     <LostAndFoundProvider>
                       <HostelProvider>
@@ -71,7 +71,7 @@ function App() {
                           <OfficialProvider>
                             <HostelNotificationsProvider>
                             <ComplaintProvider>
-                              <ProfileProvider>
+                         
                                 <RidesProvider>
                                   <BrowserRouter>
                                     <div className="flex flex-col min-h-screen">
@@ -222,7 +222,7 @@ function App() {
                                     </div>
                                   </BrowserRouter>
                                 </RidesProvider>
-                              </ProfileProvider>
+                       
                             </ComplaintProvider>
                             </HostelNotificationsProvider>
                           </OfficialProvider>
@@ -230,12 +230,12 @@ function App() {
                       </HostelProvider>
                     </LostAndFoundProvider>
                   </BuyAndSellProvider>
-                </ContactContextProvider>
+               
               </EateriesProvider>
             </ChatbotProvider>
           </AttendanceProvider>
-          </NotificationProvider>
-    </AuthProvider>
+
+
   );
 }
 

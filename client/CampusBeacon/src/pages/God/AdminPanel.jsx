@@ -1,5 +1,10 @@
-import React, { useState,useEffect } from "react";
-import { useNotification } from "../../contexts/notificationContext";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+
+import { useSelector } from "react-redux";
+
+// Admin subpages
 
 const Dashboard = () => (
   <div className="p-6">
@@ -12,21 +17,21 @@ const Dashboard = () => (
   </div>
 );
 
-
+import {
+  getNotifications,
+  createNotification,
+  broadcastNotification,
+  deleteNotification,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "../../slices/notificationSlice";
+import { useDispatch } from "react-redux";
 
 const NotificationsAdmin = () => {
-  const {
-    notifications,
-    loading,
-    error,
-    createNotification,
-    broadcastNotification,
-    deleteNotification,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
-    getNotifications,
-  } = useNotification();
-
+  const dispatch = useDispatch();
+  const { notifications, loading, error } = useSelector(
+    (state) => state.notifications
+  );
   const [isBroadcast, setIsBroadcast] = useState(false);
   const [formData, setFormData] = useState({
     message: "",
@@ -35,10 +40,9 @@ const NotificationsAdmin = () => {
   });
 
   useEffect(() => {
-    getNotifications();
-  }, [getNotifications]);
+    dispatch(getNotifications({}));
+  }, [dispatch]);
 
-  // When submitting, always build and send FormData.
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.message.trim()) return;
@@ -46,25 +50,24 @@ const NotificationsAdmin = () => {
     const payload = new FormData();
     payload.append("message", formData.message);
     payload.append("type", formData.type);
-    // Optionally add other fields if needed.
     if (formData.file) {
       payload.append("file", formData.file);
     }
 
     if (isBroadcast) {
-      await broadcastNotification(payload);
+      dispatch(broadcastNotification(payload));
     } else {
-      await createNotification(payload);
+      dispatch(createNotification(payload));
     }
     setFormData({ message: "", type: "general", file: null });
   };
 
-  const handleDelete = async (id) => {
-    await deleteNotification(id);
+  const handleDelete = (id) => {
+    dispatch(deleteNotification(id));
   };
 
-  const handleMarkAsRead = async (id) => {
-    await markNotificationAsRead(id);
+  const handleMarkAsRead = (id) => {
+    dispatch(markNotificationAsRead(id));
   };
 
   return (
@@ -179,10 +182,9 @@ const NotificationsAdmin = () => {
               </ul>
             )}
           </div>
-
           <div className="mt-6">
             <button
-              onClick={markAllNotificationsAsRead}
+              onClick={() => dispatch(markAllNotificationsAsRead())}
               className="px-4 py-2 bg-blue-500 hover:bg-blue-600 rounded-md text-white transition-all"
             >
               Mark All as Read
@@ -194,8 +196,6 @@ const NotificationsAdmin = () => {
   );
 };
 
-
-
 const HostelAdmin = () => (
   <div className="p-6">
     <h2 className="text-2xl font-bold mb-2">Manage Hostels</h2>
@@ -203,7 +203,6 @@ const HostelAdmin = () => (
       Here you can create, update, or remove hostel data and related
       information.
     </p>
-    {/* Hostel CRUD components go here */}
   </div>
 );
 
@@ -213,7 +212,6 @@ const MenuAdmin = () => (
     <p className="mb-4">
       Manage hostel menus including creating, editing, or deleting menu items.
     </p>
-    {/* Menu CRUD components go here */}
   </div>
 );
 
@@ -223,7 +221,6 @@ const RidesAdmin = () => (
     <p className="mb-4">
       Manage ride data (creation, update, deletion, filtering, etc.).
     </p>
-    {/* Rides CRUD components go here */}
   </div>
 );
 
@@ -231,12 +228,12 @@ const BuyAndSellAdmin = () => (
   <div className="p-6">
     <h2 className="text-2xl font-bold mb-2">Manage Buy &amp; Sell</h2>
     <p className="mb-4">Oversee buy&amp;sell items and related interactions.</p>
-    {/* Buy & Sell CRUD components go here */}
   </div>
 );
 
 const AdminPanel = () => {
   const [activePage, setActivePage] = useState("dashboard");
+  const navigate = useNavigate();
 
   const renderPage = () => {
     switch (activePage) {
