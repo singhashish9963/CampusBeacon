@@ -1,28 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Rocket, 
-  Search, 
-  Plus, 
-  Loader2, 
-  Package, 
-  Tag, 
-  Phone, 
+import {
+  Rocket,
+  Search,
+  Plus,
+  Loader2,
+  Package,
+  Tag,
+  Phone,
   Image as ImageIcon,
   Filter,
   SortAsc,
   AlertCircle,
-  X
+  X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import { useBuyAndSell } from "../contexts/buyandsellContext";
-import { useAuth } from "../contexts/AuthContext";
-
+import { useDispatch, useSelector } from "react-redux";
 
 const Marketplace = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const dispatch = useDispatch();
+
+  // Get authentication state from authSlice using Redux
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
   const { items, loading, error, createItem, getAllItems, clearError } =
     useBuyAndSell();
 

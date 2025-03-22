@@ -1,25 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { 
-  Rocket, 
-  Search, 
-  Plus, 
-  Loader, 
-  Camera, 
-  Map, 
-  Phone, 
+import {
+  Rocket,
+  Search,
+  Plus,
+  Loader,
+  Camera,
+  Map,
+  Phone,
   Tag,
   Filter,
   SortAsc,
-  AlertCircle
+  AlertCircle,
 } from "lucide-react";
 import { useLostAndFound } from "../contexts/lostandfoundContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useSelector } from "react-redux";
 import LostItemCard from "../components/LostItemCard";
 
 const LostAndFound = () => {
+  // Using our lost and found context (if you decide to move that into Redux, update accordingly)
   const { items, addItem, fetchItems, loading } = useLostAndFound();
-  const { user } = useAuth();
+  // Now get auth data from the auth slice in Redux instead of using context
+  const { user } = useSelector((state) => state.auth);
+
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
   const [category, setCategory] = useState("");
@@ -101,7 +104,7 @@ const LostAndFound = () => {
       return matchesSearch && matchesCategory;
     });
 
-    // Sort items
+    // Sort items by creation date
     switch (sortBy) {
       case "newest":
         return result.sort(

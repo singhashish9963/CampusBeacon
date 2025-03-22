@@ -5,6 +5,7 @@ import authReducer from "./slices/authSlice";
 import profileReducer from "./slices/profileSlice";
 import eateriesReducer from "./slices/eateriesSlice";
 import contactsReducer from "./slices/contactSlice"
+import buyAndSellReducer from "./slices/buyandsellSlice"
 const store = configureStore({
   reducer: {
     rides: ridesReducer,
