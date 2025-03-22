@@ -6,6 +6,7 @@ import profileReducer from "./slices/profileSlice";
 import eateriesReducer from "./slices/eateriesSlice";
 import contactsReducer from "./slices/contactSlice"
 import buyAndSellReducer from "./slices/buyandsellSlice"
+import notificationReducer from "./slices/notificationSlice"
 const store = configureStore({
   reducer: {
     rides: ridesReducer,
@@ -13,6 +14,7 @@ const store = configureStore({
     profile: profileReducer,
     eateries: eateriesReducer,
     contacts: contactsReducer,
+    notification:notificationReducer,
     // Add other slices here
   },
 });

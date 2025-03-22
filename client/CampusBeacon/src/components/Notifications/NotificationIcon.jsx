@@ -1,16 +1,22 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Bell, X } from "lucide-react";
-import { useNotification } from "../../contexts/notificationContext";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  markAllNotificationsAsRead,
+  getNotifications,
+} from "../../slices/notificationSlice";
 import NotificationList from "./NotificationList";
 
 const NotificationIcon = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { unreadCount, markAllNotificationsAsRead, getNotifications } =
-    useNotification();
   const panelRef = useRef(null);
   const buttonRef = useRef(null);
+  const dispatch = useDispatch();
 
-  // Handle click outside to close panel
+  // Get notifications state from Redux
+  const { unreadCount } = useSelector((state) => state.notification);
+
+  // Close panel on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -24,9 +30,7 @@ const NotificationIcon = () => {
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
   const togglePanel = () => {
@@ -34,14 +38,14 @@ const NotificationIcon = () => {
     setIsOpen(newState);
 
     if (newState) {
-      // Always fetch notifications when the panel opens.
-      getNotifications();
+      // Always fetch notifications when opening the panel
+      dispatch(getNotifications({}));
     }
   };
 
   const handleMarkAllAsRead = (e) => {
     e.stopPropagation();
-    markAllNotificationsAsRead();
+    dispatch(markAllNotificationsAsRead());
   };
 
   return (

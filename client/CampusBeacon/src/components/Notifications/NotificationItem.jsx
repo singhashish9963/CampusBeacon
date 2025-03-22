@@ -1,19 +1,25 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Check, Trash, Clock } from "lucide-react";
-import { useNotification } from "../../contexts/notificationContext";
+import { useDispatch } from "react-redux";
+import {
+  markNotificationAsRead,
+  deleteNotification,
+} from "../../slices/notificationSlice";
 
 const NotificationItem = ({ notification }) => {
-  const { markNotificationAsRead, deleteNotification } = useNotification();
+  const dispatch = useDispatch();
 
   const handleMarkAsRead = (e) => {
     e.stopPropagation();
-    markNotificationAsRead(notification.id);
+    if (!notification.is_read) {
+      dispatch(markNotificationAsRead(notification.id));
+    }
   };
 
   const handleDelete = (e) => {
     e.stopPropagation();
-    deleteNotification(notification.id);
+    dispatch(deleteNotification(notification.id));
   };
 
   const formatTime = (dateString) => {
@@ -39,14 +45,10 @@ const NotificationItem = ({ notification }) => {
       }`}
       onClick={!notification.is_read ? handleMarkAsRead : undefined}
     >
-      {/* Notification Content */}
       <div className="flex items-start space-x-3 mb-2">
-        {/* Notification Status Dot */}
         {!notification.is_read && (
           <div className="mt-1.5 h-2 w-2 rounded-full bg-amber-500 flex-shrink-0"></div>
         )}
-
-        {/* Message */}
         <div className={`flex-1 ${notification.is_read ? "pl-4" : ""}`}>
           <p
             className={`text-sm ${
@@ -57,16 +59,11 @@ const NotificationItem = ({ notification }) => {
           </p>
         </div>
       </div>
-
-      {/* Notification Footer */}
       <div className="flex items-center justify-between pl-4 mt-2">
-        {/* Time */}
         <div className="flex items-center text-amber-500/70 text-xs">
           <Clock className="w-3 h-3 mr-1" />
           <span>{formatTime(notification.createdAt)}</span>
         </div>
-
-        {/* Actions */}
         <div className="flex space-x-2">
           {!notification.is_read && (
             <button
@@ -92,7 +89,7 @@ const NotificationItem = ({ notification }) => {
 
 NotificationItem.propTypes = {
   notification: PropTypes.shape({
-    id: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+    id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
     message: PropTypes.string.isRequired,
     is_read: PropTypes.bool.isRequired,
     createdAt: PropTypes.string.isRequired,

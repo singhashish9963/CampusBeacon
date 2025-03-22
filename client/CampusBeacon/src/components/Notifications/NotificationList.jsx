@@ -1,12 +1,12 @@
 import React from "react";
-import { Bell } from "lucide-react";
-import { useNotification } from "../../contexts/notificationContext";
+import { useSelector } from "react-redux";
 import NotificationItem from "./NotificationItem";
 
 const NotificationList = () => {
-  const { notifications, loading, error } = useNotification();
+  const { notifications, loading, error } = useSelector(
+    (state) => state.notification
+  );
 
-  // Display error if one exists
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -15,7 +15,6 @@ const NotificationList = () => {
     );
   }
 
-  // Loading state
   if (loading) {
     return (
       <div className="flex justify-center items-center py-8">
@@ -28,12 +27,10 @@ const NotificationList = () => {
     );
   }
 
-  // Empty state (when notifications list is empty)
   if (notifications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
         <div className="bg-gray-800/30 p-4 rounded-full mb-4">
-          <Bell className="w-10 h-10 text-amber-500/50" />
         </div>
         <h4 className="text-gray-300 font-medium mb-1">All caught up!</h4>
         <p className="text-gray-500 text-sm max-w-xs">
@@ -43,7 +40,6 @@ const NotificationList = () => {
     );
   }
 
-  // Loaded notifications
   return (
     <div className="max-h-[60vh] overflow-y-auto">
       <div className="py-2 divide-y divide-amber-500/10">
