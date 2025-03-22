@@ -21,6 +21,7 @@ const ProfileContext = createContext(null);
 
 export const ProfileProvider = ({ children }) => {
   const [userProfile, setUserProfile] = useState(null);
+  const [roles, setRoles] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -34,6 +35,7 @@ export const ProfileProvider = ({ children }) => {
       const response = await api.get("/users/current");
       if (response.data.success) {
         setUserProfile(response.data.data.user);
+        setRoles(response.data.data.roles); // assuming roles are included in the response
       } else {
         setError(response.data.message || "Failed to load user");
       }
@@ -60,6 +62,7 @@ export const ProfileProvider = ({ children }) => {
         const response = await api.put("/users/update", userData);
         if (response.data.success) {
           setUserProfile(response.data.data.user);
+          setRoles(response.data.data.roles); // assuming roles are included in the response
         } else {
           setError(response.data.message || "Update failed");
         }
@@ -77,6 +80,7 @@ export const ProfileProvider = ({ children }) => {
     <ProfileContext.Provider
       value={{
         user: userProfile,
+        roles,
         updateUser,
         isEditing,
         setIsEditing,

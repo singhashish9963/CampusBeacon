@@ -20,6 +20,7 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [roles, setRoles] = useState([]);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,12 +30,14 @@ export const AuthProvider = ({ children }) => {
       const response = await api.get("/users/current");
       if (response.data?.data?.user) {
         setUser(response.data.data.user);
+        setRoles(response.data.data.roles); // assuming roles are included in the response
         setIsAuthenticated(true);
         return true;
       }
     } catch (error) {
       console.error("Auth check failed:", error);
       setUser(null);
+      setRoles([]);
       setIsAuthenticated(false);
     } finally {
       setLoading(false);
@@ -55,15 +58,19 @@ export const AuthProvider = ({ children }) => {
       if (response.data.success) {
         if (response.data.data && response.data.data.user) {
           const userData = response.data.data.user;
+          const userRoles = response.data.data.roles;
           setUser(userData);
+          setRoles(userRoles);
           setIsAuthenticated(true);
         } else {
           setUser(null);
+          setRoles([]);
           setIsAuthenticated(false);
         }
         return {
           success: true,
           user: response.data.data?.user || null,
+          roles: response.data.data?.roles || [],
           message: response.data.message,
         };
       }
@@ -87,11 +94,14 @@ export const AuthProvider = ({ children }) => {
       console.log("Verification response:", response.data);
       if (response.data.success && response.data.data?.user) {
         const userData = response.data.data.user;
+        const userRoles = response.data.data.roles;
         setUser(userData);
+        setRoles(userRoles);
         setIsAuthenticated(true);
         return {
           success: true,
           user: userData,
+          roles: userRoles,
           message: response.data.message,
         };
       }
@@ -182,6 +192,7 @@ export const AuthProvider = ({ children }) => {
       console.error("Logout error:", error);
     } finally {
       setUser(null);
+      setRoles([]);
       setIsAuthenticated(false);
       setError(null);
     }
@@ -189,6 +200,7 @@ export const AuthProvider = ({ children }) => {
 
   const contextValue = {
     user,
+    roles,
     isAuthenticated,
     error,
     loading,
