@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useContact } from "../contexts/contactContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const ContactsDisplay = () => {
   const {
@@ -22,6 +23,15 @@ const ContactsDisplay = () => {
     updateContact,
     deleteContact,
   } = useContact();
+
+  const { roles } = useAuth();
+  const isAdmin = Array.isArray(roles) && roles.includes("admin");
+
+  useEffect(() => {
+    console.log("Roles:", roles);
+    console.log("Is Admin:", isAdmin);
+  }, [roles]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
@@ -154,13 +164,15 @@ const ContactsDisplay = () => {
           <h1 className="text-5xl font-bold text-center bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-600">
             MNNIT Contacts Directory
           </h1>
-          <button
-            onClick={() => handleOpenModal()}
-            className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg flex items-center gap-2 transition-all"
-          >
-            <Plus size={20} />
-            Add Contact
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => handleOpenModal()}
+              className="px-4 py-2 bg-purple-500 hover:bg-purple-600 rounded-lg flex items-center gap-2 transition-all"
+            >
+              <Plus size={20} />
+              Add Contact
+            </button>
+          )}
         </div>
 
         <div className="mb-8 relative">
@@ -184,22 +196,24 @@ const ContactsDisplay = () => {
                   key={contact.id}
                   className="bg-slate-800/50 backdrop-blur-lg rounded-lg p-7 border border-slate-700 hover:border-purple-500 transition-all relative group"
                 >
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleOpenModal(contact)}
-                        className="p-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-all"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(contact.id)}
-                        className="p-2 bg-red-500 rounded-lg hover:bg-red-600 transition-all"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                  {isAdmin && (
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleOpenModal(contact)}
+                          className="p-2 bg-blue-500 rounded-lg hover:bg-blue-600 transition-all"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(contact.id)}
+                          className="p-2 bg-red-500 rounded-lg hover:bg-red-600 transition-all"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="flex flex-col items-center gap-4 mb-6">
                     <img
@@ -390,7 +404,9 @@ const ContactsDisplay = () => {
                     <span className="ml-2">Processing...</span>
                   </div>
                 ) : (
-                  <span>{editingContact ? "Update Contact" : "Add Contact"}</span>
+                  <span>
+                    {editingContact ? "Update Contact" : "Add Contact"}
+                  </span>
                 )}
               </button>
             </form>

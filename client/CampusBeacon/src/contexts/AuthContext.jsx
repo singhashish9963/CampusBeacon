@@ -20,7 +20,7 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [roles, setRoles] = useState([]);
+  const [roles, setRoles] = useState([]); // Default to an empty array
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,7 +30,7 @@ export const AuthProvider = ({ children }) => {
       const response = await api.get("/users/current");
       if (response.data?.data?.user) {
         setUser(response.data.data.user);
-        setRoles(response.data.data.roles); // assuming roles are included in the response
+        setRoles(response.data.data.user.roles || []); // Ensure roles is an array
         setIsAuthenticated(true);
         return true;
       }
@@ -53,12 +53,11 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      console.log(`Making ${endpoint} request with:`, data);
       const response = await api.post(`/users${endpoint}`, data);
       if (response.data.success) {
         if (response.data.data && response.data.data.user) {
           const userData = response.data.data.user;
-          const userRoles = response.data.data.roles;
+          const userRoles = response.data.data.user.roles || [];
           setUser(userData);
           setRoles(userRoles);
           setIsAuthenticated(true);
@@ -70,13 +69,12 @@ export const AuthProvider = ({ children }) => {
         return {
           success: true,
           user: response.data.data?.user || null,
-          roles: response.data.data?.roles || [],
+          roles: response.data.data?.user.roles || [],
           message: response.data.message,
         };
       }
       throw new Error(response.data.message);
     } catch (error) {
-      console.error(`Auth error (${endpoint}):`, error);
       const errorMessage = error.response?.data?.message || error.message;
       setError(errorMessage);
       return { success: false, message: errorMessage };
@@ -89,12 +87,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      console.log("Starting email verification with token:", token);
       const response = await api.get(`/users/verify-email?token=${token}`);
-      console.log("Verification response:", response.data);
       if (response.data.success && response.data.data?.user) {
         const userData = response.data.data.user;
-        const userRoles = response.data.data.roles;
+        const userRoles = response.data.data.user.roles || [];
         setUser(userData);
         setRoles(userRoles);
         setIsAuthenticated(true);
@@ -107,7 +103,6 @@ export const AuthProvider = ({ children }) => {
       }
       throw new Error(response.data.message || "Email verification failed");
     } catch (error) {
-      console.error("Email verification error:", error);
       const errorMessage = error.response?.data?.message || error.message;
       setError(errorMessage);
       return { success: false, message: errorMessage };
@@ -173,7 +168,6 @@ export const AuthProvider = ({ children }) => {
         }
         return response;
       } catch (error) {
-        console.error("Form submission error:", error);
         setError(error.message);
         throw error;
       }
