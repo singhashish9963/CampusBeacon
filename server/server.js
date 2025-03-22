@@ -67,7 +67,7 @@ app.use("/api/v1/attendance", attendanceRoutes);
 app.use("/api/hostels", hostelsRoutes);
 app.use("/api/rides", ridesRoutes);
 app.use("/api/v1/user-subjects", userSubjectsRoutes);
-app.use("/eateries", eateriesRoutes);
+app.use("/api/eateries", eateriesRoutes);
 app.use("/api/resources", resourcesRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/chatbot", chatBotRoutes); // Fixed the path here
