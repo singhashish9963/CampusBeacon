@@ -1,11 +1,12 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
-import LoadingScreen from "../components/LoadingScreen.jsx"; 
+import { useSelector } from "react-redux";
+import LoadingScreen from "../components/LoadingScreen.jsx";
 
 const ProtectedRoute = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useSelector((state) => state.auth);
   const location = useLocation();
+
   if (loading) {
     return <LoadingScreen />;
   }

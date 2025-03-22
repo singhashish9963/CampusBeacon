@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useDispatch, useSelector } from "react-redux";
 import {
   HiHome,
   HiSearch,
@@ -11,134 +11,18 @@ import {
   HiLogout,
   HiLogin,
   HiMenu,
-  HiAcademicCap, // Added for academics icon
+  HiAcademicCap,
 } from "react-icons/hi";
+import { handleLogout } from "../slices/authSlice";
 
-function NavBar() {
-  const { isAuthenticated, handleLogout, user } = useAuth();
-  const [isVisible, setIsVisible] = useState(false);
+// DropdownMenu component to show dropdown options
+const DropdownMenu = ({ title, options, dropdownKey, icon: Icon }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const timeoutRef = useRef(null);
-  const showTimeoutRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  const mainLinks = isAuthenticated
-    ? [
-        { name: "Home", path: "/", icon: HiHome },
-        { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
-        { name: "Buy & Sell", path: "/marketplace", icon: HiShoppingBag },
-        { name: "Profile", path: "/profile", icon: HiUser },
-        { name: "Hostel", path: "/hostels", icon: HiUser },         
-      ]
-    : [{ name: "Home", path: "/", icon: HiHome }];
-   const hostelAdminOptions=[
-    {
-      name:"Menu Create",
-      path:'/Menu',
-      description:"Crud on Menu"
-    },
-    {
-      name:"Hostel create",
-      path:"/hostelcreate",
-      description:"CRUD on hostel ",
-    },
-    {
-      name:"Official create",
-      path:"/official",
-      description:"Crud on official",
-    },
-    {
-      name:"Complaints create",
-      path:"/complaints",
-      description:"Crud on complaints"
-    },
-    {
-      name:"Hostel Notifications Create",
-      path:"/hostel-notification",
-      description:"Crud on hostel notifications"
-    },
-    {
-      name:"ViewPage Hostel Create",
-      path:"/viewpagehostel",
-      description:"-"
-    }
-   ];
-  const hostelOptions = [
-    {
-      name: "SVBH",
-      path: "/SVBH",
-      description: "Swami Vivekanand Boys Hostel",
-    },
-    {
-      name: "DGJH",
-      path: "/DJGH",
-      description: "Dr. G.J. Hostel",
-    },
-    {
-      name: "PG Hostel",
-      path: "/PGHostel",
-      description : "Post Graduate Hostel"     
-    },
-    {
-      name: "KNGH",
-      path: "/KNGH",
-      description : "Kamla Nehru Girls Hostel"     
-    },
-    {
-      name: "SNGH",
-      path: "/SNGH",
-      description : "Sarojini Naidu Girls Hostel"     
-    },
-    {
-      name: "IGH",
-      path: "/IGH",
-      description : "International House (B-block) and Bachelor’s Flat"     
-    },
-    {
-      name: "RN TAGORE HOSTEL",
-      path: "/RNTH",
-      description : "RABINDRANATH TAGORE BOYS HOSTEL"     
-    },
-    {
-      name: "CV RAMAN HOSTEL",
-      path: "/CVRH",
-      description : "Chandrasekhara Venkata Raman Boys Hostel"     
-    },
-    {
-      name: "M.M MALAVIYA HOSTEL",
-      path: "/MMMH",
-      description : "Madan Mohan Malviya Boys Hostel"     
-    },
-    {
-      name: "B.G Tilak Hostel",
-      path: "/BGTH",
-      description : "Bal Gangadhar Tilak Boys Hostel"     
-    },
-    {
-      name: "S.V. Patel Hostel",
-      path: "/SVTH",
-      description : "Sardar Vallabh Bhai Patel Boys Hostel"     
-    },
-    {
-      name: "P.D Tandon Hostel",
-      path: "/PDTH",
-      description : "Pandit Deen Dayal Tandon Boys Hostel"     
-    }
-  ];
-
-  const academicsOptions = [
-    {
-      name: "Attendance Manager",
-      path: "/attendance",
-      description: "Track and manage your attendance",
-    },
-  ];
-
-  const handleMouseEnter = (dropdown) => {
+  const handleMouseEnter = (key) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setActiveDropdown(dropdown);
+    setActiveDropdown(key);
   };
 
   const handleMouseLeave = () => {
@@ -147,23 +31,7 @@ function NavBar() {
     }, 300);
   };
 
-  const handleLogoutClick = async () => {
-    await handleLogout();
-    navigate("/login");
-  };
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
-    };
-  }, []);
-
-  useEffect(() => {
-    setIsMobileMenuOpen(false);
-  }, [location.pathname]);
-
-  const DropdownMenu = ({ title, options, dropdownKey, icon: Icon }) => (
+  return (
     <div
       onMouseEnter={() => handleMouseEnter(dropdownKey)}
       onMouseLeave={handleMouseLeave}
@@ -201,6 +69,152 @@ function NavBar() {
       </AnimatePresence>
     </div>
   );
+};
+
+function NavBar() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Get authentication state using authSlice from Redux
+  const { isAuthenticated, loading, user, roles } = useSelector(
+    (state) => state.auth
+  );
+
+  const [isVisible, setIsVisible] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const showTimeoutRef = useRef(null);
+
+  // Define main links based on authentication status
+  const mainLinks = isAuthenticated
+    ? [
+        { name: "Home", path: "/", icon: HiHome },
+        { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
+        { name: "Buy & Sell", path: "/marketplace", icon: HiShoppingBag },
+        { name: "Profile", path: "/profile", icon: HiUser },
+        { name: "Hostel", path: "/hostels", icon: HiUser },
+      ]
+    : [{ name: "Home", path: "/", icon: HiHome }];
+
+  // Options for dropdown menus
+  const hostelAdminOptions = [
+    {
+      name: "Menu Create",
+      path: "/Menu",
+      description: "Crud on Menu",
+    },
+    {
+      name: "Hostel Create",
+      path: "/hostelcreate",
+      description: "CRUD on hostel",
+    },
+    {
+      name: "Official Create",
+      path: "/official",
+      description: "Crud on official",
+    },
+    {
+      name: "Complaints Create",
+      path: "/complaints",
+      description: "Crud on complaints",
+    },
+    {
+      name: "Hostel Notifications Create",
+      path: "/hostel-notification",
+      description: "Crud on hostel notifications",
+    },
+    {
+      name: "ViewPage Hostel Create",
+      path: "/viewpagehostel",
+      description: "-",
+    },
+  ];
+
+  const hostelOptions = [
+    {
+      name: "SVBH",
+      path: "/SVBH",
+      description: "Swami Vivekanand Boys Hostel",
+    },
+    {
+      name: "DGJH",
+      path: "/DJGH",
+      description: "Dr. G.J. Hostel",
+    },
+    {
+      name: "PG Hostel",
+      path: "/PGHostel",
+      description: "Post Graduate Hostel",
+    },
+    {
+      name: "KNGH",
+      path: "/KNGH",
+      description: "Kamla Nehru Girls Hostel",
+    },
+    {
+      name: "SNGH",
+      path: "/SNGH",
+      description: "Sarojini Naidu Girls Hostel",
+    },
+    {
+      name: "IGH",
+      path: "/IGH",
+      description: "International House (B-block) and Bachelor’s Flat",
+    },
+    {
+      name: "RN TAGORE HOSTEL",
+      path: "/RNTH",
+      description: "RABINDRANATH TAGORE BOYS HOSTEL",
+    },
+    {
+      name: "CV RAMAN HOSTEL",
+      path: "/CVRH",
+      description: "Chandrasekhara Venkata Raman Boys Hostel",
+    },
+    {
+      name: "M.M MALAVIYA HOSTEL",
+      path: "/MMMH",
+      description: "Madan Mohan Malviya Boys Hostel",
+    },
+    {
+      name: "B.G Tilak Hostel",
+      path: "/BGTH",
+      description: "Bal Gangadhar Tilak Boys Hostel",
+    },
+    {
+      name: "S.V. Patel Hostel",
+      path: "/SVTH",
+      description: "Sardar Vallabh Bhai Patel Boys Hostel",
+    },
+    {
+      name: "P.D Tandon Hostel",
+      path: "/PDTH",
+      description: "Pandit Deen Dayal Tandon Boys Hostel",
+    },
+  ];
+
+  const academicsOptions = [
+    {
+      name: "Attendance Manager",
+      path: "/attendance",
+      description: "Track and manage your attendance",
+    },
+  ];
+
+  const handleLogoutClick = async () => {
+    await dispatch(handleLogout());
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    return () => {
+      if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <>
@@ -244,10 +258,9 @@ function NavBar() {
                     <span>{link.name}</span>
                   </Link>
                 ))}
-
                 {isAuthenticated && (
                   <>
-                    {/* Mobile Hostel Section */}
+                    {/* Mobile HostelAdmin Section */}
                     <div className="mt-4 border-t border-white/10 pt-4">
                       <div className="px-4 py-2 text-sm text-gray-400">
                         HostelAdmin
@@ -270,11 +283,12 @@ function NavBar() {
                         </Link>
                       ))}
                     </div>
+                    {/* Mobile Hostels Section */}
                     <div className="mt-4 border-t border-white/10 pt-4">
                       <div className="px-4 py-2 text-sm text-gray-400">
                         Hostels
                       </div>
-                      {hostelAdminOptions.map((option) => (
+                      {hostelOptions.map((option) => (
                         <Link
                           key={option.name}
                           to={option.path}
@@ -292,7 +306,6 @@ function NavBar() {
                         </Link>
                       ))}
                     </div>
-
                     {/* Mobile Academics Section */}
                     <div className="mt-4 border-t border-white/10 pt-4">
                       <div className="px-4 py-2 text-sm text-gray-400">
@@ -318,7 +331,6 @@ function NavBar() {
                     </div>
                   </>
                 )}
-
                 <div className="mt-auto">
                   {isAuthenticated ? (
                     <button
@@ -356,13 +368,10 @@ function NavBar() {
             onMouseLeave={() => {
               showTimeoutRef.current = setTimeout(() => {
                 setIsVisible(false);
-                setActiveDropdown(null);
               }, 300);
             }}
             onMouseEnter={() => {
-              if (showTimeoutRef.current) {
-                clearTimeout(showTimeoutRef.current);
-              }
+              if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
             }}
           >
             <div className="relative rounded-2xl overflow-visible bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-purple-500/10">
@@ -374,7 +383,6 @@ function NavBar() {
                   >
                     CampusBeacon
                   </Link>
-
                   <div className="flex items-center space-x-8 text-l">
                     {mainLinks.map((link) => (
                       <Link
@@ -387,10 +395,9 @@ function NavBar() {
                         <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
                       </Link>
                     ))}
-
                     {isAuthenticated && (
                       <>
-                      <DropdownMenu
+                        <DropdownMenu
                           title="HostelAdmin"
                           options={hostelAdminOptions}
                           dropdownKey="hostelAdmin"
@@ -410,7 +417,6 @@ function NavBar() {
                         />
                       </>
                     )}
-
                     {isAuthenticated ? (
                       <button
                         onClick={handleLogoutClick}

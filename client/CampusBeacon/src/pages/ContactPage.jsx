@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   Phone,
@@ -10,28 +10,30 @@ import {
   Upload,
   Image as ImageIcon,
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useContact } from "../contexts/contactContext";
-import { useAuth } from "../contexts/AuthContext";
+import { motion, AnimatePresence } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchContacts,
+  createContact,
+  updateContact,
+  deleteContact,
+} from "../slices/contactSlice";
+import { clearError } from "../slices/authSlice"; // if needed
 
 const ContactsDisplay = () => {
-  const {
-    loading,
-    items,
-    fetchContact,
-    createContact,
-    updateContact,
-    deleteContact,
-  } = useContact();
+  const dispatch = useDispatch();
 
-  const { roles } = useAuth();
+  // Get contacts from Redux state
+  const { items, loading, error } = useSelector((state) => state.contacts);
+  // Get authentication data from auth slice
+  const { roles } = useSelector((state) => state.auth);
   const isAdmin = Array.isArray(roles) && roles.includes("admin");
 
   useEffect(() => {
-    console.log("Roles:", roles);
-    console.log("Is Admin:", isAdmin);
-  }, [roles]);
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
+  // Local state for filtering and modal/form management
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [editingContact, setEditingContact] = useState(null);
@@ -45,10 +47,6 @@ const ContactsDisplay = () => {
   });
   const [dragActive, setDragActive] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    fetchContact();
-  }, [fetchContact]);
 
   const resetForm = () => {
     setFormFields({
@@ -108,7 +106,7 @@ const ContactsDisplay = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFileChange(e.dataTransfer.files[0]);
     }
   };
@@ -126,12 +124,14 @@ const ContactsDisplay = () => {
         formDataToSend.append("image", selectedFile);
       }
       if (editingContact) {
-        await updateContact(editingContact.id, formDataToSend);
+        await dispatch(
+          updateContact({ id: editingContact.id, updatedContact: formDataToSend })
+        ).unwrap();
       } else {
-        await createContact(formDataToSend);
+        await dispatch(createContact(formDataToSend)).unwrap();
       }
       handleCloseModal();
-      fetchContact();
+      dispatch(fetchContacts());
     } catch (error) {
       console.error("Error submitting form: ", error);
     } finally {
@@ -141,8 +141,8 @@ const ContactsDisplay = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this contact?")) {
-      await deleteContact(id);
-      fetchContact();
+      await dispatch(deleteContact(id));
+      dispatch(fetchContacts());
     }
   };
 
@@ -150,8 +150,7 @@ const ContactsDisplay = () => {
     const searchStr = searchTerm.toLowerCase();
     return (
       (contact.name && contact.name.toLowerCase().includes(searchStr)) ||
-      (contact.designation &&
-        contact.designation.toLowerCase().includes(searchStr)) ||
+      (contact.designation && contact.designation.toLowerCase().includes(searchStr)) ||
       (contact.email && contact.email.toLowerCase().includes(searchStr)) ||
       (contact.phone && contact.phone.toString().includes(searchStr))
     );
@@ -214,23 +213,17 @@ const ContactsDisplay = () => {
                       </div>
                     </div>
                   )}
-
                   <div className="flex flex-col items-center gap-4 mb-6">
                     <img
-                      src={
-                        contact.image_url || "https://via.placeholder.com/128"
-                      }
+                      src={contact.image_url || "https://via.placeholder.com/128"}
                       alt={contact.name}
                       className="w-32 h-32 rounded-full object-cover bg-purple-500/20"
                     />
                     <div className="text-center">
                       <h3 className="text-2xl font-semibold">{contact.name}</h3>
-                      <p className="text-purple-400 text-l">
-                        {contact.designation}
-                      </p>
+                      <p className="text-purple-400 text-l">{contact.designation}</p>
                     </div>
                   </div>
-
                   <div className="space-y-4 text-slate-300">
                     <div className="flex items-center gap-3">
                       <Phone size={20} className="text-slate-400" />
@@ -252,168 +245,156 @@ const ContactsDisplay = () => {
         )}
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-slate-800 rounded-xl p-8 w-full max-w-md relative">
-            <button
-              onClick={handleCloseModal}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
-            >
-              <X size={24} />
-            </button>
-            <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
-              {editingContact ? "Edit Contact" : "Add New Contact"}
-            </h2>
-
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div
-                className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all ${
-                  dragActive
-                    ? "border-purple-500 bg-purple-500/10"
-                    : "border-slate-600 hover:border-purple-500"
-                }`}
-                onDragEnter={handleDrag}
-                onDragLeave={handleDrag}
-                onDragOver={handleDrag}
-                onDrop={handleDrop}
-              >
-                <input
-                  type="file"
-                  id="image-upload"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) =>
-                    handleFileChange(e.target.files && e.target.files[0])
-                  }
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="cursor-pointer flex flex-col items-center gap-2"
-                >
-                  {previewImage ? (
-                    <img
-                      src={previewImage}
-                      alt="Preview"
-                      className="w-32 h-32 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-32 h-32 rounded-full bg-slate-700 flex items-center justify-center">
-                      <ImageIcon size={48} className="text-slate-500" />
-                    </div>
-                  )}
-                  <div className="flex items-center gap-2 text-sm text-slate-400">
-                    <Upload size={16} />
-                    <span>Drop image here or click to upload</span>
-                  </div>
-                </label>
-              </div>
-
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-300">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    value={formFields.name}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, name: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
-                    placeholder="Enter name"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-300">
-                    Designation
-                  </label>
-                  <input
-                    type="text"
-                    value={formFields.designation}
-                    onChange={(e) =>
-                      setFormFields({
-                        ...formFields,
-                        designation: e.target.value,
-                      })
-                    }
-                    className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
-                    placeholder="Enter designation"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-300">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    value={formFields.email}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, email: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
-                    placeholder="Enter email"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1 text-slate-300">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    value={formFields.phone}
-                    onChange={(e) =>
-                      setFormFields({ ...formFields, phone: e.target.value })
-                    }
-                    className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
-                    placeholder="Enter phone number"
-                    required
-                  />
-                </div>
-              </div>
-
+      <AnimatePresence>
+        {showModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+          >
+            <div className="bg-slate-800 rounded-xl p-8 w-full max-w-md relative">
               <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-3 rounded-lg font-semibold transition-all ${
-                  isSubmitting
-                    ? "bg-gradient-to-r from-yellow-500 to-red-500 cursor-not-allowed opacity-75"
-                    : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-                }`}
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
               >
-                {isSubmitting ? (
-                  <div className="flex items-center justify-center">
-                    <motion.img
-                      src="https://img.icons8.com/emoji/48/rocket.png"
-                      alt="rocket"
-                      className="w-6 h-6"
-                      initial={{ x: 0 }}
-                      animate={{ x: 100 }}
-                      transition={{
-                        duration: 0.3,
-                        ease: "linear",
-                        repeat: Infinity,
-                        repeatType: "loop",
-                      }}
-                    />
-                    <span className="ml-2">Processing...</span>
-                  </div>
-                ) : (
-                  <span>
-                    {editingContact ? "Update Contact" : "Add Contact"}
-                  </span>
-                )}
+                <X size={24} />
               </button>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+              <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                {editingContact ? "Edit Contact" : "Add New Contact"}
+              </h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div
+                  className={`relative border-2 border-dashed rounded-xl p-4 text-center transition-all ${
+                    dragActive
+                      ? "border-purple-500 bg-purple-500/10"
+                      : "border-slate-600 hover:border-purple-500"
+                  }`}
+                  onDragEnter={handleDrag}
+                  onDragLeave={handleDrag}
+                  onDragOver={handleDrag}
+                  onDrop={handleDrop}
+                >
+                  <input
+                    type="file"
+                    id="image-upload"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) =>
+                      e.target.files && e.target.files.length > 0 && handleFileChange(e.target.files[0])
+                    }
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="cursor-pointer flex flex-col items-center gap-2"
+                  >
+                    {previewImage ? (
+                      <img
+                        src={previewImage}
+                        alt="Preview"
+                        className="w-32 h-32 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full bg-slate-700 flex items-center justify-center">
+                        <ImageIcon size={48} className="text-slate-500" />
+                      </div>
+                    )}
+                    <div className="flex items-center gap-2 text-sm text-slate-400">
+                      <Upload size={16} />
+                      <span>Drop image here or click to upload</span>
+                    </div>
+                  </label>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-300">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      value={formFields.name}
+                      onChange={(e) => setFormFields({ ...formFields, name: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
+                      placeholder="Enter name"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-300">
+                      Designation
+                    </label>
+                    <input
+                      type="text"
+                      value={formFields.designation}
+                      onChange={(e) => setFormFields({ ...formFields, designation: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
+                      placeholder="Enter designation"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-300">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={formFields.email}
+                      onChange={(e) => setFormFields({ ...formFields, email: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
+                      placeholder="Enter email"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1 text-slate-300">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={formFields.phone}
+                      onChange={(e) => setFormFields({ ...formFields, phone: e.target.value })}
+                      className="w-full px-4 py-2 bg-slate-700/50 rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-400"
+                      placeholder="Enter phone number"
+                      required
+                    />
+                  </div>
+                </div>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className={`w-full py-3 rounded-lg font-semibold transition-all ${
+                    isSubmitting
+                      ? "bg-gradient-to-r from-yellow-500 to-red-500 cursor-not-allowed opacity-75"
+                      : "bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
+                  }`}
+                >
+                  {isSubmitting ? (
+                    <div className="flex items-center justify-center">
+                      <motion.img
+                        src="https://img.icons8.com/emoji/48/rocket.png"
+                        alt="rocket"
+                        className="w-6 h-6"
+                        initial={{ x: 0 }}
+                        animate={{ x: 100 }}
+                        transition={{
+                          duration: 0.3,
+                          ease: "linear",
+                          repeat: Infinity,
+                          repeatType: "loop",
+                        }}
+                      />
+                      <span className="ml-2">Processing...</span>
+                    </div>
+                  ) : (
+                    <span>{editingContact ? "Update Contact" : "Add Contact"}</span>
+                  )}
+                </button>
+              </form>
+            </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
   );
 };
 
