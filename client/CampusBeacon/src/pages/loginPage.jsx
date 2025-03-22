@@ -1,26 +1,30 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  handleSignIn,
+  handleSignUp,
+  handleForgetPassword,
+  clearError,
+} from "../slices/authSlice";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const LoginSignup = () => {
+  const dispatch = useDispatch();
   const {
-    handleSubmit,
-    handleForgetPassword,
     isAuthenticated,
     error: authError,
-  } = useAuth();
+    loading,
+  } = useSelector((state) => state.auth);
   const [isSignUp, setIsSignUp] = useState(false);
   const [authMode, setAuthMode] = useState("default");
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Handle navigation after successful authentication
-  // This will run whenever isAuthenticated changes
   useEffect(() => {
     if (isAuthenticated) {
       toast.success("Login successful!", {
@@ -36,7 +40,6 @@ const LoginSignup = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // Handle error toast separately
   useEffect(() => {
     if (authError) {
       setError(authError);
@@ -52,16 +55,16 @@ const LoginSignup = () => {
     setError(null);
     setIsLoading(true);
 
-    // Show processing toast
     const toastId = toast.info(`Processing ${type} request...`, {
       position: "top-right",
       autoClose: 2000,
     });
 
     try {
+      let response;
       if (type === "forgotPassword") {
         const email = e.target.email.value;
-        const response = await handleForgetPassword(email);
+        response = await dispatch(handleForgetPassword(email)).unwrap();
         if (response && response.success) {
           toast.info("Password reset link sent to your email", {
             position: "top-center",
@@ -70,13 +73,17 @@ const LoginSignup = () => {
           setAuthMode("default");
         }
       } else {
-        // For login and signup
-        const response = await handleSubmit(e, type);
-
-        // We'll let the isAuthenticated useEffect handle successful login navigation
-        if (!response?.success) {
-          throw new Error(response?.message || "Authentication failed");
+        const email = e.target.email.value;
+        const password = e.target.password.value;
+        if (type === "signUp") {
+          response = await dispatch(handleSignUp({ email, password })).unwrap();
+        } else {
+          response = await dispatch(handleSignIn({ email, password })).unwrap();
         }
+      }
+
+      if (!response?.success) {
+        throw new Error(response?.message || "Authentication failed");
       }
     } catch (err) {
       setError(err.message || "An error occurred");
@@ -124,7 +131,6 @@ const LoginSignup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center p-4">
-      {/* Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={5000}
@@ -152,7 +158,6 @@ const LoginSignup = () => {
               backdropFilter: "blur(10px)",
             }}
           >
-            {/* Sliding Panel - visible only on desktop */}
             <motion.div
               animate={{ x: isSignUp ? "100%" : "0%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -175,6 +180,7 @@ const LoginSignup = () => {
                   onClick={() => {
                     setIsSignUp(!isSignUp);
                     setError(null);
+                    dispatch(clearError());
                   }}
                   className="px-8 py-3 border-2 border-white text-white rounded-full hover:bg-white hover:text-purple-900 transition-all"
                 >
@@ -183,32 +189,31 @@ const LoginSignup = () => {
               </div>
             </motion.div>
 
-            {/* Mobile version with flip animation */}
             <AnimatePresence mode="wait">
-              <motion.div 
+              <motion.div
                 key={isSignUp ? "signUp" : "signIn"}
-                initial={{ 
-                  rotateY: isSignUp ? -90 : 90, 
-                  opacity: 0 
+                initial={{
+                  rotateY: isSignUp ? -90 : 90,
+                  opacity: 0,
                 }}
-                animate={{ 
-                  rotateY: 0, 
-                  opacity: 1 
+                animate={{
+                  rotateY: 0,
+                  opacity: 1,
                 }}
-                exit={{ 
-                  rotateY: isSignUp ? 90 : -90, 
-                  opacity: 0 
+                exit={{
+                  rotateY: isSignUp ? 90 : -90,
+                  opacity: 0,
                 }}
-                transition={{ 
-                  duration: 0.6, 
-                  type: "spring", 
-                  stiffness: 300, 
-                  damping: 30 
+                transition={{
+                  duration: 0.6,
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
                 }}
                 className="w-full md:hidden perspective-1000"
-                style={{ 
+                style={{
                   backfaceVisibility: "hidden",
-                  transformStyle: "preserve-3d"
+                  transformStyle: "preserve-3d",
                 }}
               >
                 {isSignUp ? (
@@ -231,6 +236,7 @@ const LoginSignup = () => {
                         onClick={() => {
                           setIsSignUp(false);
                           setError(null);
+                          dispatch(clearError());
                         }}
                         className="text-purple-400 hover:text-purple-300 transition-colors"
                       >
@@ -259,6 +265,7 @@ const LoginSignup = () => {
                         onClick={() => {
                           setAuthMode("forgotPassword");
                           setError(null);
+                          dispatch(clearError());
                         }}
                       >
                         Forgot Password?
@@ -267,6 +274,7 @@ const LoginSignup = () => {
                         onClick={() => {
                           setIsSignUp(true);
                           setError(null);
+                          dispatch(clearError());
                         }}
                         className="text-purple-400 hover:text-purple-300 transition-colors"
                       >
@@ -278,7 +286,6 @@ const LoginSignup = () => {
               </motion.div>
             </AnimatePresence>
 
-            {/* Desktop Sign Up Form - visible only on desktop */}
             <div className="md:w-1/2 pt-10 pr-10 pl-10 pb-25 border-b border-purple-500 rounded-lg md:border-hidden hidden md:block">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Create New Account
@@ -295,7 +302,6 @@ const LoginSignup = () => {
               <AuthForm type={isSignUp ? "signUp" : "signIn"} />
             </div>
 
-            {/* Desktop Sign In Form - visible only on desktop */}
             <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden hidden md:block">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Welcome Back!
@@ -315,6 +321,7 @@ const LoginSignup = () => {
                 onClick={() => {
                   setAuthMode("forgotPassword");
                   setError(null);
+                  dispatch(clearError());
                 }}
               >
                 Forgot Password?
@@ -347,6 +354,7 @@ const LoginSignup = () => {
               onClick={() => {
                 setAuthMode("default");
                 setError(null);
+                dispatch(clearError());
               }}
             >
               Back to Login

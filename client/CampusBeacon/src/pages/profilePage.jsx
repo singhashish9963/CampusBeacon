@@ -7,8 +7,6 @@ import {
   Star,
   Edit,
   Home,
-  User,
-  Mail,
   Award,
   AlertCircle,
   Save,
@@ -17,13 +15,20 @@ import {
 } from "lucide-react";
 import Profile from "../components/ProfilePage/profileCard";
 import Achievements from "../components/ProfilePage/achievements";
-import { useProfile } from "../contexts/profileContext";
 import LoadingScreen from "../components/LoadingScreen";
-
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getUser,
+  updateUser,
+  setIsEditing,
+  clearError,
+} from "../slices/profileSlice";
 
 const ProfilePage = () => {
-  const { user, loading, error, updateUser } = useProfile();
-  const [isEditing, setIsEditing] = useState(false);
+  const dispatch = useDispatch();
+  const { user, roles, isEditing, loading, error } = useSelector(
+    (state) => state.profile
+  );
   const [notification, setNotification] = useState(null);
   const [originalData, setOriginalData] = useState(null);
   const [userData, setUserData] = useState({
@@ -72,6 +77,10 @@ const ProfilePage = () => {
   ];
 
   useEffect(() => {
+    dispatch(getUser());
+  }, [dispatch]);
+
+  useEffect(() => {
     if (user) {
       const newUserData = {
         name: user.name || "",
@@ -103,7 +112,7 @@ const ProfilePage = () => {
 
   const handleCancel = () => {
     setUserData(originalData);
-    setIsEditing(false);
+    dispatch(setIsEditing(false));
   };
 
   const handleSubmit = async () => {
@@ -115,8 +124,8 @@ const ProfilePage = () => {
         hostel: userData.hostel,
       };
 
-      await updateUser(formData);
-      setIsEditing(false);
+      await dispatch(updateUser(formData)).unwrap();
+      dispatch(setIsEditing(false));
       showNotification("Profile updated successfully!");
       setOriginalData(userData);
     } catch (err) {
@@ -189,7 +198,6 @@ const ProfilePage = () => {
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-indigo-950 via-violet-900 to-fuchsia-800 py-20 px-4 overflow-hidden">
-      {/* Notification */}
       <AnimatePresence>
         {notification && (
           <motion.div
@@ -222,10 +230,11 @@ const ProfilePage = () => {
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Edit Button */}
         <div className="absolute top-4 right-4">
           <motion.button
-            onClick={() => (isEditing ? handleCancel() : setIsEditing(true))}
+            onClick={() =>
+              isEditing ? handleCancel() : dispatch(setIsEditing(true))
+            }
             className={`flex items-center gap-2 px-4 py-2 rounded-lg focus:outline-none focus:ring-2 transition-colors ${
               isEditing
                 ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
@@ -248,7 +257,6 @@ const ProfilePage = () => {
 
         <div className="flex flex-col md:flex-row items-center md:items-start gap-12">
           <div className="flex-1 w-full">
-            {/* Profile Header */}
             <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-8">
               <div className="w-full">
                 {isEditing ? (
@@ -331,7 +339,6 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-12">
               {stats.map((stat) => (
                 <motion.div
@@ -381,7 +388,6 @@ const ProfilePage = () => {
               ))}
             </div>
 
-            {/* Save Button */}
             {isEditing && (
               <motion.div
                 className="mt-6 flex justify-end"
@@ -400,7 +406,6 @@ const ProfilePage = () => {
               </motion.div>
             )}
 
-            {/* Achievements Section */}
             <motion.div
               className="mt-12 border-t border-white/10 pt-8"
               initial={{ opacity: 0 }}
@@ -439,7 +444,6 @@ const ProfilePage = () => {
               </div>
             </motion.div>
 
-            {/* Last Updated Info */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -451,14 +455,12 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* Background Decorative Elements */}
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -left-1/4 -top-1/4 w-1/2 h-1/2 bg-purple-500/10 rounded-full blur-3xl" />
           <div className="absolute -right-1/4 -bottom-1/4 w-1/2 h-1/2 bg-blue-500/10 rounded-full blur-3xl" />
         </div>
       </motion.div>
 
-      {/* Mobile Action Buttons */}
       <AnimatePresence>
         {isEditing && (
           <motion.div

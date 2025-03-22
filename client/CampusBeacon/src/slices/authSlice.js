@@ -25,6 +25,45 @@ export const handleSignIn = createAsyncThunk(
   }
 );
 
+export const handleSignUp = createAsyncThunk(
+  "auth/handleSignUp",
+  async ({ email, password }) => {
+    const response = await api.post("/users/signup", { email, password });
+    return response.data.data.user;
+  }
+);
+
+export const handleForgetPassword = createAsyncThunk(
+  "auth/handleForgetPassword",
+  async (email) => {
+    const response = await api.post("/users/forgot-password", { email });
+    return response.data.message;
+  }
+);
+
+export const handleResetPassword = createAsyncThunk(
+  "auth/handleResetPassword",
+  async ({ token, newPassword }) => {
+    const response = await api.post("/users/reset-password", {
+      token,
+      newPassword,
+    });
+    return response.data.message;
+  }
+);
+
+export const handleEmailVerification = createAsyncThunk(
+  "auth/handleEmailVerification",
+  async (token) => {
+    const response = await api.get(`/users/verify-email?token=${token}`);
+    return response.data.data.user;
+  }
+);
+
+export const handleLogout = createAsyncThunk("auth/handleLogout", async () => {
+  await api.post("/users/logout");
+});
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -59,10 +98,77 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.error.message;
       })
+      .addCase(handleSignIn.pending, (state) => {
+        state.loading = true;
+      })
       .addCase(handleSignIn.fulfilled, (state, action) => {
+        state.loading = false;
         state.user = action.payload;
         state.roles = action.payload.roles;
         state.isAuthenticated = true;
+      })
+      .addCase(handleSignIn.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(handleSignUp.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(handleSignUp.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.roles = action.payload.roles;
+        state.isAuthenticated = true;
+      })
+      .addCase(handleSignUp.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(handleForgetPassword.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(handleForgetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(handleForgetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(handleResetPassword.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(handleResetPassword.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(handleResetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(handleEmailVerification.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(handleEmailVerification.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload;
+        state.roles = action.payload.roles;
+        state.isAuthenticated = true;
+      })
+      .addCase(handleEmailVerification.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
+      })
+      .addCase(handleLogout.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(handleLogout.fulfilled, (state) => {
+        state.loading = false;
+        state.user = null;
+        state.roles = [];
+        state.isAuthenticated = false;
+      })
+      .addCase(handleLogout.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message;
       });
   },
 });

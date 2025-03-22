@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useDispatch, useSelector } from "react-redux";
+import { handleEmailVerification, clearError } from "../slices/authSlice";
 
 const EmailVerification = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const {
-    handleEmailVerification,
     error: authError,
-    welcomeMessage,
     isAuthenticated,
     user,
-  } = useAuth();
-
+  } = useSelector((state) => state.auth);
   const [verificationState, setVerificationState] = useState({
     status: "pending",
     error: null,
@@ -39,7 +38,6 @@ const EmailVerification = () => {
     navigate("/");
   }, [navigate]);
 
-  // Main verification effect - run once
   useEffect(() => {
     if (hasAttemptedVerification.current) return;
 
@@ -58,24 +56,22 @@ const EmailVerification = () => {
 
     const verifyEmail = async () => {
       try {
-        console.log("Starting verification with token:", token);
-        const response = await handleEmailVerification(token);
-        console.log("Verification response:", response);
-
-        if (response?.success) {
+        const response = await dispatch(
+          handleEmailVerification(token)
+        ).unwrap();
+        if (response) {
           setVerificationState({
             status: "success",
             error: null,
             isLoading: false,
           });
         } else {
-          throw new Error(response?.message || "Verification failed.");
+          throw new Error("Verification failed.");
         }
       } catch (error) {
-        console.error("Verification error:", error);
         setVerificationState({
           status: "failed",
-          error: error?.message || "An error occurred during verification.",
+          error: error.message,
           isLoading: false,
         });
       }
@@ -83,16 +79,14 @@ const EmailVerification = () => {
 
     hasAttemptedVerification.current = true;
     verifyEmail();
-  }, []); // Empty dependency array to ensure it only runs once
+  }, [dispatch, validateToken]);
 
-  // Reset attempt on unmount (in case component remounts)
   useEffect(() => {
     return () => {
       hasAttemptedVerification.current = false;
     };
   }, []);
 
-  // Handle auth errors
   useEffect(() => {
     if (authError) {
       setVerificationState((prev) => ({
@@ -103,7 +97,6 @@ const EmailVerification = () => {
     }
   }, [authError]);
 
-  // Handle navigation after successful verification
   useEffect(() => {
     let timer;
     if (
@@ -130,14 +123,6 @@ const EmailVerification = () => {
     if (verificationState.status === "success") {
       return (
         <>
-          {welcomeMessage && (
-            <div
-              className="text-green-400 mb-4 p-4 bg-green-500/10 rounded-lg text-center"
-              data-testid="welcome-message"
-            >
-              {welcomeMessage}
-            </div>
-          )}
           <div className="text-center mt-4">
             <p className="text-gray-300 mb-2">Redirecting to homepage...</p>
             <button
