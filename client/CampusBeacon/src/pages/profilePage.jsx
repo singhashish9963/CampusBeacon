@@ -18,15 +18,15 @@ import Achievements from "../components/ProfilePage/achievements";
 import LoadingScreen from "../components/LoadingScreen";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  getUser,
   updateUser,
   setIsEditing,
   clearError,
+  getUser,
 } from "../slices/profileSlice";
 
 const ProfilePage = () => {
   const dispatch = useDispatch();
-  const { user, roles, isEditing, loading, error } = useSelector(
+  const { user, isEditing, loading, error } = useSelector(
     (state) => state.profile
   );
   const [notification, setNotification] = useState(null);

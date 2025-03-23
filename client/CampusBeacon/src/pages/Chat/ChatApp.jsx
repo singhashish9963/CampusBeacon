@@ -13,7 +13,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useProfile } from "../../contexts/profileContext";
+import { useSelector } from "react-redux";
 
 /**
  * Subscribe to real-time messages using Supabase's real-time API.
@@ -72,7 +72,7 @@ const getAvatarURL = (userId) =>
 
 const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
   const { user: authUser } = useAuth();
-  const { user: profileUser } = useProfile();
+  const { user: profileUser } = useSelector((state) => state.profile);
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);
   const [newMessageContent, setNewMessageContent] = useState("");

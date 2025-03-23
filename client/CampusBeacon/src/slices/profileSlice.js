@@ -20,7 +20,9 @@ export const getUser = createAsyncThunk(
         return rejectWithValue(response.data.message || "Failed to load user");
       }
     } catch (err) {
-      return rejectWithValue(err.message || "Failed to load user");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to load user"
+      );
     }
   }
 );
@@ -36,7 +38,9 @@ export const updateUser = createAsyncThunk(
         return rejectWithValue(response.data.message || "Update failed");
       }
     } catch (err) {
-      return rejectWithValue(err.message || "Failed to update user");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to update user"
+      );
     }
   }
 );
@@ -60,6 +64,7 @@ const profileSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      // getUser cases
       .addCase(getUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -73,6 +78,7 @@ const profileSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // updateUser cases
       .addCase(updateUser.pending, (state) => {
         state.loading = true;
         state.error = null;

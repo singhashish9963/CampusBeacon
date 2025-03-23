@@ -9,7 +9,7 @@ import Marketplace from "./pages/buyAndSellPage.jsx";
 import LostAndFound from "./pages/lostAndFound.jsx";
 import SVBH from "./pages/HostelPages/SVBH.jsx";
 import DJGH from "./pages/HostelPages/DJGH.jsx";
-import { ProfileProvider } from "./contexts/profileContext.jsx";
+import { AuthProvider } from "./contexts/AuthContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { LostAndFoundProvider } from "./contexts/lostandfoundContext.jsx";
 import BuyAndSellProvider from "./contexts/buyandsellContext.jsx";
@@ -55,18 +55,18 @@ import HostelSelector from "./pages/HostelPages/HostelSelector.jsx";
 
 function App() {
   return (
-    <AttendanceProvider>
-      <ChatbotProvider>
-        <EateriesProvider>
-          <BuyAndSellProvider>
-            <LostAndFoundProvider>
-              <HostelProvider>
-                <MenuProvider>
-                  <OfficialProvider>
-                    <HostelNotificationsProvider>
-                      <ComplaintProvider>
-                        <RidesProvider>
-                          <BrowserRouter>
+    <BrowserRouter>
+      <AuthProvider>
+        <ChatbotProvider>
+          <EateriesProvider>
+            <BuyAndSellProvider>
+              <LostAndFoundProvider>
+                <HostelProvider>
+                  <MenuProvider>
+                    <OfficialProvider>
+                      <HostelNotificationsProvider>
+                        <ComplaintProvider>
+                          <RidesProvider>
                             <div className="flex flex-col min-h-screen">
                               <NavBar />
                               <main className="flex-grow">
@@ -193,18 +193,18 @@ function App() {
                               </main>
                               <Footer />
                             </div>
-                          </BrowserRouter>
-                        </RidesProvider>
-                      </ComplaintProvider>
-                    </HostelNotificationsProvider>
-                  </OfficialProvider>
-                </MenuProvider>
-              </HostelProvider>
-            </LostAndFoundProvider>
-          </BuyAndSellProvider>
-        </EateriesProvider>
-      </ChatbotProvider>
-    </AttendanceProvider>
+                          </RidesProvider>
+                        </ComplaintProvider>
+                      </HostelNotificationsProvider>
+                    </OfficialProvider>
+                  </MenuProvider>
+                </HostelProvider>
+              </LostAndFoundProvider>
+            </BuyAndSellProvider>
+          </EateriesProvider>
+        </ChatbotProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

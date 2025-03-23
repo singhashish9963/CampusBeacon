@@ -1,5 +1,5 @@
 import User from "../models/user.model.js";
-import { Role,UserRole } from "../models/role.model.js";
+import { Role, UserRole } from "../models/role.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ApiError from "../utils/apiError.js";
@@ -142,7 +142,6 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     );
 });
 
-
 /*
 ==============================
        Get Current User 
@@ -179,7 +178,7 @@ export const updateUser = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
   const { name, semester, branch, hostel } = req.body;
 
-  const user = await User.findByPk(userId);
+  const user = await User.findByPk(userId, { include: Role });
   if (!user) return next(new ApiError("User not found", 404));
 
   if (name !== undefined) user.name = name;
@@ -461,23 +460,21 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     maxAge: 60 * 60 * 1000,
   });
 
-  res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        {
-          user: {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            isVerified: true,
-            roles,
-          },
+  res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          isVerified: true,
+          roles,
         },
-        "Email verified successfully. You are now logged in."
-      )
-    );
+      },
+      "Email verified successfully. You are now logged in."
+    )
+  );
 });
 
 /*

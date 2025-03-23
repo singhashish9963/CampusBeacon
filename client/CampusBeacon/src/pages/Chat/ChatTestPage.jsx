@@ -15,7 +15,7 @@ import {
   BellRing,
 } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
-import { useProfile } from "../../contexts/profileContext";
+import { useSelector } from "react-redux";
 
 // Define available channels.
 const channels = [
@@ -33,13 +33,13 @@ const mnnitFacts = [
   "MNNIT: Where tradition meets cutting-edge research",
   "Explore our state-of-the-art labs and creative minds",
   "MNNIT has a rich heritage and vibrant festival spirit",
-  "Commitment, Creativity & Community – That’s MNNIT",
+  "Commitment, Creativity & Community – That's MNNIT",
   "Drowned in knowledge, driven by passion: MNNIT",
 ];
 
 const ChatTestPage = () => {
   const { user: authUser } = useAuth();
-  const { user: profileUser } = useProfile();
+  const { user: profileUser } = useSelector((state) => state.profile);
   const [selectedChannel, setSelectedChannel] = useState(channels[0]);
   const [searchQuery, setSearchQuery] = useState("");
   const [darkMode, setDarkMode] = useState(true);
