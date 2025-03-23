@@ -13,7 +13,7 @@ import {
   HiMenu,
   HiAcademicCap,
 } from "react-icons/hi";
-import { handleLogout } from "../slices/authSlice";
+import { handleLogout } from "../../../slices/authSlice";
 
 // DropdownMenu component to show dropdown options
 const DropdownMenu = ({ title, options, dropdownKey, icon: Icon }) => {

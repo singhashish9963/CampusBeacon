@@ -19,7 +19,7 @@ import {
   addLostItem,
   clearLostAndFoundError,
 } from "../../slices/lostAndFoundSlice";
-import LostItemCard from "../../components/LostItemCard";
+import { LostItemCard } from "../../components/features/marketplace";
 
 const LostAndFound = () => {
   const dispatch = useDispatch();

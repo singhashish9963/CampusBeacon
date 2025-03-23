@@ -1,66 +1,49 @@
-// React and third-party imports
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-
-// Context imports
+import LoginSignup from "./pages/auth/LoginPage";
+import NavBar from "./components/common/layout/NavBar";
+import Footer from "./components/common/layout/Footer";
+import HomePage from "./pages/HomePage";
+import ProfilePage from "./pages/user/ProfilePage";
+import Marketplace from "./pages/marketplace/BuyAndSellPage";
+import LostAndFound from "./pages/services/LostAndFound";
+import SVBH from "./pages/hostel/SVBH";
+import DJGH from "./pages/hostel/DJGH";
+import ProtectedRoute from "./components/features/auth/ProtectedRoute";
+import AboutUs from "./pages/utility/AboutUs";
+import ContactsDisplay from "./pages/utility/ContactPage";
+import ResetPassword from "./pages/auth/ResetPassword";
+import EmailVerification from "./pages/auth/EmailVerification";
+import CollegeEateries from "./pages/services/Eateries";
+import ResourcesPage from "./pages/utility/ResourceHub";
+import PrivacyPolicy from "./pages/utility/PrivacyPolicy";
+import TermsOfService from "./pages/utility/TermsOfService";
+import NotFound from "./pages/utility/404";
+import ServerError from "./pages/utility/500";
+import Maintenance from "./pages/utility/Maintenance";
+import MNNITFactsGenerator from "./pages/utility/FactsGenerator";
+import CampusExplorer from "./pages/utility/CampusExplorer";
+import MNNITTimeCapsule from "./pages/utility/MNNITTimeCapsule";
+import RideShare from "./pages/services/RideShare";
+import RidesProvider from "./contexts/ridesContext";
 import {
   HostelNotificationsProvider,
   HostelProvider,
   MenuProvider,
   OfficialProvider,
   ComplaintProvider,
-} from "./contexts/hostelContext.jsx";
-import RidesProvider from "./contexts/ridesContext.jsx";
-
-// Component imports
-import NavBar from "./components/NavBar.jsx";
-import Footer from "./components/Footer.jsx";
-import ProtectedRoute from "./components/ProtectedRoute.jsx";
-
-// Auth pages
-import LoginSignup from "./pages/auth/LoginPage.jsx";
-import ResetPassword from "./pages/auth/ResetPassword.jsx";
-import EmailVerification from "./pages/auth/EmailVerification.jsx";
-
-// Main pages
-import HomePage from "./pages/HomePage.jsx";
-import ProfilePage from "./pages/user/ProfilePage.jsx";
-import Marketplace from "./pages/marketplace/BuyAndSellPage.jsx";
-import ChatTestPage from "./pages/chat/ChatTestPage.jsx";
-
-// Service pages
-import LostAndFound from "./pages/services/LostAndFound.jsx";
-import CollegeEateries from "./pages/services/Eateries.jsx";
-import RideShare from "./pages/services/RideShare.jsx";
-import ResourcesPage from "./pages/utility/ResourceHub.jsx";
-
-// Hostel pages
-import SVBH from "./pages/hostel/SVBH.jsx";
-import DJGH from "./pages/hostel/DJGH.jsx";
-import Dashboard from "./pages/hostel/Dashboard.jsx";
-import MenuPage from "./pages/hostel/MenuPage.jsx";
-import HostelPage from "./pages/hostel/HostelPage.jsx";
-import AdminHostelPage from "./pages/hostel/AdminHostelPage.jsx";
-import OfficialPage from "./pages/hostel/OfficialPage.jsx";
-import ComplaintPage from "./pages/hostel/ComplaintPage.jsx";
-import NotificationsPage from "./pages/hostel/NotificationPage.jsx";
-import SeeHostel from "./pages/hostel/SeeHostel.jsx";
-import HostelSelector from "./pages/hostel/HostelSelector.jsx";
-
-// Admin pages
-import AdminPanel from "./pages/admin/AdminPanel.jsx";
-
-// Utility pages
-import AboutUs from "./pages/utility/AboutUs.jsx";
-import ContactsDisplay from "./pages/utility/ContactPage.jsx";
-import PrivacyPolicy from "./pages/utility/PrivacyPolicy.jsx";
-import TermsOfService from "./pages/utility/TermsOfService.jsx";
-import NotFound from "./pages/utility/404.jsx";
-import ServerError from "./pages/utility/500.jsx";
-import Maintenance from "./pages/utility/Maintenance.jsx";
-import MNNITFactsGenerator from "./pages/utility/FactsGenerator.jsx";
-import CampusExplorer from "./pages/utility/CampusExplorer.jsx";
-import MNNITTimeCapsule from "./pages/utility/MNNITTimeCapsule.jsx";
+} from "./contexts/hostelContext";
+import Dashboard from "./pages/hostel/Dashboard";
+import ChatTestPage from "./pages/chat/ChatTestPage";
+import AdminPanel from "./pages/admin/AdminPanel";
+import MenuPage from "./pages/hostel/MenuPage";
+import HostelPage from "./pages/hostel/HostelPage";
+import AdminHostelPage from "./pages/hostel/AdminHostelPage";
+import OfficialPage from "./pages/hostel/OfficialPage";
+import ComplaintPage from "./pages/hostel/ComplaintPage";
+import NotificationsPage from "./pages/hostel/NotificationPage";
+import SeeHostel from "./pages/hostel/SeeHostel";
+import HostelSelector from "./pages/hostel/HostelSelector";
 
 function App() {
   return (
