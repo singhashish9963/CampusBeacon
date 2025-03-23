@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Users, IndianRupee, Phone, Edit, Trash2, User } from "lucide-react";
 import { formatDateTime, isRideActive } from "../../utils/dateUtils";
-import { useAuth } from "../../contexts/AuthContext";
+import { useSelector } from "react-redux";
 
 const RideCard = ({
   ride,
@@ -12,7 +12,7 @@ const RideCard = ({
   onJoin,
   onUnjoin,
 }) => {
-  const { roles } = useAuth(); // Get roles from Auth context
+  const { roles } = useSelector((state) => state.auth);
   const isAdmin = Array.isArray(roles) && roles.includes("admin");
   const isCreator = ride.creatorId === currentUser?.id;
   const hasJoined = ride.participants?.some((p) => p.id === currentUser?.id);

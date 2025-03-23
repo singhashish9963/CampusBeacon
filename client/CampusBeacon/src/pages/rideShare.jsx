@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Car, AlertTriangle, Plus } from "lucide-react";
-import { useRides } from "../contexts/ridesContext";
+import { useDispatch, useSelector } from "react-redux";
 import { useAuth } from "../contexts/AuthContext";
 import { formatDateTime, isRideActive } from "../utils/dateUtils";
 import RideHeader from "../components/rides/RideHeader";
@@ -10,23 +10,29 @@ import RideGrid from "../components/rides/RideGrid";
 import EmptyState from "../components/rides/EmptyState";
 import RideFormModal from "../components/rides/RideFormModal";
 import DeleteConfirmationModal from "../components/rides/DeleteConfirmationModal";
+import {
+  getAllRides,
+  getUserRides,
+  createRide,
+  updateRide,
+  deleteRide,
+  setSearchTerm,
+  setFilters,
+  setFilteredRides,
+  setActiveFilterCount,
+} from "../slices/ridesSlice";
 
 const RideShare = () => {
+  const dispatch = useDispatch();
   const {
     rides,
     loading,
     error,
-    createRide,
-    updateRide,
-    deleteRide,
-    getAllRides,
-    getUserRides,
     filteredRides,
     activeFilterCount,
-    setSearchTerm,
+    searchTerm,
     filters,
-    handleFilterChange,
-  } = useRides();
+  } = useSelector((state) => state.rides);
   const { user: currentUser } = useAuth();
 
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -37,30 +43,32 @@ const RideShare = () => {
   useEffect(() => {
     const fetchRides = async () => {
       try {
-        await getAllRides();
-        await getUserRides();
+        await dispatch(getAllRides());
+        await dispatch(getUserRides());
       } catch (err) {
         console.error("Error fetching rides:", err);
       }
     };
     fetchRides();
-  }, [getAllRides, getUserRides]);
+  }, [dispatch]);
 
   const handleSearchChange = (e) => {
     setSearchInput(e.target.value);
-    setSearchTerm(e.target.value);
+    dispatch(setSearchTerm(e.target.value));
   };
 
   const handleFormSubmit = async (formData) => {
     try {
       if (editingRide) {
-        await updateRide(editingRide.id, {
-          ...formData,
-          creatorId: currentUser.id,
-        });
+        await dispatch(
+          updateRide({
+            id: editingRide.id,
+            formData: { ...formData, creatorId: currentUser.id },
+          })
+        );
         setEditingRide(null);
       } else {
-        await createRide({ ...formData, creatorId: currentUser.id });
+        await dispatch(createRide({ ...formData, creatorId: currentUser.id }));
       }
       setIsFormOpen(false);
     } catch (err) {
@@ -70,7 +78,7 @@ const RideShare = () => {
 
   const handleDelete = async (id) => {
     try {
-      await deleteRide(id);
+      await dispatch(deleteRide(id));
       setConfirmDelete(null);
     } catch (err) {
       console.error("Error deleting ride:", err);
@@ -79,14 +87,22 @@ const RideShare = () => {
 
   const clearAllFilters = () => {
     setSearchInput("");
-    setSearchTerm("");
-    handleFilterChange("timeFrame", null);
-    handleFilterChange("dateRange", null);
-    handleFilterChange("minSeats", null);
-    handleFilterChange("maxPrice", null);
-    handleFilterChange("direction", null);
-    handleFilterChange("startDate", null);
-    handleFilterChange("endDate", null);
+    dispatch(setSearchTerm(""));
+    dispatch(
+      setFilters({
+        timeFrame: null,
+        dateRange: null,
+        minSeats: null,
+        maxPrice: null,
+        direction: null,
+        startDate: null,
+        endDate: null,
+      })
+    );
+  };
+
+  const handleFilterChange = (filterType, value) => {
+    dispatch(setFilters({ [filterType]: value }));
   };
 
   if (loading) {

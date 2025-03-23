@@ -2,14 +2,15 @@ import React from "react";
 import { motion } from "framer-motion";
 import { isRideActive } from "../../utils/dateUtils";
 import RideCard from "./RideCard";
-import { useRides } from "../../contexts/ridesContext";
+import { useDispatch } from "react-redux";
+import { joinRide, unjoinRide } from "../../slices/ridesSlice";
 
-const RideGrid = ({ currentUser, onEdit, onDelete }) => {
-  const { rides, joinRide, unjoinRide } = useRides();
+const RideGrid = ({ rides, currentUser, onEdit, onDelete }) => {
+  const dispatch = useDispatch();
 
   const handleJoin = async (rideId) => {
     try {
-      await joinRide(rideId);
+      await dispatch(joinRide(rideId));
     } catch (error) {
       console.error("Error joining ride:", error);
     }
@@ -17,7 +18,7 @@ const RideGrid = ({ currentUser, onEdit, onDelete }) => {
 
   const handleUnjoin = async (rideId) => {
     try {
-      await unjoinRide(rideId);
+      await dispatch(unjoinRide(rideId));
     } catch (error) {
       console.error("Error cancelling join:", error);
     }
