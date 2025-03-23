@@ -9,7 +9,15 @@ import axios from "axios";
 const ComplaintPage = () => {
   const navigate = useNavigate();
   const { hostels, loading: hostelsLoading, fetchHostels } = useHostel();
-  const { complaints, loading, error, fetchAllComplaints, createComplaint, editComplaint, deleteComplaint } = useComplaints();
+  const {
+    complaints,
+    loading,
+    error,
+    fetchAllComplaints,
+    createComplaint,
+    editComplaint,
+    deleteComplaint,
+  } = useComplaints();
   const { user, loading: authLoading } = useAuth();
   const [hostelDetails, setHostelDetails] = useState(null);
   const [selectedHostel, setSelectedHostel] = useState(null);
@@ -22,7 +30,7 @@ const ComplaintPage = () => {
     official_email: "",
     complaint_type: "",
     complaint_description: "",
-    due_date: "", 
+    due_date: "",
   });
   const [notification, setNotification] = useState(null);
   const [complaintLoading, setComplaintLoading] = useState(false);
@@ -129,8 +137,15 @@ const ComplaintPage = () => {
       return;
     }
 
-    if (!complaintData.complaint_type || !complaintData.complaint_description || !complaintData.official_id) {
-      showNotification("Please fill all required fields before submitting.", "error");
+    if (
+      !complaintData.complaint_type ||
+      !complaintData.complaint_description ||
+      !complaintData.official_id
+    ) {
+      showNotification(
+        "Please fill all required fields before submitting.",
+        "error"
+      );
       return;
     }
 
@@ -138,7 +153,7 @@ const ComplaintPage = () => {
     try {
       const complaintWithHostel = {
         ...complaintData,
-        hostel_id: selectedHostel.hostel_id
+        hostel_id: selectedHostel.hostel_id,
       };
 
       if (editMode) {
@@ -148,7 +163,7 @@ const ComplaintPage = () => {
         await createComplaint(complaintWithHostel);
         showNotification("Complaint created successfully!", "success");
       }
-      
+
       // Reset form
       setComplaintData({
         student_name: user?.name || "",
@@ -189,8 +204,14 @@ const ComplaintPage = () => {
         await deleteComplaint(complaint_id);
         showNotification("Complaint deleted successfully!", "success");
       } catch (error) {
-        console.error("Error deleting complaint:", error.response?.data || error);
-        showNotification("Error deleting complaint, please try again.", "error");
+        console.error(
+          "Error deleting complaint:",
+          error.response?.data || error
+        );
+        showNotification(
+          "Error deleting complaint, please try again.",
+          "error"
+        );
       }
     }
   };
@@ -215,7 +236,9 @@ const ComplaintPage = () => {
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
-              className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-2 ${notification.type === "error" ? "bg-red-500" : "bg-green-500"}`}
+              className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-2 ${
+                notification.type === "error" ? "bg-red-500" : "bg-green-500"
+              }`}
             >
               <AlertCircle size={20} />
               <span>{notification.message}</span>
@@ -226,30 +249,43 @@ const ComplaintPage = () => {
           )}
         </AnimatePresence>
 
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-center mb-6">Manage Complaints</h1>
+        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-center mb-6">
+          Manage Complaints
+        </h1>
 
         {/* Hostel Selector */}
         <div className="bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50 p-6 mb-8 w-full">
-          <h2 className="text-2xl text-white font-semibold mb-4">Select Hostel</h2>
-          
+          <h2 className="text-2xl text-white font-semibold mb-4">
+            Select Hostel
+          </h2>
+
           {hostelsLoading ? (
             <p className="text-white">Loading hostels...</p>
           ) : (
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setHostelSelectOpen(!hostelSelectOpen)}
                 className="w-full p-3 rounded-lg text-white bg-blue-500 hover:bg-blue-600 text-left flex justify-between items-center"
               >
-                <span>{selectedHostel ? selectedHostel.hostel_name : "Select a hostel"}</span>
-                <ChevronDown size={20} className={`transition-transform duration-300 ${hostelSelectOpen ? "transform rotate-180" : ""}`} />
+                <span>
+                  {selectedHostel
+                    ? selectedHostel.hostel_name
+                    : "Select a hostel"}
+                </span>
+                <ChevronDown
+                  size={20}
+                  className={`transition-transform duration-300 ${
+                    hostelSelectOpen ? "transform rotate-180" : ""
+                  }`}
+                />
               </button>
-              
+
               {hostelSelectOpen && (
                 <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                   {hostels && hostels.length > 0 ? (
-                    hostels.map(hostel => (
-                      <div 
-                        key={hostel.hostel_id} 
+                    hostels.map((hostel) => (
+                      <div
+                        key={hostel.hostel_id}
                         className="p-3 hover:bg-gray-700 cursor-pointer transition duration-200"
                         onClick={() => {
                           setSelectedHostel(hostel);
@@ -270,17 +306,24 @@ const ComplaintPage = () => {
 
         {selectedHostel ? (
           <>
-            {loading && <p className="text-center text-lg text-gray-500">Loading complaints...</p>}
+            {loading && (
+              <p className="text-center text-lg text-gray-500">
+                Loading complaints...
+              </p>
+            )}
             {error && <p className="text-center text-red-500">{error}</p>}
 
             {/* Create/Edit Complaint Form */}
             <div className="bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50 p-6 mb-8 w-full">
               <h2 className="text-2xl text-white font-semibold mb-4">
-                {editMode ? "Edit Complaint" : "Create New Complaint"} for {selectedHostel.hostel_name}
+                {editMode ? "Edit Complaint" : "Create New Complaint"} for{" "}
+                {selectedHostel.hostel_name}
               </h2>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Assign To Official:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Assign To Official:
+                </label>
                 <select
                   name="official_id"
                   value={complaintData.official_id}
@@ -289,15 +332,20 @@ const ComplaintPage = () => {
                 >
                   <option value="">Select Official</option>
                   {officials.map((official) => (
-                    <option key={official.official_id} value={official.official_id}>
+                    <option
+                      key={official.official_id}
+                      value={official.official_id}
+                    >
                       {official.name} - {official.designation}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Complaint Type:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Complaint Type:
+                </label>
                 <select
                   name="complaint_type"
                   value={complaintData.complaint_type}
@@ -312,9 +360,11 @@ const ComplaintPage = () => {
                   ))}
                 </select>
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Description:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Description:
+                </label>
                 <textarea
                   name="complaint_description"
                   value={complaintData.complaint_description}
@@ -324,9 +374,11 @@ const ComplaintPage = () => {
                   rows="4"
                 />
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Due Date:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Due Date:
+                </label>
                 <input
                   type="date"
                   name="due_date"
@@ -338,7 +390,11 @@ const ComplaintPage = () => {
 
               <button
                 onClick={handleCreateOrUpdateComplaint}
-                className={`w-full p-3 rounded-lg text-white ${complaintLoading ? "bg-gray-500" : "bg-blue-500 hover:bg-blue-600"}`}
+                className={`w-full p-3 rounded-lg text-white ${
+                  complaintLoading
+                    ? "bg-gray-500"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }`}
                 disabled={complaintLoading}
               >
                 {complaintLoading
@@ -364,30 +420,49 @@ const ComplaintPage = () => {
                         key={complaint.complaint_id}
                         className="border rounded-lg p-4 shadow-lg"
                         style={{
-                          background: "linear-gradient(45deg,rgb(111, 143, 217),rgb(150, 93, 212),rgb(20, 161, 255))",
+                          background:
+                            "linear-gradient(45deg,rgb(111, 143, 217),rgb(150, 93, 212),rgb(20, 161, 255))",
                           backgroundSize: "500% 500%",
                           animation: "gradient 5s ease infinite",
                         }}
                       >
                         <div className="bg-white/60 p-4 rounded-lg">
-                          <h3 className="text-xl font-bold mb-2">{complaint.complaint_type}</h3>
+                          <h3 className="text-xl font-bold mb-2">
+                            {complaint.complaint_type}
+                          </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="flex flex-col">
-                              <span className="text-gray-700 font-medium">Reported by:</span>
+                              <span className="text-gray-700 font-medium">
+                                Reported by:
+                              </span>
                               <span>{complaint.student_name}</span>
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-gray-700 font-medium">Assigned to:</span>
+                              <span className="text-gray-700 font-medium">
+                                Assigned to:
+                              </span>
                               <span>{complaint.official_name}</span>
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-gray-700 font-medium">Due Date:</span>
-                              <span>{complaint.due_date ? new Date(complaint.due_date).toLocaleDateString() : "Not specified"}</span>
+                              <span className="text-gray-700 font-medium">
+                                Due Date:
+                              </span>
+                              <span>
+                                {complaint.due_date
+                                  ? new Date(
+                                      complaint.due_date
+                                    ).toLocaleDateString()
+                                  : "Not specified"}
+                              </span>
                             </div>
                           </div>
                           <div className="mt-2">
-                            <span className="text-gray-700 font-medium">Description:</span>
-                            <p className="mt-1">{complaint.complaint_description}</p>
+                            <span className="text-gray-700 font-medium">
+                              Description:
+                            </span>
+                            <p className="mt-1">
+                              {complaint.complaint_description}
+                            </p>
                           </div>
                           <div className="mt-4 flex space-x-4">
                             <button
@@ -397,7 +472,9 @@ const ComplaintPage = () => {
                               Edit
                             </button>
                             <button
-                              onClick={() => handleDelete(complaint.complaint_id)}
+                              onClick={() =>
+                                handleDelete(complaint.complaint_id)
+                              }
                               className="text-red-600 hover:text-red-800 transition duration-200"
                             >
                               Delete
@@ -407,7 +484,9 @@ const ComplaintPage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-white text-center py-4">No complaints found for this hostel.</p>
+                    <p className="text-white text-center py-4">
+                      No complaints found for this hostel.
+                    </p>
                   )}
                 </div>
               )}
@@ -415,7 +494,9 @@ const ComplaintPage = () => {
           </>
         ) : (
           <div className="text-center text-white p-10 bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50">
-            <p className="text-xl">Please select a hostel to manage complaints</p>
+            <p className="text-xl">
+              Please select a hostel to manage complaints
+            </p>
           </div>
         )}
       </div>

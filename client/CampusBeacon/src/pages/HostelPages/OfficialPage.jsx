@@ -3,14 +3,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, X, ChevronDown } from "lucide-react";
 import { useOfficial, useHostel } from "../../contexts/hostelContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 
 const OfficialPage = () => {
   const navigate = useNavigate();
   const { hostels, loading: hostelsLoading, fetchHostels } = useHostel();
-  const { officials, loading, error, fetchOfficialsByHostel, createOfficial, editOfficial, deleteOfficial } = useOfficial();
-  const { user, loading: authLoading, logout } = useAuth();
+  const {
+    officials,
+    loading,
+    error,
+    fetchOfficialsByHostel,
+    createOfficial,
+    editOfficial,
+    deleteOfficial,
+  } = useOfficial();
+  const dispatch = useDispatch();
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
   const [hostelDetails, setHostelDetails] = useState(null);
   const [selectedHostel, setSelectedHostel] = useState(null);
   const [newOfficial, setNewOfficial] = useState({
@@ -23,7 +32,7 @@ const OfficialPage = () => {
   const [officialLoading, setOfficialLoading] = useState(false);
   const [hostelSelectOpen, setHostelSelectOpen] = useState(false);
   const [editMode, setEditMode] = useState(null);
-  
+
   // Effect to check authentication and fetch hostels
   useEffect(() => {
     if (!user && !authLoading) navigate("/login");
@@ -66,7 +75,12 @@ const OfficialPage = () => {
       return;
     }
 
-    if (!newOfficial.name || !newOfficial.email || !newOfficial.phone || !newOfficial.designation) {
+    if (
+      !newOfficial.name ||
+      !newOfficial.email ||
+      !newOfficial.phone ||
+      !newOfficial.designation
+    ) {
       showNotification("Please fill all fields before submitting.", "error");
       return;
     }
@@ -74,19 +88,19 @@ const OfficialPage = () => {
     setOfficialLoading(true);
     try {
       if (editMode) {
-        await editOfficial(editMode, { 
+        await editOfficial(editMode, {
           hostel_id: selectedHostel.hostel_id,
-          ...newOfficial 
+          ...newOfficial,
         });
         showNotification("Official updated successfully!", "success");
       } else {
-        await createOfficial({ 
+        await createOfficial({
           hostel_id: selectedHostel.hostel_id,
-          ...newOfficial 
+          ...newOfficial,
         });
         showNotification("Official created successfully!", "success");
       }
-      
+
       setNewOfficial({
         name: "",
         email: "",
@@ -118,7 +132,10 @@ const OfficialPage = () => {
         await deleteOfficial(official_id);
         showNotification("Official deleted successfully!", "success");
       } catch (error) {
-        console.error("Error deleting official:", error.response?.data || error);
+        console.error(
+          "Error deleting official:",
+          error.response?.data || error
+        );
         showNotification("Error deleting official, please try again.", "error");
       }
     }
@@ -144,7 +161,9 @@ const OfficialPage = () => {
               initial={{ opacity: 0, y: -50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
-              className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-2 ${notification.type === "error" ? "bg-red-500" : "bg-green-500"}`}
+              className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg flex items-center space-x-2 ${
+                notification.type === "error" ? "bg-red-500" : "bg-green-500"
+              }`}
             >
               <AlertCircle size={20} />
               <span>{notification.message}</span>
@@ -155,30 +174,43 @@ const OfficialPage = () => {
           )}
         </AnimatePresence>
 
-        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-center mb-6">Manage Hostel Officials</h1>
+        <h1 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-center mb-6">
+          Manage Hostel Officials
+        </h1>
 
         {/* Hostel Selector */}
         <div className="bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50 p-6 mb-8 w-full">
-          <h2 className="text-2xl text-white font-semibold mb-4">Select Hostel</h2>
-          
+          <h2 className="text-2xl text-white font-semibold mb-4">
+            Select Hostel
+          </h2>
+
           {hostelsLoading ? (
             <p className="text-white">Loading hostels...</p>
           ) : (
             <div className="relative">
-              <button 
+              <button
                 onClick={() => setHostelSelectOpen(!hostelSelectOpen)}
                 className="w-full p-3 rounded-lg text-white bg-blue-500 hover:bg-blue-600 text-left flex justify-between items-center"
               >
-                <span>{selectedHostel ? selectedHostel.hostel_name : "Select a hostel"}</span>
-                <ChevronDown size={20} className={`transition-transform duration-300 ${hostelSelectOpen ? "transform rotate-180" : ""}`} />
+                <span>
+                  {selectedHostel
+                    ? selectedHostel.hostel_name
+                    : "Select a hostel"}
+                </span>
+                <ChevronDown
+                  size={20}
+                  className={`transition-transform duration-300 ${
+                    hostelSelectOpen ? "transform rotate-180" : ""
+                  }`}
+                />
               </button>
-              
+
               {hostelSelectOpen && (
                 <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg max-h-60 overflow-y-auto">
                   {hostels && hostels.length > 0 ? (
-                    hostels.map(hostel => (
-                      <div 
-                        key={hostel.hostel_id} 
+                    hostels.map((hostel) => (
+                      <div
+                        key={hostel.hostel_id}
                         className="p-3 hover:bg-gray-700 cursor-pointer transition duration-200"
                         onClick={() => {
                           setSelectedHostel(hostel);
@@ -199,17 +231,24 @@ const OfficialPage = () => {
 
         {selectedHostel ? (
           <>
-            {loading && <p className="text-center text-lg text-gray-500">Loading officials...</p>}
+            {loading && (
+              <p className="text-center text-lg text-gray-500">
+                Loading officials...
+              </p>
+            )}
             {error && <p className="text-center text-red-500">{error}</p>}
 
             {/* Create/Edit Official Form */}
             <div className="bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50 p-6 mb-8 w-full">
               <h2 className="text-2xl text-white font-semibold mb-4">
-                {editMode ? "Edit Official" : "Create New Official"} for {selectedHostel.hostel_name}
+                {editMode ? "Edit Official" : "Create New Official"} for{" "}
+                {selectedHostel.hostel_name}
               </h2>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Designation:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Designation:
+                </label>
                 <input
                   type="text"
                   name="designation"
@@ -219,9 +258,11 @@ const OfficialPage = () => {
                   placeholder="Enter Designation"
                 />
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Name:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Name:
+                </label>
                 <input
                   type="text"
                   name="name"
@@ -231,9 +272,11 @@ const OfficialPage = () => {
                   placeholder="Enter Name"
                 />
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Email:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Email:
+                </label>
                 <input
                   type="email"
                   name="email"
@@ -243,9 +286,11 @@ const OfficialPage = () => {
                   placeholder="Enter Email (Unique)"
                 />
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Phone:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Phone:
+                </label>
                 <input
                   type="text"
                   name="phone"
@@ -258,7 +303,11 @@ const OfficialPage = () => {
 
               <button
                 onClick={handleCreateOrUpdateOfficial}
-                className={`w-full p-3 rounded-lg text-white ${officialLoading ? "bg-gray-500" : "bg-blue-500 hover:bg-blue-600"}`}
+                className={`w-full p-3 rounded-lg text-white ${
+                  officialLoading
+                    ? "bg-gray-500"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }`}
                 disabled={officialLoading}
               >
                 {officialLoading
@@ -284,24 +333,33 @@ const OfficialPage = () => {
                         key={official.official_id}
                         className="border rounded-lg p-4 shadow-lg"
                         style={{
-                          background: "linear-gradient(45deg,rgb(111, 143, 217),rgb(150, 93, 212),rgb(20, 161, 255))",
+                          background:
+                            "linear-gradient(45deg,rgb(111, 143, 217),rgb(150, 93, 212),rgb(20, 161, 255))",
                           backgroundSize: "500% 500%",
                           animation: "gradient 5s ease infinite",
                         }}
                       >
                         <div className="bg-white/60 p-4 rounded-lg">
-                          <h3 className="text-xl font-bold mb-2">{official.designation}</h3>
+                          <h3 className="text-xl font-bold mb-2">
+                            {official.designation}
+                          </h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                             <div className="flex flex-col">
-                              <span className="text-gray-700 font-medium">Name:</span>
+                              <span className="text-gray-700 font-medium">
+                                Name:
+                              </span>
                               <span>{official.name}</span>
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-gray-700 font-medium">Email:</span>
+                              <span className="text-gray-700 font-medium">
+                                Email:
+                              </span>
                               <span>{official.email}</span>
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-gray-700 font-medium">Phone:</span>
+                              <span className="text-gray-700 font-medium">
+                                Phone:
+                              </span>
                               <span>{official.phone}</span>
                             </div>
                           </div>
@@ -323,7 +381,9 @@ const OfficialPage = () => {
                       </div>
                     ))
                   ) : (
-                    <p className="text-white text-center py-4">No officials found for this hostel.</p>
+                    <p className="text-white text-center py-4">
+                      No officials found for this hostel.
+                    </p>
                   )}
                 </div>
               )}
@@ -331,7 +391,9 @@ const OfficialPage = () => {
           </>
         ) : (
           <div className="text-center text-white p-10 bg-black/40 backdrop-blur-lg rounded-xl border border-purple-500/50">
-            <p className="text-xl">Please select a hostel to manage its officials</p>
+            <p className="text-xl">
+              Please select a hostel to manage its officials
+            </p>
           </div>
         )}
       </div>

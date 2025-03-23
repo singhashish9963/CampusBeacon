@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Car, AlertTriangle, Plus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useAuth } from "../contexts/AuthContext";
 import { formatDateTime, isRideActive } from "../utils/dateUtils";
 import RideHeader from "../components/rides/RideHeader";
 import RideFilters from "../components/rides/RideFilters";
@@ -33,7 +32,7 @@ const RideShare = () => {
     searchTerm,
     filters,
   } = useSelector((state) => state.rides);
-  const { user: currentUser } = useAuth();
+  const { user: currentUser } = useSelector((state) => state.auth);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingRide, setEditingRide] = useState(null);

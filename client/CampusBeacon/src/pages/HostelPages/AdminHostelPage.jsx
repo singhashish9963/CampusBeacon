@@ -1,14 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, AlertCircle, X, Edit2, Trash2, Check, XCircle } from "lucide-react";
+import {
+  Search,
+  Plus,
+  AlertCircle,
+  X,
+  Edit2,
+  Trash2,
+  Check,
+  XCircle,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useHostel } from "../../contexts/hostelContext";
-import { useAuth } from "../../contexts/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
 
 const AdminHostelPage = () => {
   const navigate = useNavigate();
-  const { hostels, loading, fetchHostels, createHostel, updateHostel, deleteHostel } = useHostel();
-  const { user, loading: authLoading, logout } = useAuth();
+  const {
+    hostels,
+    loading,
+    fetchHostels,
+    createHostel,
+    updateHostel,
+    deleteHostel,
+  } = useHostel();
+  const dispatch = useDispatch();
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [newHostel, setNewHostel] = useState("");
@@ -19,7 +36,7 @@ const AdminHostelPage = () => {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!user && !authLoading) navigate("/login");
-    fetchHostels(); 
+    fetchHostels();
   }, [user, authLoading, fetchHostels]);
 
   if (authLoading) return <p>Checking authentication...</p>;
@@ -99,7 +116,11 @@ const AdminHostelPage = () => {
 
       <div className="container mx-auto max-w-4xl">
         {/* Title */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 text-center"
+        >
           <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-purple-400 bg-clip-text text-transparent">
             Manage Hostels
           </h2>
@@ -108,7 +129,10 @@ const AdminHostelPage = () => {
         {/* Search & Add */}
         <div className="mb-6 flex items-center gap-4">
           <div className="relative flex-grow">
-            <Search className="absolute left-3 top-2.5 text-gray-400" size={20} />
+            <Search
+              className="absolute left-3 top-2.5 text-gray-400"
+              size={20}
+            />
             <input
               type="text"
               value={searchTerm}
@@ -124,7 +148,10 @@ const AdminHostelPage = () => {
             placeholder="New Hostel Name"
             className="px-4 py-2 rounded-lg bg-gray-800 text-white border border-gray-700 focus:border-yellow-400 focus:outline-none"
           />
-          <button onClick={handleCreate} className="bg-yellow-500 text-black px-4 py-2 rounded-lg flex items-center gap-2">
+          <button
+            onClick={handleCreate}
+            className="bg-yellow-500 text-black px-4 py-2 rounded-lg flex items-center gap-2"
+          >
             <Plus size={20} /> Add Hostel
           </button>
         </div>
@@ -135,29 +162,43 @@ const AdminHostelPage = () => {
         ) : (
           <ul className="space-y-4">
             {filteredHostels.map((hostel) => (
-              <li key={hostel.hostel_id} className="bg-gray-900 p-4 rounded-lg flex justify-between items-center">
+              <li
+                key={hostel.hostel_id}
+                className="bg-gray-900 p-4 rounded-lg flex justify-between items-center"
+              >
                 {editHostel === hostel.hostel_id ? (
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleUpdate(hostel.hostel_id)}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && handleUpdate(hostel.hostel_id)
+                    }
                     onBlur={() => handleUpdate(hostel.hostel_id)}
                     className="bg-gray-800 text-white px-2 py-1 rounded border border-gray-700 focus:border-yellow-400"
                     autoFocus
                   />
                 ) : (
-                  <span className="cursor-pointer" onClick={() => navigate(`/hostels/${hostel.hostel_id}`)}>
+                  <span
+                    className="cursor-pointer"
+                    onClick={() => navigate(`/hostels/${hostel.hostel_id}`)}
+                  >
                     {hostel.hostel_name}
                   </span>
                 )}
                 <div className="flex gap-2">
                   {editHostel === hostel.hostel_id ? (
                     <>
-                      <button onClick={() => handleUpdate(hostel.hostel_id)} className="bg-green-500 px-3 py-1 rounded flex items-center gap-1">
+                      <button
+                        onClick={() => handleUpdate(hostel.hostel_id)}
+                        className="bg-green-500 px-3 py-1 rounded flex items-center gap-1"
+                      >
                         <Check size={16} /> Save
                       </button>
-                      <button onClick={() => setEditHostel(null)} className="bg-gray-500 px-3 py-1 rounded flex items-center gap-1">
+                      <button
+                        onClick={() => setEditHostel(null)}
+                        className="bg-gray-500 px-3 py-1 rounded flex items-center gap-1"
+                      >
                         <XCircle size={16} /> Cancel
                       </button>
                     </>
@@ -172,7 +213,10 @@ const AdminHostelPage = () => {
                       >
                         <Edit2 size={16} /> Edit
                       </button>
-                      <button onClick={() => handleDelete(hostel.hostel_id)} className="bg-red-500 px-3 py-1 rounded flex items-center gap-1">
+                      <button
+                        onClick={() => handleDelete(hostel.hostel_id)}
+                        className="bg-red-500 px-3 py-1 rounded flex items-center gap-1"
+                      >
                         <Trash2 size={16} /> Delete
                       </button>
                     </>
@@ -187,7 +231,7 @@ const AdminHostelPage = () => {
         <div className="mt-6 flex justify-between items-center">
           <span>Welcome, {user?.name}</span>
           <button
-            onClick={logout}
+            onClick={() => dispatch({ type: "auth/logout" })}
             className="bg-red-500 text-white px-4 py-2 rounded-lg flex items-center gap-2"
           >
             Logout

@@ -17,7 +17,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
 import { useDispatch, useSelector } from "react-redux";
-import { createItem, getAllItems, clearError } from "../slices/buyandsellSlice";
+import { createItem, getAllItems, clearError } from "../slices/buyAndSellSlice";
 
 const Marketplace = () => {
   const navigate = useNavigate();

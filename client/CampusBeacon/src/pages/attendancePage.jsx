@@ -16,9 +16,12 @@ import Notification from "../components/AttendancePage/Notification";
 import LoadingOverlay from "../components/AttendancePage/LoadingOverlay";
 import BackgroundAnimation from "../components/AttendancePage/BackgroundAnimation";
 import { useAttendanceContext } from "../contexts/attendanceContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
 
 const AttendanceManager = () => {
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+
   const {
     // only use userSubjects so that only student-selected subjects are shown
     userSubjects,
@@ -31,8 +34,6 @@ const AttendanceManager = () => {
     getAttendanceRecords,
     getAttendanceStats,
   } = useAttendanceContext();
-
-  const { user } = useAuth();
 
   // Local States
   const [activeTab, setActiveTab] = useState("dashboard");

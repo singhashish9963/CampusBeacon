@@ -26,7 +26,7 @@ const LoginSignup = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !loading) {
       toast.success("Login successful!", {
         position: "top-right",
         autoClose: 2000,
@@ -38,17 +38,17 @@ const LoginSignup = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, loading, navigate]);
 
   useEffect(() => {
-    if (authError) {
+    if (authError && !loading) {
       setError(authError);
       toast.error(authError, {
         position: "top-right",
         autoClose: 5000,
       });
     }
-  }, [authError]);
+  }, [authError, loading]);
 
   const handleFormSubmit = async (e, type) => {
     e.preventDefault();

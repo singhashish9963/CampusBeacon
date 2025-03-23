@@ -12,8 +12,7 @@ import {
   Image,
   ChevronDown,
 } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 /**
  * Subscribe to real-time messages using Supabase's real-time API.
@@ -71,7 +70,8 @@ const getAvatarURL = (userId) =>
   `https://robohash.org/${userId}?set=set4&size=150x150`;
 
 const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
-  const { user: authUser } = useAuth();
+  const dispatch = useDispatch();
+  const { user: authUser } = useSelector((state) => state.auth);
   const { user: profileUser } = useSelector((state) => state.profile);
   const [messages, setMessages] = useState([]);
   const [users, setUsers] = useState([]);

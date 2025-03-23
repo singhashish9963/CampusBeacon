@@ -1,19 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Utensils, Phone, Mail, Bell, Wrench, AlertCircle, X, Edit, Trash, ChevronDown } from "lucide-react";
+import {
+  Utensils,
+  Phone,
+  Mail,
+  Bell,
+  Wrench,
+  AlertCircle,
+  X,
+  Edit,
+  Trash,
+  ChevronDown,
+} from "lucide-react";
 import { FaUsersGear } from "react-icons/fa6";
-import { useAuth } from "../../contexts/AuthContext";
-import { 
-  useHostel, 
-  useMenu, 
-  useComplaints, 
-  useOfficial, 
-  useHostelNotifications 
+import { useDispatch, useSelector } from "react-redux";
+import {
+  useHostel,
+  useMenu,
+  useComplaints,
+  useOfficial,
+  useHostelNotifications,
 } from "../../contexts/hostelContext";
 import axios from "axios";
 
 const SeeHostel = ({ hostelId }) => {
-  const { user, loading: authLoading } = useAuth();
+  const dispatch = useDispatch();
+  const { user, loading: authLoading } = useSelector((state) => state.auth);
   const [currentDay, setCurrentDay] = useState(new Date().getDay());
   const [currentTime, setCurrentTime] = useState(new Date());
   const [notification, setNotification] = useState(null);
@@ -22,7 +34,7 @@ const SeeHostel = ({ hostelId }) => {
   const [officials, setOfficials] = useState([]);
   const [hostelDetails, setHostelDetails] = useState(null);
   const [showAllComplaints, setShowAllComplaints] = useState(false);
-  
+
   // Complaint form state
   const [complaintData, setComplaintData] = useState({
     student_name: user?.name || "",
@@ -32,9 +44,9 @@ const SeeHostel = ({ hostelId }) => {
     official_email: "",
     complaint_type: "",
     complaint_description: "",
-    due_date: "", 
+    due_date: "",
   });
-  
+
   // Complaint types
   const complaintTypes = [
     "Water Supply Problems",
@@ -78,8 +90,21 @@ const SeeHostel = ({ hostelId }) => {
   // Get contexts
   const { hostels, fetchHostels } = useHostel();
   const { menus, fetchMenuByHostel } = useMenu();
-  const { complaints, loading, error, fetchAllComplaints, createComplaint, editComplaint, deleteComplaint } = useComplaints();
-  const { notifications, fetchHostelNotifications, createNotification, deleteNotification } = useHostelNotifications();
+  const {
+    complaints,
+    loading,
+    error,
+    fetchAllComplaints,
+    createComplaint,
+    editComplaint,
+    deleteComplaint,
+  } = useComplaints();
+  const {
+    notifications,
+    fetchHostelNotifications,
+    createNotification,
+    deleteNotification,
+  } = useHostelNotifications();
 
   // Create API instance
   const createApiInstance = () => {
@@ -99,7 +124,7 @@ const SeeHostel = ({ hostelId }) => {
       if (hostels.length === 0) {
         await fetchHostels();
       }
-      
+
       // Fetch hostel-specific data
       await fetchMenuByHostel(hostelId);
       await fetchHostelNotifications(hostelId);
@@ -110,14 +135,14 @@ const SeeHostel = ({ hostelId }) => {
       await fetchHostelDetails(hostelId);
       await fetchOfficials(hostelId);
     };
-    
+
     fetchData();
-    
+
     // Update current time every minute
     const timeInterval = setInterval(() => {
       setCurrentTime(new Date());
     }, 60000);
-    
+
     return () => clearInterval(timeInterval);
   }, [hostelId]);
 
@@ -201,29 +226,36 @@ const SeeHostel = ({ hostelId }) => {
   // Get today's menu
   const getTodaysMenu = () => {
     const today = daysOfWeek[currentDay];
-    return menus.find(menu => menu.day === today) || null;
+    return menus.find((menu) => menu.day === today) || null;
   };
 
   // Handle complaint submission
   const handleCreateOrUpdateComplaint = async () => {
-    if (!complaintData.complaint_type || !complaintData.complaint_description || !complaintData.official_id) {
-      showNotification("Please fill all required fields before submitting.", "error");
+    if (
+      !complaintData.complaint_type ||
+      !complaintData.complaint_description ||
+      !complaintData.official_id
+    ) {
+      showNotification(
+        "Please fill all required fields before submitting.",
+        "error"
+      );
       return;
     }
-  
+
     setComplaintLoading(true);
     try {
       const complaintWithHostel = {
         ...complaintData,
-        hostel_id: hostelId
+        hostel_id: hostelId,
       };
-  
+
       if (editMode) {
         await editComplaint(editMode, complaintWithHostel);
         showNotification("Complaint updated successfully!", "success");
       } else {
         await createComplaint(complaintWithHostel);
-        
+
         // Create notification about the new complaint
         await createNotification({
           hostel_id: hostelId,
@@ -231,13 +263,13 @@ const SeeHostel = ({ hostelId }) => {
           type: "warning",
           timestamp: new Date().toISOString(),
         });
-        
+
         showNotification("Complaint created successfully!", "success");
       }
-      
+
       // Refresh complaints data after submission
       await fetchAllComplaints();
-      
+
       // Reset form
       resetForm();
     } catch (err) {
@@ -259,12 +291,12 @@ const SeeHostel = ({ hostelId }) => {
       official_email: complaint.official_email,
       complaint_type: complaint.complaint_type,
       complaint_description: complaint.complaint_description,
-      due_date: complaint.due_date ? complaint.due_date.split('T')[0] : "",
+      due_date: complaint.due_date ? complaint.due_date.split("T")[0] : "",
     });
     // Scroll to complaint form
     window.scrollTo({
-      top: document.getElementById('complaint-form').offsetTop - 100,
-      behavior: 'smooth'
+      top: document.getElementById("complaint-form").offsetTop - 100,
+      behavior: "smooth",
     });
   };
 
@@ -276,11 +308,14 @@ const SeeHostel = ({ hostelId }) => {
         showNotification("Complaint deleted successfully!", "success");
       } catch (error) {
         console.error("Failed to delete complaint", error);
-        showNotification("Failed to delete complaint. Please try again.", "error");
+        showNotification(
+          "Failed to delete complaint. Please try again.",
+          "error"
+        );
       }
     }
   };
-  
+
   // Handle notification deletion
   const handleDeleteNotification = async (id) => {
     try {
@@ -288,14 +323,17 @@ const SeeHostel = ({ hostelId }) => {
       showNotification("Notification deleted successfully!", "success");
     } catch (error) {
       console.error("Error deleting notification", error);
-      showNotification("Failed to delete notification. Please try again.", "error");
+      showNotification(
+        "Failed to delete notification. Please try again.",
+        "error"
+      );
     }
   };
 
   // Filter complaints for current hostel
   const hostelComplaints = complaints.filter(
-    complaint => Number(complaint.hostel_id) === Number(hostelId)
-);
+    (complaint) => Number(complaint.hostel_id) === Number(hostelId)
+  );
   console.log("Filtered complaints:", hostelComplaints); // Add this line
 
   // Get today's menu
@@ -317,7 +355,10 @@ const SeeHostel = ({ hostelId }) => {
             >
               <AlertCircle size={20} />
               <span className="text-white">{notification.message}</span>
-              <button onClick={() => setNotification(null)} className="ml-2 text-white">
+              <button
+                onClick={() => setNotification(null)}
+                className="ml-2 text-white"
+              >
                 <X size={18} />
               </button>
             </motion.div>
@@ -329,7 +370,7 @@ const SeeHostel = ({ hostelId }) => {
             {hostelDetails.hostel_name}
           </h1>
         )}
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left side: Mess Menu, Notifications & Complaint */}
           <div className="lg:col-span-2 space-y-8">
@@ -345,7 +386,7 @@ const SeeHostel = ({ hostelId }) => {
                   {daysOfWeek[currentDay]}
                 </span>
               </h2>
-              
+
               {todaysMenu ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {todaysMenu.breakfast && (
@@ -369,7 +410,7 @@ const SeeHostel = ({ hostelId }) => {
                       </ul>
                     </motion.div>
                   )}
-                  
+
                   {todaysMenu.lunch && (
                     <motion.div
                       whileHover={{ scale: 1.05 }}
@@ -391,7 +432,7 @@ const SeeHostel = ({ hostelId }) => {
                       </ul>
                     </motion.div>
                   )}
-                  
+
                   {todaysMenu.snacks && (
                     <motion.div
                       whileHover={{ scale: 1.05 }}
@@ -413,7 +454,7 @@ const SeeHostel = ({ hostelId }) => {
                       </ul>
                     </motion.div>
                   )}
-                 {todaysMenu.dinner && (
+                  {todaysMenu.dinner && (
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       className={`p-4 rounded-lg border ${
@@ -436,7 +477,9 @@ const SeeHostel = ({ hostelId }) => {
                   )}
                 </div>
               ) : (
-                <p className="text-white text-center">No menu available for today.</p>
+                <p className="text-white text-center">
+                  No menu available for today.
+                </p>
               )}
             </motion.div>
 
@@ -449,7 +492,7 @@ const SeeHostel = ({ hostelId }) => {
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
                 <Bell className="mr-2" /> Notifications
               </h2>
-              
+
               {notifications.length > 0 ? (
                 <div className="space-y-4">
                   {notifications.map((notif) => (
@@ -472,7 +515,11 @@ const SeeHostel = ({ hostelId }) => {
                         )}
                       </div>
                       <button
-                        onClick={() => handleDeleteNotification(notif.notification_id || notif.id)}
+                        onClick={() =>
+                          handleDeleteNotification(
+                            notif.notification_id || notif.id
+                          )
+                        }
                         className="text-red-500 hover:text-red-600"
                       >
                         <Trash className="h-4 w-4" />
@@ -481,7 +528,9 @@ const SeeHostel = ({ hostelId }) => {
                   ))}
                 </div>
               ) : (
-                <p className="text-white text-center">No notifications at this time.</p>
+                <p className="text-white text-center">
+                  No notifications at this time.
+                </p>
               )}
             </motion.div>
 
@@ -493,11 +542,14 @@ const SeeHostel = ({ hostelId }) => {
               className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-purple-500/50"
             >
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center">
-                <Wrench className="mr-2" /> {editMode ? "Edit Complaint" : "File Complaint"}
+                <Wrench className="mr-2" />{" "}
+                {editMode ? "Edit Complaint" : "File Complaint"}
               </h2>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Assign To Official:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Assign To Official:
+                </label>
                 <select
                   name="official_id"
                   value={complaintData.official_id}
@@ -506,15 +558,20 @@ const SeeHostel = ({ hostelId }) => {
                 >
                   <option value="">Select Official</option>
                   {officials.map((official) => (
-                    <option key={official.official_id} value={official.official_id}>
+                    <option
+                      key={official.official_id}
+                      value={official.official_id}
+                    >
                       {official.name} - {official.designation}
                     </option>
                   ))}
                 </select>
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Complaint Type:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Complaint Type:
+                </label>
                 <select
                   name="complaint_type"
                   value={complaintData.complaint_type}
@@ -529,9 +586,11 @@ const SeeHostel = ({ hostelId }) => {
                   ))}
                 </select>
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Description:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Description:
+                </label>
                 <textarea
                   name="complaint_description"
                   value={complaintData.complaint_description}
@@ -541,9 +600,11 @@ const SeeHostel = ({ hostelId }) => {
                   rows="4"
                 />
               </div>
-              
+
               <div className="mb-4">
-                <label className="block text-white text-lg font-medium mb-2">Due Date:</label>
+                <label className="block text-white text-lg font-medium mb-2">
+                  Due Date:
+                </label>
                 <input
                   type="date"
                   name="due_date"
@@ -556,7 +617,9 @@ const SeeHostel = ({ hostelId }) => {
               <button
                 onClick={handleCreateOrUpdateComplaint}
                 className={`w-full p-3 rounded-lg text-white ${
-                  complaintLoading ? "bg-gray-500" : "bg-blue-500 hover:bg-blue-600"
+                  complaintLoading
+                    ? "bg-gray-500"
+                    : "bg-blue-500 hover:bg-blue-600"
                 }`}
                 disabled={complaintLoading}
               >
@@ -566,7 +629,7 @@ const SeeHostel = ({ hostelId }) => {
                   ? "Update Complaint"
                   : "Submit Complaint"}
               </button>
-              
+
               {editMode && (
                 <button
                   onClick={resetForm}
@@ -589,7 +652,7 @@ const SeeHostel = ({ hostelId }) => {
               <h2 className="text-white font-bold text-2xl flex items-center mb-4">
                 <FaUsersGear className="mr-2" /> Hostel Officials
               </h2>
-              
+
               {officials.length > 0 ? (
                 <div className="grid grid-cols-1 gap-4">
                   {officials.map((official) => (
@@ -615,10 +678,12 @@ const SeeHostel = ({ hostelId }) => {
                   ))}
                 </div>
               ) : (
-                <p className="text-white text-center">No officials information available.</p>
+                <p className="text-white text-center">
+                  No officials information available.
+                </p>
               )}
             </motion.div>
-            
+
             {/* Recent Complaints Summary */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}
@@ -629,22 +694,30 @@ const SeeHostel = ({ hostelId }) => {
                 <h2 className="text-white font-bold text-2xl flex items-center">
                   <Bell className="mr-2" /> Recent Complaints
                 </h2>
-                <button 
+                <button
                   onClick={() => setShowAllComplaints(!showAllComplaints)}
                   className="text-purple-300 hover:text-white flex items-center text-sm"
                 >
                   {showAllComplaints ? "Show Less" : "View All"}
-                  <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${showAllComplaints ? 'rotate-180' : ''}`} />
+                  <ChevronDown
+                    className={`ml-1 h-4 w-4 transition-transform ${
+                      showAllComplaints ? "rotate-180" : ""
+                    }`}
+                  />
                 </button>
               </div>
-              
+
               {hostelComplaints.length > 0 ? (
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                   {hostelComplaints
                     .sort((a, b) => {
                       // Handle both date formats and ensure there's a valid date
-                      const dateA = new Date(a.created_at || a.date || Date.now());
-                      const dateB = new Date(b.created_at || b.date || Date.now());
+                      const dateA = new Date(
+                        a.created_at || a.date || Date.now()
+                      );
+                      const dateB = new Date(
+                        b.created_at || b.date || Date.now()
+                      );
                       return dateB - dateA;
                     })
                     .slice(0, showAllComplaints ? hostelComplaints.length : 5)
@@ -658,9 +731,7 @@ const SeeHostel = ({ hostelId }) => {
                           <h3 className="text-white font-medium">
                             {complaint.complaint_type}
                           </h3>
-                          <span 
-                            className="text-xs px-2 py-1 rounded-full bg-yellow-500/30 text-yellow-200"
-                          >
+                          <span className="text-xs px-2 py-1 rounded-full bg-yellow-500/30 text-yellow-200">
                             Pending
                           </span>
                         </div>
@@ -668,7 +739,9 @@ const SeeHostel = ({ hostelId }) => {
                           {complaint.complaint_description}
                         </p>
                         <p className="text-gray-400 text-xs mt-2">
-                          {new Date(complaint.created_at || complaint.date || Date.now()).toLocaleString()}
+                          {new Date(
+                            complaint.created_at || complaint.date || Date.now()
+                          ).toLocaleString()}
                         </p>
                         <div className="mt-2 flex space-x-4">
                           <button
@@ -688,12 +761,14 @@ const SeeHostel = ({ hostelId }) => {
                     ))}
                 </div>
               ) : (
-                <p className="text-white text-center">No complaints filed yet.</p>
+                <p className="text-white text-center">
+                  No complaints filed yet.
+                </p>
               )}
             </motion.div>
           </div>
         </div>
-        
+
         {/* Full Complaints View Section */}
         {showAllComplaints && (
           <motion.div
@@ -714,30 +789,49 @@ const SeeHostel = ({ hostelId }) => {
                       key={complaint.complaint_id}
                       className="border rounded-lg p-4 shadow-lg"
                       style={{
-                        background: "linear-gradient(45deg,rgb(111, 143, 217),rgb(150, 93, 212),rgb(20, 161, 255))",
+                        background:
+                          "linear-gradient(45deg,rgb(111, 143, 217),rgb(150, 93, 212),rgb(20, 161, 255))",
                         backgroundSize: "500% 500%",
                         animation: "gradient 5s ease infinite",
                       }}
                     >
                       <div className="bg-white/60 p-4 rounded-lg">
-                        <h3 className="text-xl font-bold mb-2">{complaint.complaint_type}</h3>
+                        <h3 className="text-xl font-bold mb-2">
+                          {complaint.complaint_type}
+                        </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           <div className="flex flex-col">
-                            <span className="text-gray-700 font-medium">Reported by:</span>
+                            <span className="text-gray-700 font-medium">
+                              Reported by:
+                            </span>
                             <span>{complaint.student_name}</span>
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-gray-700 font-medium">Assigned to:</span>
+                            <span className="text-gray-700 font-medium">
+                              Assigned to:
+                            </span>
                             <span>{complaint.official_name}</span>
                           </div>
                           <div className="flex flex-col">
-                            <span className="text-gray-700 font-medium">Due Date:</span>
-                            <span>{complaint.due_date ? new Date(complaint.due_date).toLocaleDateString() : "Not specified"}</span>
+                            <span className="text-gray-700 font-medium">
+                              Due Date:
+                            </span>
+                            <span>
+                              {complaint.due_date
+                                ? new Date(
+                                    complaint.due_date
+                                  ).toLocaleDateString()
+                                : "Not specified"}
+                            </span>
                           </div>
                         </div>
                         <div className="mt-2">
-                          <span className="text-gray-700 font-medium">Description:</span>
-                          <p className="mt-1">{complaint.complaint_description}</p>
+                          <span className="text-gray-700 font-medium">
+                            Description:
+                          </span>
+                          <p className="mt-1">
+                            {complaint.complaint_description}
+                          </p>
                         </div>
                         <div className="mt-4 flex space-x-4">
                           <button
@@ -757,13 +851,15 @@ const SeeHostel = ({ hostelId }) => {
                     </div>
                   ))
                 ) : (
-                  <p className="text-white text-center py-4">No complaints found for this hostel.</p>
+                  <p className="text-white text-center py-4">
+                    No complaints found for this hostel.
+                  </p>
                 )}
               </div>
             )}
           </motion.div>
         )}
-        </div>
+      </div>
     </div>
   );
 };

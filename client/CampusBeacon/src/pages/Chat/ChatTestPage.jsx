@@ -14,8 +14,7 @@ import {
   LogOut,
   BellRing,
 } from "lucide-react";
-import { useAuth } from "../../contexts/AuthContext";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 
 // Define available channels.
 const channels = [
@@ -38,7 +37,8 @@ const mnnitFacts = [
 ];
 
 const ChatTestPage = () => {
-  const { user: authUser } = useAuth();
+  const dispatch = useDispatch();
+  const { user: authUser } = useSelector((state) => state.auth);
   const { user: profileUser } = useSelector((state) => state.profile);
   const [selectedChannel, setSelectedChannel] = useState(channels[0]);
   const [searchQuery, setSearchQuery] = useState("");

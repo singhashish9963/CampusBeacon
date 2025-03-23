@@ -1,8 +1,9 @@
 import React from "react";
-import useAuth from "../../contexts/AuthContext"
+import { useDispatch, useSelector } from "react-redux";
 
 const TimeDisplay = ({ currentTime, currentUser }) => {
-  const {user} = useAuth
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   return (
     <div className="text-center text-gray-400 text-sm mt-4">
       <p>Current Time (UTC): {currentTime}</p>
