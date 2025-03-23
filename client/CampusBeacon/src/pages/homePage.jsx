@@ -10,14 +10,16 @@ import {
   Book,
   Car,
 } from "lucide-react";
-import ButtonColourfull from "../components/ButtonColourfull";
-import FeatureCard from "../components/HomePage/FeatureCard.jsx";
-import QuickLinks from "../components/HomePage/QuickLinks.jsx";
-import EventsSection from "../components/HomePage/EventsSection.jsx";
-import ImageSlider from "../components/HomePage/ImageSlider.jsx";
-import StarryBackground from "../components/HomePage/StarsBg.jsx";
-import ChatbotWidget from "../components/HomePage/ChatbotWidget.jsx";
-import NotificationIcon from "../components/Notifications/NotificationIcon.jsx";
+import { ButtonColourfull } from "../components/common/buttons";
+import {
+  FeatureCard,
+  QuickLinks,
+  EventsSection,
+  ImageSlider,
+  StarryBackground,
+  ChatbotWidget,
+} from "../components/homepage";
+import { NotificationIcon } from "../components/features/notifications";
 import { useSelector } from "react-redux";
 
 const HomePage = () => {

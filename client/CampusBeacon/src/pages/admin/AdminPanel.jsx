@@ -1,20 +1,11 @@
-// React and third-party imports
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
-// Redux imports
-import { useSelector, useDispatch } from "react-redux";
-import {
-  getNotifications,
-  createNotification,
-  broadcastNotification,
-  deleteNotification,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-} from "../../slices/notificationSlice";
+import { useSelector } from "react-redux";
 
 // Admin subpages
+
 const Dashboard = () => (
   <div className="p-6">
     <h1 className="text-4xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600">
@@ -25,6 +16,16 @@ const Dashboard = () => (
     </p>
   </div>
 );
+
+import {
+  getNotifications,
+  createNotification,
+  broadcastNotification,
+  deleteNotification,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "../../slices/notificationSlice";
+import { useDispatch } from "react-redux";
 
 const NotificationsAdmin = () => {
   const dispatch = useDispatch();

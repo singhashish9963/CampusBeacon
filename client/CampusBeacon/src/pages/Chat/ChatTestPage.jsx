@@ -1,5 +1,5 @@
+// React and third-party imports
 import React, { useState, useEffect } from "react";
-import ChatApp from "./ChatApp";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   MessageSquare,
@@ -14,7 +14,12 @@ import {
   LogOut,
   BellRing,
 } from "lucide-react";
+
+// Redux imports
 import { useDispatch, useSelector } from "react-redux";
+
+// Local imports
+import ChatApp from "./ChatApp";
 
 // Define available channels.
 const channels = [
@@ -275,19 +280,8 @@ const ChatTestPage = () => {
                 if (fact.includes("Diwali") || fact.includes("Holi")) {
                   return "Celebrate the vibrant festivals of MNNIT with joy and unity.";
                 }
-                return `Experience the spirit of MNNIT: innovation, festivity, and academic excellence.`;
+                return "Experience the spirit of MNNIT: innovation, festivity, and academic excellence.";
               })()}
-            </p>
-          </motion.div>
-          <motion.div
-            className="mt-8"
-            initial={{ y: 50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-          >
-            <p className="text-sm text-gray-500">
-              Our campus pulses with energy – from running lightning borders to
-              gentle rains and twinkling stars. Discover the magic of MNNIT!
             </p>
           </motion.div>
         </div>

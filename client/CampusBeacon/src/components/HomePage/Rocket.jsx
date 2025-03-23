@@ -1,13 +1,14 @@
 import React from "react";
+import { motion } from "framer-motion";
 
-const Rocket = () =>{
+const Rocket = () => {
+  return (
     <motion.div
-    style={{
-        y:rocketY,
-        
-    }}
-
+      style={{
+        y: rocketY,
+      }}
     />
-}
+  );
+};
 
 export default Rocket;
