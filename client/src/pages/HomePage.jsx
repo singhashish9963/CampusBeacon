@@ -18,7 +18,7 @@ import {
   ImageSlider,
   StarryBackground,
   ChatbotWidget,
-} from "../components/homepage";
+} from "../components/HomePage";
 import { NotificationIcon } from "../components/features/notifications";
 import { useSelector } from "react-redux";
 
