@@ -14,7 +14,6 @@ import AboutUs from "./pages/AboutUs.jsx";
 import ContactsDisplay from "./pages/ContactPage.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
-import { ChatbotProvider } from "./contexts/chatBotContext.jsx";
 import CollegeEateries from "./pages/eatries.jsx";
 import ResourcesPage from "./pages/ResourceHub.jsx";
 import AttendanceManager from "./pages/attendancePage.jsx";
@@ -51,7 +50,6 @@ import HostelSelector from "./pages/HostelPages/HostelSelector.jsx";
 function App() {
   return (
     <BrowserRouter>
-      <ChatbotProvider>
         <HostelProvider>
           <MenuProvider>
             <OfficialProvider>
@@ -154,7 +152,6 @@ function App() {
             </OfficialProvider>
           </MenuProvider>
         </HostelProvider>
-      </ChatbotProvider>
     </BrowserRouter>
   );
 }

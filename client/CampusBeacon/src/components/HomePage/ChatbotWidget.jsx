@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Rocket, Stars, Moon, Send, X, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useChatbot } from "../../contexts/chatBotContext";
+import { useDispatch, useSelector } from "react-redux";
+import { askQuestion, clearError, resetSession } from "../../slices/chatbotSlice";
 
 const ChatbotWidget = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [chatHistory, setChatHistory] = useState([]);
   const chatContainerRef = useRef(null);
-  const { loading, error, askQuestion, clearError, resetSession, sessionId } =
-    useChatbot();
+  const dispatch = useDispatch();
+  const { loading, error, sessionId } = useSelector((state) => state.chatbot);
 
   // Load chat history from localStorage
   useEffect(() => {
@@ -44,9 +45,9 @@ const ChatbotWidget = () => {
   // Clear error when chat widget is closed
   useEffect(() => {
     if (!isOpen) {
-      clearError();
+      dispatch(clearError());
     }
-  }, [isOpen, clearError]);
+  }, [isOpen, dispatch]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -58,28 +59,39 @@ const ChatbotWidget = () => {
       { sender: "user", message: trimmedQuestion },
     ]);
     setQuestion("");
-    clearError();
+    dispatch(clearError());
 
     try {
-      const result = await askQuestion(trimmedQuestion);
-      if (result?.answer) {
+      const result = await dispatch(
+        askQuestion({ 
+          question: trimmedQuestion, 
+          sessionId: sessionId 
+        })
+      ).unwrap();
+      
+      console.log("Chatbot response:", result); // Debug log
+      
+      if (result && result.answer) {
         setChatHistory((prev) => [
           ...prev,
           {
             sender: "chatbot",
             message: result.answer,
-            similarQuestions: result.similarQuestions,
+            similarQuestions: result.similarQuestions || [],
             category: result.category,
             confidence: result.confidence,
           },
         ]);
+      } else {
+        throw new Error("Invalid response from chatbot");
       }
     } catch (err) {
+      console.error("Error asking question:", err);
       setChatHistory((prev) => [
         ...prev,
         {
           sender: "chatbot",
-          message: "Houston, we have a problem. Please try again.",
+          message: err.message || "Houston, we have a problem. Please try again.",
           error: true,
         },
       ]);
@@ -92,9 +104,9 @@ const ChatbotWidget = () => {
   };
 
   const handleResetChat = () => {
-    const newSessionId = resetSession();
+    dispatch(resetSession());
     setChatHistory([]);
-    localStorage.removeItem(`chatHistory_${newSessionId}`);
+    localStorage.removeItem(`chatHistory_${sessionId}`);
   };
 
   return (
