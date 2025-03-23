@@ -159,7 +159,7 @@ function NavBar() {
     {
       name: "IGH",
       path: "/IGH",
-      description: "International House (B-block) and Bachelor’s Flat",
+      description: "International House (B-block) and Bachelor's Flat",
     },
     {
       name: "RN TAGORE HOSTEL",
@@ -202,8 +202,13 @@ function NavBar() {
   ];
 
   const handleLogoutClick = async () => {
-    await dispatch(handleLogout());
-    navigate("/login");
+    try {
+      await dispatch(handleLogout()).unwrap();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // You might want to show a toast notification here
+    }
   };
 
   useEffect(() => {

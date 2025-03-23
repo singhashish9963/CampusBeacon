@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -60,9 +60,26 @@ export const handleEmailVerification = createAsyncThunk(
   }
 );
 
-export const handleLogout = createAsyncThunk("auth/handleLogout", async () => {
-  await api.post("/users/logout");
-});
+export const handleLogout = createAsyncThunk(
+  "auth/handleLogout",
+  async (_, { dispatch }) => {
+    try {
+      await api.post("/users/logout");
+      // Disconnect socket if it exists
+      if (window.socket) {
+        window.socket.disconnect();
+        window.socket = null;
+      }
+      // Reset auth state
+      dispatch(logout());
+      // Clear localStorage manually
+      localStorage.removeItem("persist:root");
+      return true;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || "Logout failed");
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: "auth",
