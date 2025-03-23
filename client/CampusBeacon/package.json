@@ -48,6 +48,7 @@
     "react-tilt": "^1.0.2",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.1",
+    "redux-persist": "^6.0.0",
     "socket.io-client": "^4.8.1",
     "tailwindcss": "^4.0.11",
     "three": "^0.173.0",

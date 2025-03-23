@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { useAuth } from "../contexts/AuthContext.jsx";
+import { useDispatch, useSelector } from "react-redux";
+import { handleResetPassword, clearError } from "../slices/authSlice";
 import ButtonColourfull from "../components/ButtonColourfull.jsx";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
-  const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { handleResetPassword } = useAuth();
+  const dispatch = useDispatch();
+  const { error: authError } = useSelector((state) => state.auth);
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
@@ -18,24 +20,28 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
     setIsLoading(true);
+    dispatch(clearError());
 
     try {
-      const response = await handleResetPassword(token, password);
-      if (response && response.success) {
-        setMessage(
-          "Your password has been reset successfully. Redirecting to login..."
-        );
+      const response = await dispatch(
+        handleResetPassword({ token, newPassword: password })
+      ).unwrap();
+      if (response) {
+        toast.success("Password reset successful! Redirecting to login...", {
+          position: "top-right",
+          autoClose: 2000,
+        });
         // After a short delay, navigate to the login page
         setTimeout(() => {
           navigate("/login");
         }, 2000);
-      } else {
-        throw new Error(response?.message || "Password reset failed");
       }
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message || "Password reset failed", {
+        position: "top-right",
+        autoClose: 5000,
+      });
     } finally {
       setIsLoading(false);
     }
@@ -43,6 +49,19 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center p-4">
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+        style={{ zIndex: 9999 }}
+      />
       <AnimatePresence>
         <motion.div
           key="reset-password"
@@ -54,22 +73,13 @@ const ResetPassword = () => {
           <h2 className="text-2xl font-bold text-white mb-6 text-center">
             Reset Password
           </h2>
-          {error && (
+          {authError && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="text-red-500 mb-4 bg-red-500/10 p-3 rounded-lg"
             >
-              {error}
-            </motion.div>
-          )}
-          {message && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-green-500 mb-4 bg-green-500/10 p-3 rounded-lg"
-            >
-              {message}
+              {authError}
             </motion.div>
           )}
           <form onSubmit={handleSubmit} className="space-y-6">
