@@ -1,15 +1,18 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { X, Check, Bell, Trash } from "lucide-react";
-import { useNotification } from "../contexts/notificationContext";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  markNotificationAsRead,
+  deleteNotification,
+  markAllNotificationsAsRead,
+} from "../slices/notificationSlice";
 
 const NotificationPanel = React.memo(({ isOpen, onClose }) => {
-  const {
-    notifications,
-    markNotificationAsRead,
-    deleteNotification,
-    markAllNotificationsAsRead,
-  } = useNotification();
+  const dispatch = useDispatch();
+  const notifications = useSelector(
+    (state) => state.notification.notifications
+  );
 
   const panelRef = useRef(null);
 
@@ -48,27 +51,27 @@ const NotificationPanel = React.memo(({ isOpen, onClose }) => {
     (id, e) => {
       e.stopPropagation();
       console.log(`NotificationPanel: Deleting notification ${id}`);
-      deleteNotification(id);
+      dispatch(deleteNotification(id));
     },
-    [deleteNotification]
+    [dispatch]
   );
 
   const handleMarkAsRead = useCallback(
     (id, e) => {
       e && e.stopPropagation();
       console.log(`NotificationPanel: Marking notification ${id} as read`);
-      markNotificationAsRead(id);
+      dispatch(markNotificationAsRead(id));
     },
-    [markNotificationAsRead]
+    [dispatch]
   );
 
   const handleMarkAllAsRead = useCallback(
     (e) => {
       e.stopPropagation();
       console.log("NotificationPanel: Marking all notifications as read");
-      markAllNotificationsAsRead();
+      dispatch(markAllNotificationsAsRead());
     },
-    [markAllNotificationsAsRead]
+    [dispatch]
   );
 
   const getTimeAgo = (timeString) => {

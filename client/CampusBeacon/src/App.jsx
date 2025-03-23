@@ -13,7 +13,6 @@ import { AuthProvider } from "./contexts/AuthContext.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AboutUs from "./pages/AboutUs.jsx";
 import ContactsDisplay from "./pages/ContactPage.jsx";
-import { ContactContextProvider } from "./contexts/contactContext.jsx";
 import ResetPassword from "./pages/ResetPassword.jsx";
 import EmailVerification from "./pages/EmailVerfication.jsx";
 import { ChatbotProvider } from "./contexts/chatBotContext.jsx";
