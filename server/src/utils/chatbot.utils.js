@@ -2,11 +2,10 @@ import { NlpManager } from "node-nlp";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import config from "../config/chatbot.js";  
+import config from "../config/chatbot.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
 
 const MODEL_FILE = config.modelPath || path.join(__dirname, "model.nlp");
 const CORPUS_FILE = path.join(__dirname, "corpus.json");
@@ -17,7 +16,7 @@ const manager = new NlpManager({
   nlu: { log: false },
   useNeural: true,
   modelFileName: MODEL_FILE,
-  threshold: config.nlpConfig.threshold || 0.6,  // Use configurable threshold
+  threshold: config.nlpConfig.threshold || 0.6, // Use configurable threshold
 });
 
 class AdvancedLanguageProcessor {
@@ -32,7 +31,18 @@ class AdvancedLanguageProcessor {
 
   loadCorpus() {
     try {
-      return JSON.parse(fs.readFileSync(CORPUS_FILE, "utf8"));
+      const corpusData = fs.readFileSync(CORPUS_FILE, "utf8");
+      const corpus = JSON.parse(corpusData);
+
+      // Clean up the corpus data
+      if (corpus.phrases) {
+        corpus.phrases = corpus.phrases.filter(
+          (phrase) =>
+            phrase && phrase.question && phrase.answer && phrase.category
+        );
+      }
+
+      return corpus;
     } catch (error) {
       console.warn("Corpus file not found or invalid. Using default corpus.");
       return {
@@ -73,42 +83,36 @@ class AdvancedLanguageProcessor {
               "I'm here to help! Thanks for asking. What can I do for you today on CampusBeacon?",
             category: "casual",
           },
-
           {
             question: "What is CampusBeacon?",
             answer:
               "CampusBeacon is a comprehensive platform that connects campus communities with events, academic resources, forums, and more. We strive to make campus life easier and more engaging.",
             category: "general",
           },
-
           {
             question: "How do I sign up for CampusBeacon?",
             answer:
               "Signing up is quick and easy! Just click on 'Register' on our homepage, enter your email and password, and you're all set.",
             category: "registration",
           },
-
           {
             question: "What services does CampusBeacon offer?",
             answer:
               "We offer real-time event updates, lost and found, buy and sell boards, academic collaboration tools, forums, and more. Check our site for a full list of features!",
             category: "services",
           },
-
           {
             question: "How can I contact CampusBeacon support?",
             answer:
               "For support, visit our 'Contact Us' page or send an email to support@campusbeacon.com. We'll get back to you soon!",
             category: "support",
           },
-
           {
             question: "Is my personal data safe on CampusBeacon?",
             answer:
               "Yes, we employ industry-standard security measures to keep your data safe. Please see our Privacy Policy for more details.",
             category: "privacy",
           },
-
           {
             question: "What campus events are coming up?",
             answer:
@@ -121,7 +125,6 @@ class AdvancedLanguageProcessor {
               "Just head to our 'Events' section. You can browse upcoming events by date, category, or campus location.",
             category: "events",
           },
-
           {
             question: "I need help",
             answer:
@@ -130,7 +133,6 @@ class AdvancedLanguageProcessor {
           },
           {
             question: "How can I access the hostel section?",
-
             answer:
               "You can access the hostel section by clicking on the 'Hostel' button in the navbar. There, you can check hostel details, officials, and other features.",
             category: "hostel",
@@ -280,155 +282,18 @@ class AdvancedLanguageProcessor {
             answer:
               "Yes, you can edit your profile details in the 'Profile' section.",
             category: "general",
-          },,
-          {
-            question: "How can I submit a complaint about hostel issues?",
-            answer: "To submit a complaint, go to the hostel section and find the 'Complaint Box'. You can enter your issue, and the hostel administration will review it.",
-            category: "hostel"
-          },
-          {
-            question: "Where can I see hostel notifications?",
-            answer: "You can check hostel-related notifications in the 'Notification Box' inside the hostel section. Admins post important updates there.",
-            category: "notification"
-          },
-          {
-            question: "How can I view hostel officials?",
-            answer: "You can find the list of hostel officials in the 'Hostel Officials' section. It includes details like their name, position, and contact info.",
-            category: "officials"
-          },
-          {
-            question: "How can I check my attendance?",
-            answer: "Your attendance records are available in the 'Attendance' section. It shows your subject-wise attendance percentage.",
-            category: "attendance"
-          },
-          {
-            question: "How do I check my CGPA?",
-            answer: "You can check your CGPA in the 'CGPA' section of the Resource Hub. It displays your cumulative grade performance.",
-            category: "resource_hub"
-          },
-          {
-            question: "How do I check my marks?",
-            answer: "You can view your marks in the 'Marks' section of the Resource Hub. It includes your scores for different subjects and exams.",
-            category: "resource_hub"
-          },
-          {
-            question: "How can I access study materials?",
-            answer: "You can find study materials, PDFs, and images categorized by branches and semesters in the 'Resource Hub' section.",
-            category: "resource_hub"
-          },
-          {
-            question: "How can I buy an item from another student?",
-            answer: "Go to the 'Buy & Sell' section to browse items listed by other students. You can contact the seller and negotiate the price.",
-            category: "buy_sell"
-          },
-          {
-            question: "How can I sell my items to other students?",
-            answer: "In the 'Buy & Sell' section, click on 'Sell an Item' and upload details about the product, including images, description, and price.",
-            category: "buy_sell"
-          },
-          {
-            question: "Where can I check the menu of canteens?",
-            answer: "You can check the menu of different canteens in the 'Eateries' section. It shows the available food items and their prices.",
-            category: "eateries"
-          },
-          {
-            question: "Can I rate the food in canteens?",
-            answer: "Yes, you can rate and review the food in the 'Eateries' section to help other students choose the best options.",
-            category: "eateries"
-          },
-          {
-            question: "How can I take a ride?",
-            answer: "To take a ride, go to the 'Rides' section and check available rides. You can book a ride based on your destination and time preference.",
-            category: "rides"
-          },
-          {
-            question: "How can I share a ride?",
-            answer: "If you want to share a ride, go to the 'Rides' section and list your ride details, including start location, destination, and available seats.",
-            category: "rides"
-          },
-          {
-            question: "How can I view upcoming exams?",
-            answer: "You can check upcoming exams in the 'Exam Schedule' section, where dates and subjects are listed.",
-            category: "resource_hub"
-          },
-          {
-            question: "How can I apply for hostel accommodation?",
-            answer: "You can apply for hostel accommodation through the 'Hostel' section, where the application form is available.",
-            category: "hostel"
-          },
-          {
-            question: "Can I view my class timetable?",
-            answer: "Yes, your class timetable is available in the 'Timetable' section under Resource Hub.",
-            category: "resource_hub"
-          },
-          {
-            question: "How do I find past year question papers?",
-            answer: "Past year question papers are available in the 'Resource Hub' under the study materials section.",
-            category: "resource_hub"
-          },
-          {
-            question: "How do I contact hostel officials?",
-            answer: "Hostel officials' contact details are listed in the 'Hostel Officials' section.",
-            category: "officials"
-          },
-          {
-            question: "Can I request maintenance for my hostel room?",
-            answer: "Yes, you can request maintenance by submitting a complaint in the 'Complaint Box' under the hostel section.",
-            category: "hostel"
-          },
-          {
-            question: "How do I book a ride to the railway station?",
-            answer: "You can check for available rides in the 'Rides' section and book one that suits your schedule.",
-            category: "rides"
-          },
-          {
-            question: "Can I list multiple items for sale?",
-            answer: "Yes, you can list multiple items in the 'Buy & Sell' section.",
-            category: "buy_sell"
-          },
-          {
-            question: "How do I know if my attendance is below the required percentage?",
-            answer: "You will see a warning in the 'Attendance' section if your attendance is below the minimum percentage required.",
-            category: "attendance"
-          },
-          {
-            question: "Where can I download assignment PDFs?",
-            answer: "You can download assignment PDFs from the 'Resource Hub' under your branch and semester.",
-            category: "resource_hub"
-          },
-          {
-            question: "Can I search for specific food items in the eateries section?",
-            answer: "Yes, you can search for specific food items and their availability in the 'Eateries' section.",
-            category: "eateries"
-          },
-          {
-            question: "How do I report a lost or found item?",
-            answer: "You can report lost and found items in the 'Lost & Found' section.",
-            category: "lost_found"
-          },
-          {
-            question: "Is there a way to check hostel mess timings?",
-            answer: "Yes, you can check hostel mess timings in the 'Hostel' section.",
-            category: "hostel"
-          },
-          {
-            question: "Can I update my profile details?",
-            answer: "Yes, you can edit your profile details in the 'Profile' section.",
-            category: "general"
           },
           {
             question: "How do I view my exam results?",
-            answer: "Your exam results are available in the 'Exam Results' section of the Resource Hub.",
-            category: "resource_hub"
+            answer:
+              "Your exam results are available in the 'Exam Results' section of the Resource Hub.",
+            category: "resource_hub",
           },
-     
         ],
-        entities: {},
-        patterns: [],
-        relationships: {},
       };
     }
   }
+
   initializeEntityPatterns() {
     return {
       date: /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b/i,
@@ -631,84 +496,97 @@ class AdvancedLanguageProcessor {
 
 const processor = new AdvancedLanguageProcessor();
 
-export const processQuestion = async (question, sessionId = "default") => {
+// Train the model if it doesn't exist
+const trainModel = async () => {
   try {
-    // Handle null or empty question
-    if (!question || typeof question !== 'string' || question.trim() === '') {
+    console.log("Initializing chatbot model...");
+
+    // Load and clean corpus data
+    const corpus = processor.loadCorpus();
+    console.log(`Loaded ${corpus.phrases.length} phrases from corpus`);
+
+    // Add all phrases from corpus to the manager
+    for (const phrase of corpus.phrases) {
+      if (phrase.question && phrase.answer && phrase.category) {
+        manager.addDocument("en", phrase.question, phrase.category);
+        manager.addAnswer("en", phrase.category, phrase.answer);
+      }
+    }
+
+    // Train the model
+    console.log("Training model with corpus data...");
+    await manager.train();
+
+    // Save the model
+    await manager.save();
+    console.log("Model trained and saved successfully");
+  } catch (error) {
+    console.error("Error training model:", error);
+    throw error;
+  }
+};
+
+// Initialize the model
+trainModel().catch(console.error);
+
+export const processQuestion = async (question, sessionId) => {
+  try {
+    if (!question || question.trim() === "") {
       return {
-        answer: "I need a question to answer. Could you please provide one?",
-        similarQuestions: [],
+        answer: "Please provide a valid question.",
         category: "error",
         confidence: 0,
-        entities: {},
-        sentiment: { score: 0, sentiment: "neutral" },
+        similarQuestions: [],
       };
     }
 
-    processor.updateContext(sessionId, question);
+    // Process the question using the NLP manager
+    const result = await manager.process("en", question);
+    console.log("NLP Result:", result); // Debug log
 
-    // Enhanced Context Analysis
-    const { bestMatch, bestSimilarity } = processor.enhancedContextAnalysis(question, sessionId);
+    if (!result || !result.answer) {
+      // If no direct match, try to find similar questions
+      const similarQuestions = processor.findContextualMatches(question);
+      if (similarQuestions.length > 0 && similarQuestions[0].similarity > 0.6) {
+        return {
+          answer: similarQuestions[0].answer,
+          category: "contextual",
+          confidence: similarQuestions[0].similarity,
+          similarQuestions: similarQuestions.slice(1, 4).map((q) => q.question),
+        };
+      }
 
-    const nlpResult = await manager.process("en", question);
-
-    const entities = processor.extractEntities(question);
-    const sentiment = processor.analyzeSentiment(question);
-
-    const contextualMatches = processor.findContextualMatches(question);
-
-    // Lowered threshold for better response rate
-    if (bestSimilarity > 0.65) {
       return {
-        answer: bestMatch.answer,
-        similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
-        category: "contextual",
-        confidence: bestSimilarity,
-        entities,
-        sentiment,
+        answer:
+          "I'm not sure about that. Could you please rephrase your question?",
+        category: "unknown",
+        confidence: 0,
+        similarQuestions: [],
       };
     }
 
-    if (nlpResult.score > 0.65 && nlpResult.answer) {
-      return {
-        answer: nlpResult.answer,
-        similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
-        category: nlpResult.intent,
-        confidence: nlpResult.score,
-        entities,
-        sentiment,
-      };
-    }
-
-    if (contextualMatches.length > 0 && contextualMatches[0].similarity > 0.55) {
-      return {
-        answer: contextualMatches[0].answer,
-        similarQuestions: contextualMatches.slice(1, 4).map((m) => m.question),
-        category: "contextual",
-        confidence: contextualMatches[0].similarity,
-        entities,
-        sentiment,
-      };
-    }
+    // Get similar questions from the corpus
+    const corpus = processor.loadCorpus();
+    const similarQuestions = corpus.phrases
+      .filter((phrase) => phrase.category === result.intent)
+      .map((phrase) => phrase.question)
+      .filter((q) => q !== question)
+      .slice(0, 3);
 
     return {
-      answer:
-        "I'm not entirely sure about that. Could you rephrase your question?",
-      similarQuestions: contextualMatches.slice(0, 3).map((m) => m.question),
-      category: "unknown",
-      confidence: 0.3,
-      entities,
-      sentiment,
+      answer: result.answer,
+      category: result.intent,
+      confidence: result.score,
+      similarQuestions,
     };
   } catch (error) {
     console.error("Error processing question:", error);
     return {
-      answer: "Sorry, I encountered an error processing your question.",
-      similarQuestions: [],
+      answer:
+        "I encountered an error processing your question. Please try again.",
       category: "error",
       confidence: 0,
-      entities: {},
-      sentiment: { score: 0, sentiment: "neutral" },
+      similarQuestions: [],
     };
   }
 };
@@ -716,7 +594,12 @@ export const processQuestion = async (question, sessionId = "default") => {
 export const addQnAPair = async (question, answer, category = "general") => {
   try {
     // Validate input
-    if (!question || !answer || typeof question !== 'string' || typeof answer !== 'string') {
+    if (
+      !question ||
+      !answer ||
+      typeof question !== "string" ||
+      typeof answer !== "string"
+    ) {
       throw new Error("Invalid question or answer");
     }
 
@@ -751,26 +634,3 @@ export const trainAndSave = async () => {
     return false;
   }
 };
-
-// Initialize the chatbot
-(async () => {
-  try {
-    if (fs.existsSync(MODEL_FILE)) {
-      await manager.load(MODEL_FILE);
-      console.log("Model loaded successfully from", MODEL_FILE);
-    } else {
-      console.log("No existing model found. Training new model...");
-      for (const phrase of processor.corpus.phrases) {
-        manager.addDocument("en", phrase.question, phrase.category);
-        manager.addAnswer("en", phrase.category, phrase.answer);
-      }
-      await manager.train();
-      manager.save(MODEL_FILE);
-      console.log("New model trained and saved to", MODEL_FILE);
-    }
-  } catch (error) {
-    console.error("Error initializing chatbot:", error);
-  }
-})();
-
-

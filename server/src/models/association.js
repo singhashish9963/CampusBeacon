@@ -15,8 +15,13 @@ import {
 import { Branch, Year, StudyMaterial } from "./resources.model.js";
 import Rides from "./ride.model.js";
 import RideParticipant from "./rideParticipant.model.js";
+import { Role, UserRole } from "./role.model.js";
 
 export const initializeAssociations = () => {
+  // User - Roles associations (many-to-many)
+  User.belongsToMany(Role, { through: UserRole, foreignKey: "user_id" });
+  Role.belongsToMany(User, { through: UserRole, foreignKey: "role_id" });
+
   // User - LostAndFound associations
   User.hasMany(LostAndFound, {
     foreignKey: "userId",
@@ -115,4 +120,6 @@ export {
   UserAttendance,
   AttendanceStats,
   Rides,
+  Role,
+  UserRole,
 };

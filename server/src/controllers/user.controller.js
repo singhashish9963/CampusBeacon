@@ -1,4 +1,5 @@
 import User from "../models/user.model.js";
+import { Role, UserRole } from "../models/role.model.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import ApiError from "../utils/apiError.js";
@@ -39,16 +40,13 @@ const extractRegistrationDetails = (email) => {
 */
 export const registerUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
-  // we cannot have same email as registration number are different
   const existingUser = await User.findOne({ where: { email } });
   if (existingUser) return next(new ApiError("User already exists", 400));
 
   const { registrationNumber, graduationYear } =
     extractRegistrationDetails(email);
-
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  // Create user with default isVerified to false (assuming your model handles this default)
   const newUser = await User.create({
     email,
     password: hashedPassword,
@@ -57,9 +55,14 @@ export const registerUser = asyncHandler(async (req, res, next) => {
     isVerified: false,
   });
 
+  // Assign default role to new user
+  const userRole = await Role.findOne({ where: { role_name: "user" } });
+  if (userRole) {
+    await UserRole.create({ user_id: newUser.id, role_id: userRole.id });
+  }
+
   console.log(`New user registered at ${getCurrentUTCDateTime()}`);
 
-  // Send the verification email automatically upon registration
   const token = jwt.sign(
     { id: newUser.id, email: newUser.email },
     process.env.JWT_SECRET,
@@ -102,29 +105,23 @@ export const registerUser = asyncHandler(async (req, res, next) => {
 export const loginUser = asyncHandler(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ where: { email } });
-  if (!user) {
-    return next(new ApiError("Invalid email or password", 400));
-  }
-
-  if (!user.isVerified) {
+  const user = await User.findOne({ where: { email }, include: Role });
+  if (!user) return next(new ApiError("Invalid email or password", 400));
+  if (!user.isVerified)
     return next(
       new ApiError("Please verify your email before logging in", 403)
     );
-  }
 
   const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) {
-    return next(new ApiError("Invalid email or password", 400));
-  }
-  // For safety, expiry in 1h: user will be logged out if token is not regenerated
+  if (!isMatch) return next(new ApiError("Invalid email or password", 400));
+
+  const roles = user.Roles.map((role) => role.role_name);
   const token = jwt.sign(
-    { id: user.id, email: user.email },
+    { id: user.id, email: user.email, roles },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
 
-  // Save as HTTP cookie for better security
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
@@ -139,7 +136,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
     .json(
       new ApiResponse(
         200,
-        { user: { id: user.id, email: user.email } },
+        { user: { id: user.id, email: user.email, roles } },
         "Login successful"
       )
     );
@@ -150,22 +147,26 @@ export const loginUser = asyncHandler(async (req, res, next) => {
        Get Current User 
 ==============================
 */
+
 export const getCurrentUser = asyncHandler(async (req, res, next) => {
-  if (!req.user) {
-    return next(new ApiError("Not authenticated", 401));
-  }
-  // Get everything except password for safety
+  if (!req.user) return next(new ApiError("Not authenticated", 401));
+
   const user = await User.findByPk(req.user.id, {
     attributes: { exclude: ["password"] },
+    include: Role,
   });
+  if (!user) return next(new ApiError("User not found", 404));
 
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
-
+  const roles = user.Roles.map((role) => role.role_name);
   res
     .status(200)
-    .json(new ApiResponse(200, { user }, "User retrieved successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { user: { ...user.toJSON(), roles } },
+        "User retrieved successfully"
+      )
+    );
 });
 
 /*
@@ -176,12 +177,10 @@ export const getCurrentUser = asyncHandler(async (req, res, next) => {
 export const updateUser = asyncHandler(async (req, res, next) => {
   const userId = req.user.id;
   const { name, semester, branch, hostel } = req.body;
-  // Find user by id to update that info only
-  const user = await User.findByPk(userId);
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
-  // Update only the fields that are provided
+
+  const user = await User.findByPk(userId, { include: Role });
+  if (!user) return next(new ApiError("User not found", 404));
+
   if (name !== undefined) user.name = name;
   if (semester !== undefined) user.semester = semester;
   if (branch !== undefined) user.branch = branch;
@@ -192,9 +191,16 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     `User ${user.email} updated profile at ${getCurrentUTCDateTime()}`
   );
 
+  const roles = user.Roles.map((role) => role.role_name);
   res
     .status(200)
-    .json(new ApiResponse(200, { user }, "User updated successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { user: { ...user.toJSON(), roles } },
+        "User updated successfully"
+      )
+    );
 });
 
 /*
@@ -206,14 +212,11 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
 
   const user = await User.findOne({ where: { email } });
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
-  // Create a reset token that expires in 15 minutes
+  if (!user) return next(new ApiError("User not found", 404));
+
   const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
-
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
   try {
@@ -252,10 +255,8 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
 export const resetPassword = asyncHandler(async (req, res, next) => {
   const { token, newPassword } = req.body;
 
-  if (!token) {
-    return next(new ApiError("Reset token is required", 400));
-  }
-  // Verify the token to get payload
+  if (!token) return next(new ApiError("Reset token is required", 400));
+
   let decoded;
   try {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
@@ -264,10 +265,8 @@ export const resetPassword = asyncHandler(async (req, res, next) => {
   }
 
   const user = await User.findByPk(decoded.id);
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
-  // Hash new password
+  if (!user) return next(new ApiError("User not found", 404));
+
   const hashedPassword = await bcrypt.hash(newPassword, 10);
   user.password = hashedPassword;
   await user.save();
@@ -320,9 +319,7 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
 */
 export const googleAuth = asyncHandler(async (req, res, next) => {
   const { idToken } = req.body;
-  if (!idToken) {
-    return next(new ApiError("Google idToken is required", 400));
-  }
+  if (!idToken) return next(new ApiError("Google idToken is required", 400));
 
   let ticket;
   try {
@@ -335,16 +332,15 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
   }
 
   const payload = ticket.getPayload();
-  if (!payload) {
+  if (!payload)
     return next(new ApiError("Google token payload not found", 400));
-  }
 
   const email = payload.email;
-  let user = await User.findOne({ where: { email } });
+  let user = await User.findOne({ where: { email }, include: Role });
   if (!user) {
     const { registrationNumber, graduationYear } =
       extractRegistrationDetails(email);
-    // Create a new user using details from Google.
+
     user = await User.create({
       email,
       name: payload.name,
@@ -353,10 +349,19 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
       graduation_year: graduationYear,
       isVerified: true, // Since Google auth already verifies the email.
     });
+
+    // Assign default role to new user
+    const userRole = await Role.findOne({ where: { role_name: "user" } });
+    if (userRole) {
+      await UserRole.create({ user_id: user.id, role_id: userRole.id });
+    }
+
     console.log(`New user created via Google Auth for ${email}`);
   }
+
+  const roles = user.Roles.map((role) => role.role_name);
   const token = jwt.sign(
-    { id: user.id, email: user.email },
+    { id: user.id, email: user.email, roles },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
@@ -377,7 +382,7 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
     .json(
       new ApiResponse(
         200,
-        { user: { id: user.id, email: user.email, name: user.name } },
+        { user: { id: user.id, email: user.email, name: user.name, roles } },
         "Google authentication successful"
       )
     );
@@ -388,21 +393,17 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
        Email Verification
 ==============================
 */
-
 export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
 
-  const user = await User.findOne({ where: { email } });
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
+  const user = await User.findOne({ where: { email }, include: Role });
+  if (!user) return next(new ApiError("User not found", 404));
 
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
-
   const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
   try {
@@ -430,9 +431,7 @@ export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
 export const verifyEmail = asyncHandler(async (req, res, next) => {
   const { token } = req.query;
 
-  if (!token) {
-    return next(new ApiError("Verification token is required", 400));
-  }
+  if (!token) return next(new ApiError("Verification token is required", 400));
 
   let decoded;
   try {
@@ -441,16 +440,15 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Invalid or expired verification token", 400));
   }
 
-  const user = await User.findByPk(decoded.id);
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
+  const user = await User.findByPk(decoded.id, { include: Role });
+  if (!user) return next(new ApiError("User not found", 404));
 
   user.isVerified = true;
   await user.save();
 
+  const roles = user.Roles.map((role) => role.role_name);
   const authToken = jwt.sign(
-    { id: user.id, email: user.email },
+    { id: user.id, email: user.email, roles },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
@@ -471,6 +469,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
           email: user.email,
           name: user.name,
           isVerified: true,
+          roles,
         },
       },
       "Email verified successfully. You are now logged in."
@@ -478,18 +477,29 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   );
 });
 
+/*
+==============================
+       Get User By ID
+==============================
+*/
 export const getUserById = asyncHandler(async (req, res, next) => {
-  const { id } = req.params; // Get user ID from request params
+  const { id } = req.params;
 
   const user = await User.findByPk(id, {
-    attributes: { exclude: ["password"] }, // Exclude password for security
+    attributes: { exclude: ["password"] },
+    include: Role,
   });
 
-  if (!user) {
-    return next(new ApiError("User not found", 404));
-  }
+  if (!user) return next(new ApiError("User not found", 404));
 
+  const roles = user.Roles.map((role) => role.role_name);
   res
     .status(200)
-    .json(new ApiResponse(200, { user }, "User fetched successfully"));
+    .json(
+      new ApiResponse(
+        200,
+        { user: { ...user.toJSON(), roles } },
+        "User fetched successfully"
+      )
+    );
 });
