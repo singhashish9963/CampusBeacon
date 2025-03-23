@@ -2,19 +2,19 @@ import React, { useState } from "react";
 import { IoMdCall, IoMdTime, IoMdPin, IoMdPricetag } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTrash, FaShare, FaExpand } from "react-icons/fa";
-import { useLostAndFound } from "../contexts/lostandfoundContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteLostItem } from "../slices/lostAndFoundSlice";
 
 function LostItemCard({ item }) {
-  const { deleteItem } = useLostAndFound();
-  const { user } = useAuth();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [showFullImage, setShowFullImage] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleDelete = async () => {
     try {
       if (window.confirm("Are you sure you want to delete this item?")) {
-        await deleteItem(item.id);
+        await dispatch(deleteLostItem(item.id)).unwrap();
       }
     } catch (error) {
       console.error("Error deleting item:", error);

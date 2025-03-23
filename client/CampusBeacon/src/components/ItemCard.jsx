@@ -8,12 +8,12 @@ import {
 } from "react-icons/fa";
 import { IoMdCall, IoMdTime, IoMdPricetag } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
-import { useBuyAndSell } from "../contexts/buyandsellContext";
-import { useAuth } from "../contexts/AuthContext";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteItem } from "../slices/buyAndSellSlice";
 
 function ItemCard({ item }) {
-  const { deleteItem } = useBuyAndSell();
-  const { user } = useAuth();
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
   const [isLiked, setIsLiked] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -21,7 +21,7 @@ function ItemCard({ item }) {
   const handleDelete = async () => {
     try {
       if (window.confirm("Are you sure you want to delete this item?")) {
-        await deleteItem(item.id);
+        await dispatch(deleteItem(item.id)).unwrap();
       }
     } catch (error) {
       console.error("Error deleting item:", error);

@@ -9,6 +9,7 @@ import eateriesReducer from "./slices/eateriesSlice";
 import contactsReducer from "./slices/contactSlice";
 import buyAndSellReducer from "./slices/buyandsellSlice";
 import notificationReducer from "./slices/notificationSlice";
+import lostAndFoundReducer from "./slices/lostAndFoundSlice";
 
 const persistConfig = {
   key: "root",
@@ -25,6 +26,7 @@ const rootReducer = combineReducers({
   contacts: contactsReducer,
   notification: notificationReducer,
   buyAndSell: buyAndSellReducer,
+  lostAndFound: lostAndFoundReducer,
 });
 
 // Create the persisted reducer

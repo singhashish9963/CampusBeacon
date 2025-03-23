@@ -13,14 +13,17 @@ import {
   SortAsc,
   AlertCircle,
 } from "lucide-react";
-import { useLostAndFound } from "../contexts/lostandfoundContext";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchLostItems,
+  addLostItem,
+  clearLostAndFoundError,
+} from "../slices/lostAndFoundSlice";
 import LostItemCard from "../components/LostItemCard";
 
 const LostAndFound = () => {
-  // Using our lost and found context (if you decide to move that into Redux, update accordingly)
-  const { items, addItem, fetchItems, loading } = useLostAndFound();
-  // Now get auth data from the auth slice in Redux instead of using context
+  const dispatch = useDispatch();
+  const { items, loading, error } = useSelector((state) => state.lostAndFound);
   const { user } = useSelector((state) => state.auth);
 
   const [activeTab, setActiveTab] = useState("browse");
@@ -41,9 +44,19 @@ const LostAndFound = () => {
 
   useEffect(() => {
     if (activeTab === "browse") {
-      fetchItems();
+      dispatch(fetchLostItems());
     }
-  }, [activeTab, fetchItems]);
+  }, [activeTab, dispatch]);
+
+  useEffect(() => {
+    if (error) {
+      setNotification({
+        type: "error",
+        message: error,
+      });
+      dispatch(clearLostAndFoundError());
+    }
+  }, [error, dispatch]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -66,32 +79,25 @@ const LostAndFound = () => {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const submitListing = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData();
       Object.keys(listingItem).forEach((key) => {
-        if (key === "image" && listingItem[key]) {
-          formData.append(key, listingItem[key]);
-        } else if (key !== "image") {
-          formData.append(key, listingItem[key]);
-        }
+        formData.append(key, listingItem[key]);
       });
 
-      await addItem(formData);
-      showNotification("Item successfully listed!");
+      await dispatch(addLostItem(formData)).unwrap();
       setActiveTab("browse");
-      setListingItem({
-        item_name: "",
-        description: "",
-        location_found: "",
-        owner_contact: "",
-        category: "",
-        image: null,
+      setNotification({
+        type: "success",
+        message: "Item reported successfully!",
       });
-    } catch (error) {
-      showNotification("Failed to list item", "error");
-      console.error("Failed to list item:", error);
+    } catch (err) {
+      setNotification({
+        type: "error",
+        message: err.message || "Error reporting item",
+      });
     }
   };
 
@@ -301,7 +307,7 @@ const LostAndFound = () => {
               className="flex justify-center"
             >
               <form
-                onSubmit={submitListing}
+                onSubmit={handleSubmit}
                 className="bg-gray-800/30 backdrop-blur-sm p-8 rounded-xl shadow-xl max-w-2xl w-full border border-white/10"
               >
                 <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-400 to-purple-400 bg-clip-text text-transparent">

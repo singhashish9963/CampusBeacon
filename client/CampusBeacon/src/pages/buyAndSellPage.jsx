@@ -16,18 +16,16 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ItemCard from "../components/ItemCard";
-import { useBuyAndSell } from "../contexts/buyandsellContext";
 import { useDispatch, useSelector } from "react-redux";
+import { createItem, getAllItems, clearError } from "../slices/buyAndSellSlice";
 
 const Marketplace = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  // Get authentication state from authSlice using Redux
+  // Get state from Redux
   const { isAuthenticated } = useSelector((state) => state.auth);
-
-  const { items, loading, error, createItem, getAllItems, clearError } =
-    useBuyAndSell();
+  const { items, loading, error } = useSelector((state) => state.buyAndSell);
 
   const [activeTab, setActiveTab] = useState("browse");
   const [searchTerm, setSearchTerm] = useState("");
@@ -73,7 +71,7 @@ const Marketplace = () => {
           navigate("/login", { state: { from: "/marketplace" } });
           return;
         }
-        await getAllItems();
+        await dispatch(getAllItems());
       } catch (err) {
         showNotification(err.message, "error");
         if (
@@ -89,9 +87,9 @@ const Marketplace = () => {
       fetchItems();
     }
     return () => {
-      clearError();
+      dispatch(clearError());
     };
-  }, [activeTab, isAuthenticated, navigate, getAllItems, clearError]);
+  }, [activeTab, isAuthenticated, navigate, dispatch]);
 
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
@@ -114,35 +112,37 @@ const Marketplace = () => {
     }
   };
 
-  const submitListing = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const formData = new FormData();
       Object.keys(listingItem).forEach((key) => {
-        if (key === "image" && listingItem[key]) {
-          formData.append(key, listingItem[key]);
-        } else if (key !== "image") {
-          formData.append(key, listingItem[key]);
-        }
+        formData.append(key, listingItem[key]);
       });
 
-      await createItem(formData);
-      showNotification("Item listed successfully!");
+      await dispatch(createItem(formData)).unwrap();
       setActiveTab("browse");
-      setListingItem({
-        item_name: "",
-        price: "",
-        category: "",
-        description: "",
-        item_condition: "",
-        owner_contact: "",
-        image: null,
+      setNotification({
+        type: "success",
+        message: "Item listed successfully!",
       });
     } catch (err) {
-      showNotification("Failed to list item", "error");
-      console.error("Error creating item:", err);
+      setNotification({
+        type: "error",
+        message: err.message || "Error listing item",
+      });
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      setNotification({
+        type: "error",
+        message: error,
+      });
+      dispatch(clearError());
+    }
+  }, [error, dispatch]);
 
   const filteredAndSortedItems = React.useMemo(() => {
     let filtered = items.filter((item) => {
@@ -382,7 +382,7 @@ const Marketplace = () => {
               className="flex justify-center"
             >
               <form
-                onSubmit={submitListing}
+                onSubmit={handleSubmit}
                 className="bg-gray-800/30 backdrop-blur-sm p-8 rounded-xl border border-white/10 shadow-xl max-w-2xl w-full"
               >
                 <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-400 to-purple-400 bg-clip-text text-transparent">
