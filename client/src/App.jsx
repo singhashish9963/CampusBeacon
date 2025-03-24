@@ -7,7 +7,6 @@ import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/user/ProfilePage";
 import Marketplace from "./pages/marketplace/BuyAndSellPage";
 import LostAndFound from "./pages/services/LostAndFound";
-import HostelSelectionPage from "./pages/hostel/index";
 import HostelPage from "./pages/hostel/HostelPage";
 import ProtectedRoute from "./components/features/auth/ProtectedRoute";
 import AboutUs from "./pages/utility/AboutUs";
@@ -25,14 +24,6 @@ import MNNITFactsGenerator from "./pages/utility/FactsGenerator";
 import CampusExplorer from "./pages/utility/CampusExplorer";
 import MNNITTimeCapsule from "./pages/utility/MNNITTimeCapsule";
 import RideShare from "./pages/services/RideShare";
-import RidesProvider from "./contexts/ridesContext";
-import {
-  HostelNotificationsProvider,
-  HostelProvider,
-  MenuProvider,
-  OfficialProvider,
-  ComplaintProvider,
-} from "./contexts/hostelContext";
 
 import ChatTestPage from "./pages/chat/ChatTestPage";
 import AdminPanel from "./pages/admin/AdminPanel";
@@ -59,8 +50,6 @@ function App() {
             <Route path="/time" element={<MNNITTimeCapsule />} />
             <Route path="/rides" element={<RideShare />} />
             <Route path="/contact" element={<ContactsDisplay />} />
-            <Route path="/hostels" element={<HostelSelectionPage />} />
-            <Route path="/hostels/:hostelId" element={<HostelPage />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
@@ -70,7 +59,7 @@ function App() {
               <Route path="/chat" element={<ChatTestPage />} />
               <Route path="/lost-found" element={<LostAndFound />} />
               <Route path="/resource" element={<ResourcesPage />} />
-
+              <Route path="/hostels/:hostelId" element={<HostelPage />} />
               <Route path="/eatries" element={<CollegeEateries />} />
             </Route>
             {/* Redirect unknown paths */}
