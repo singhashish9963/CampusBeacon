@@ -7,8 +7,8 @@ import HomePage from "./pages/HomePage";
 import ProfilePage from "./pages/user/ProfilePage";
 import Marketplace from "./pages/marketplace/BuyAndSellPage";
 import LostAndFound from "./pages/services/LostAndFound";
-import SVBH from "./pages/hostel/SVBH";
-import DJGH from "./pages/hostel/DJGH";
+import HostelSelectionPage from "./pages/hostel/index";
+import HostelPage from "./pages/hostel/HostelPage";
 import ProtectedRoute from "./components/features/auth/ProtectedRoute";
 import AboutUs from "./pages/utility/AboutUs";
 import ContactsDisplay from "./pages/utility/ContactPage";
@@ -37,69 +37,48 @@ import {
 import ChatTestPage from "./pages/chat/ChatTestPage";
 import AdminPanel from "./pages/admin/AdminPanel";
 
-
 function App() {
   return (
     <BrowserRouter>
-    
-                  <div className="flex flex-col min-h-screen">
-                    <NavBar />
-                    <main className="flex-grow">
-                      <Routes>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/login" element={<LoginSignup />} />
-                        <Route
-                          path="/reset-password"
-                          element={<ResetPassword />}
-                        />
-                        <Route
-                          path="/verify-email"
-                          element={<EmailVerification />}
-                        />
-                        <Route path="/policy" element={<PrivacyPolicy />} />
-                        <Route path="/about" element={<AboutUs />} />
-                        <Route path="/terms" element={<TermsOfService />} />
-                        <Route path="/404" element={<NotFound />} />
-                        <Route path="/500" element={<ServerError />} />
-                        <Route path="/maintenance" element={<Maintenance />} />
-                        <Route
-                          path="/facts"
-                          element={<MNNITFactsGenerator />}
-                        />
-                        <Route path="/explore" element={<CampusExplorer />} />
-                        <Route path="/time" element={<MNNITTimeCapsule />} />
-                        <Route path="/rides" element={<RideShare />} />
-                        <Route path="/contact" element={<ContactsDisplay />} />
-                        <Route path="/SVBH" element={<SVBH />} />
-                        <Route path="/DJGH" element={<DJGH />} />
-                       
-                        {/* Protected Routes */}
-                        <Route element={<ProtectedRoute />}>
-                          <Route path="/profile" element={<ProfilePage />} />
-                          <Route
-                            path="/marketplace"
-                            element={<Marketplace />}
-                          />
-                          <Route path="/god/*" element={<AdminPanel />} />
-                          <Route path="/chat" element={<ChatTestPage />} />
-                          <Route
-                            path="/lost-found"
-                            element={<LostAndFound />}
-                          />
-                          <Route path="/resource" element={<ResourcesPage />} />
+      <div className="flex flex-col min-h-screen">
+        <NavBar />
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginSignup />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<EmailVerification />} />
+            <Route path="/policy" element={<PrivacyPolicy />} />
+            <Route path="/about" element={<AboutUs />} />
+            <Route path="/terms" element={<TermsOfService />} />
+            <Route path="/404" element={<NotFound />} />
+            <Route path="/500" element={<ServerError />} />
+            <Route path="/maintenance" element={<Maintenance />} />
+            <Route path="/facts" element={<MNNITFactsGenerator />} />
+            <Route path="/explore" element={<CampusExplorer />} />
+            <Route path="/time" element={<MNNITTimeCapsule />} />
+            <Route path="/rides" element={<RideShare />} />
+            <Route path="/contact" element={<ContactsDisplay />} />
+            <Route path="/hostels" element={<HostelSelectionPage />} />
+            <Route path="/hostels/:hostelId" element={<HostelPage />} />
 
-                          <Route
-                            path="/eatries"
-                            element={<CollegeEateries />}
-                          />
-                        </Route>
-                        {/* Redirect unknown paths */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
-                    </main>
-                    <Footer />
-                  </div>
-              
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/marketplace" element={<Marketplace />} />
+              <Route path="/god/*" element={<AdminPanel />} />
+              <Route path="/chat" element={<ChatTestPage />} />
+              <Route path="/lost-found" element={<LostAndFound />} />
+              <Route path="/resource" element={<ResourcesPage />} />
+
+              <Route path="/eatries" element={<CollegeEateries />} />
+            </Route>
+            {/* Redirect unknown paths */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </BrowserRouter>
   );
 }

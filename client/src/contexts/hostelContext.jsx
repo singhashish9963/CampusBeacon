@@ -630,4 +630,5 @@ export const HostelNotificationsProvider = ({ children }) => {
   );
 };
 
-export const useHostelNotifications = () => useContext(HostelNotificationsContext);
+export const useHostelNotifications = () =>
+  useContext(HostelNotificationsContext);

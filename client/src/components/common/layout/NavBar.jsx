@@ -14,6 +14,8 @@ import {
   HiAcademicCap,
 } from "react-icons/hi";
 import { handleLogout } from "../../../slices/authSlice";
+import { getAllHostels } from "../../../slices/hostelSlice";
+import { Building } from "lucide-react";
 
 // DropdownMenu component to show dropdown options
 const DropdownMenu = ({ title, options, dropdownKey, icon: Icon }) => {
@@ -75,6 +77,8 @@ function NavBar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  const { hostels } = useSelector((state) => state.hostel);
+  const [showHostelMenu, setShowHostelMenu] = useState(false);
 
   // Get authentication state using authSlice from Redux
   const { isAuthenticated, loading, user, roles } = useSelector(
@@ -85,6 +89,17 @@ function NavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const showTimeoutRef = useRef(null);
 
+  const navigation = [
+    { name: "Home", href: "/" },
+    { name: "Hostels", href: "/hostels" },
+    { name: "Marketplace", href: "/marketplace" },
+    { name: "Lost & Found", href: "/lost-found" },
+    { name: "Resources", href: "/resource" },
+    { name: "Eateries", href: "/eatries" },
+    { name: "Ride Share", href: "/rides" },
+    { name: "Contact", href: "/contact" },
+  ];
+
   // Define main links based on authentication status
   const mainLinks = isAuthenticated
     ? [
@@ -92,44 +107,10 @@ function NavBar() {
         { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
         { name: "Buy & Sell", path: "/marketplace", icon: HiShoppingBag },
         { name: "Profile", path: "/profile", icon: HiUser },
-        { name: "Hostel", path: "/hostels", icon: HiUser },
       ]
     : [{ name: "Home", path: "/", icon: HiHome }];
 
   // Options for dropdown menus
-  const hostelAdminOptions = [
-    {
-      name: "Menu Create",
-      path: "/Menu",
-      description: "Crud on Menu",
-    },
-    {
-      name: "Hostel Create",
-      path: "/hostelcreate",
-      description: "CRUD on hostel",
-    },
-    {
-      name: "Official Create",
-      path: "/official",
-      description: "Crud on official",
-    },
-    {
-      name: "Complaints Create",
-      path: "/complaints",
-      description: "Crud on complaints",
-    },
-    {
-      name: "Hostel Notifications Create",
-      path: "/hostel-notification",
-      description: "Crud on hostel notifications",
-    },
-    {
-      name: "ViewPage Hostel Create",
-      path: "/viewpagehostel",
-      description: "-",
-    },
-  ];
-
   const hostelOptions = [
     {
       name: "SVBH",
@@ -212,10 +193,11 @@ function NavBar() {
   };
 
   useEffect(() => {
+    dispatch(getAllHostels());
     return () => {
       if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
     };
-  }, []);
+  }, [dispatch]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -265,29 +247,6 @@ function NavBar() {
                 ))}
                 {isAuthenticated && (
                   <>
-                    {/* Mobile HostelAdmin Section */}
-                    <div className="mt-4 border-t border-white/10 pt-4">
-                      <div className="px-4 py-2 text-sm text-gray-400">
-                        HostelAdmin
-                      </div>
-                      {hostelAdminOptions.map((option) => (
-                        <Link
-                          key={option.name}
-                          to={option.path}
-                          className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
-                        >
-                          <HiOfficeBuilding className="w-6 h-6" />
-                          <div>
-                            <div>{option.name}</div>
-                            {option.description && (
-                              <div className="text-sm text-gray-400">
-                                {option.description}
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
                     {/* Mobile Hostels Section */}
                     <div className="mt-4 border-t border-white/10 pt-4">
                       <div className="px-4 py-2 text-sm text-gray-400">
@@ -402,18 +361,46 @@ function NavBar() {
                     ))}
                     {isAuthenticated && (
                       <>
-                        <DropdownMenu
-                          title="HostelAdmin"
-                          options={hostelAdminOptions}
-                          dropdownKey="hostelAdmin"
-                          icon={HiOfficeBuilding}
-                        />
-                        <DropdownMenu
-                          title="Hostel"
-                          options={hostelOptions}
-                          dropdownKey="hostel"
-                          icon={HiOfficeBuilding}
-                        />
+                        {/* Updated Hostel Dropdown */}
+                        <div className="relative group">
+                          <button
+                            className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors relative group"
+                            onMouseEnter={() => setShowHostelMenu(true)}
+                          >
+                            <Building className="w-5 h-5" />
+                            <span>Hostels</span>
+                            <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
+                          </button>
+
+                          <div
+                            className="absolute left-0 pt-2"
+                            onMouseLeave={() => setShowHostelMenu(false)}
+                          >
+                            <AnimatePresence>
+                              {showHostelMenu && (
+                                <motion.div
+                                  initial={{ opacity: 0, y: 10 }}
+                                  animate={{ opacity: 1, y: 0 }}
+                                  exit={{ opacity: 0, y: 10 }}
+                                  className="w-64 bg-black/70 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10"
+                                >
+                                  {hostels.map((hostel) => (
+                                    <Link
+                                      key={hostel.hostel_id}
+                                      to={`/hostels/${hostel.hostel_id}`}
+                                      className="block px-4 py-3 text-gray-300 hover:bg-white/10 hover:text-white transition-colors"
+                                    >
+                                      <div className="font-medium">
+                                        {hostel.hostel_name}
+                                      </div>
+                                    </Link>
+                                  ))}
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
+                          </div>
+                        </div>
+
                         <DropdownMenu
                           title="Academics"
                           options={academicsOptions}
