@@ -33,27 +33,15 @@ import {
   OfficialProvider,
   ComplaintProvider,
 } from "./contexts/hostelContext";
-import Dashboard from "./pages/hostel/Dashboard";
+
 import ChatTestPage from "./pages/chat/ChatTestPage";
 import AdminPanel from "./pages/admin/AdminPanel";
-import MenuPage from "./pages/hostel/MenuPage";
-import HostelPage from "./pages/hostel/HostelPage";
-import AdminHostelPage from "./pages/hostel/AdminHostelPage";
-import OfficialPage from "./pages/hostel/OfficialPage";
-import ComplaintPage from "./pages/hostel/ComplaintPage";
-import NotificationsPage from "./pages/hostel/NotificationPage";
-import SeeHostel from "./pages/hostel/SeeHostel";
-import HostelSelector from "./pages/hostel/HostelSelector";
+
 
 function App() {
   return (
     <BrowserRouter>
-      <HostelProvider>
-        <MenuProvider>
-          <OfficialProvider>
-            <HostelNotificationsProvider>
-              <ComplaintProvider>
-                <RidesProvider>
+    
                   <div className="flex flex-col min-h-screen">
                     <NavBar />
                     <main className="flex-grow">
@@ -84,22 +72,7 @@ function App() {
                         <Route path="/contact" element={<ContactsDisplay />} />
                         <Route path="/SVBH" element={<SVBH />} />
                         <Route path="/DJGH" element={<DJGH />} />
-                        <Route path="/Menu" element={<MenuPage />} />
-                        <Route
-                          path="/hostelcreate"
-                          element={<AdminHostelPage />}
-                        />
-                        <Route path="/official" element={<OfficialPage />} />
-                        <Route path="/complaints" element={<ComplaintPage />} />
-                        <Route
-                          path="/hostel-notification"
-                          element={<NotificationsPage />}
-                        />
-                        <Route
-                          path="/viewpagehostel"
-                          element={<HostelSelector />}
-                        />
-                        <Route path="/dashboard" element={<Dashboard />} />
+                       
                         {/* Protected Routes */}
                         <Route element={<ProtectedRoute />}>
                           <Route path="/profile" element={<ProfilePage />} />
@@ -126,12 +99,7 @@ function App() {
                     </main>
                     <Footer />
                   </div>
-                </RidesProvider>
-              </ComplaintProvider>
-            </HostelNotificationsProvider>
-          </OfficialProvider>
-        </MenuProvider>
-      </HostelProvider>
+              
     </BrowserRouter>
   );
 }
