@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Phone, Mail } from "lucide-react";
 import { FaUsersGear } from "react-icons/fa6";
@@ -6,16 +6,35 @@ import { useSelector, useDispatch } from "react-redux";
 import { deleteOfficial } from "../../../slices/hostelSlice";
 
 const Officials = ({ hostelId }) => {
-  const { officials, loading } = useSelector((state) => state.hostel);
+  const { officials, loading, error } = useSelector((state) => state.hostel);
   const dispatch = useDispatch();
 
+  // Memoize filtered officials for the current hostel
+  const hostelOfficials = useMemo(() => {
+    if (!Array.isArray(officials[hostelId])) return [];
+    return officials[hostelId];
+  }, [officials, hostelId]);
+
   const handleDeleteOfficial = async (officialId) => {
+    if (!officialId) return;
     try {
       await dispatch(deleteOfficial({ hostelId, officialId })).unwrap();
     } catch (error) {
       console.error("Error deleting official:", error);
     }
   };
+
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-red-500/50"
+      >
+        <p className="text-red-400">Error: {error}</p>
+      </motion.div>
+    );
+  }
 
   if (loading) {
     return (
@@ -50,7 +69,7 @@ const Officials = ({ hostelId }) => {
         <FaUsersGear className="mr-2" /> Hostel Officials
       </h2>
       <div className="space-y-4">
-        {officials[hostelId]?.map((official) => (
+        {hostelOfficials.map((official) => (
           <motion.div
             key={official.official_id}
             initial={{ opacity: 0, x: -20 }}

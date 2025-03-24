@@ -1,7 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { HiOutlineCalendar, HiPencil, HiTrash } from "react-icons/hi";
+import {
+  HiOutlineCalendar,
+  HiPencil,
+  HiTrash,
+  HiViewList,
+} from "react-icons/hi";
 import {
   createMenu,
   updateMenuMeal,
@@ -14,6 +19,7 @@ const MessMenu = ({ hostelId }) => {
   const { user, roles } = useSelector((state) => state.auth);
   const [isEditing, setIsEditing] = useState(false);
   const [editingDay, setEditingDay] = useState(null);
+  const [showAllMenus, setShowAllMenus] = useState(false);
   const [formData, setFormData] = useState({
     day: "",
     breakfast: "",
@@ -25,8 +31,37 @@ const MessMenu = ({ hostelId }) => {
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
 
+  const days = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  // Get today's menu
+  const today = useMemo(() => {
+    const dayIndex = new Date().getDay(); // 0 = Sunday, 1 = Monday, etc.
+    return days[dayIndex];
+  }, []);
+
+  // Filter menus based on showAllMenus flag
+  const hostelMenus = useMemo(() => {
+    const allMenus = menus[hostelId] || [];
+    if (!showAllMenus) {
+      return allMenus.filter((menu) => menu.day === today);
+    }
+    return allMenus;
+  }, [menus, hostelId, showAllMenus, today]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.day) {
+      console.error("Day is required");
+      return;
+    }
     try {
       await dispatch(
         createMenu({
@@ -50,7 +85,7 @@ const MessMenu = ({ hostelId }) => {
 
   const handleEdit = (day) => {
     setEditingDay(day);
-    const menu = menus[hostelId]?.find((m) => m.day === day);
+    const menu = (menus[hostelId] || []).find((m) => m.day === day);
     if (menu) {
       setFormData({
         day: menu.day,
@@ -104,16 +139,6 @@ const MessMenu = ({ hostelId }) => {
     setEditingDay(null);
   };
 
-  const days = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-  ];
-
   if (loading) {
     return (
       <div className="animate-pulse">
@@ -136,17 +161,28 @@ const MessMenu = ({ hostelId }) => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <HiOutlineCalendar className="w-6 h-6 text-purple-400" />
-          <h2 className="text-xl font-semibold text-white">Mess Menu</h2>
+          <h2 className="text-xl font-semibold text-white">
+            {showAllMenus ? "Weekly Mess Menu" : "Today's Menu"}
+          </h2>
         </div>
-        {(isAdmin || isHostelPresident) && (
+        <div className="flex items-center space-x-3">
           <button
-            onClick={() => setIsEditing(true)}
+            onClick={() => setShowAllMenus(!showAllMenus)}
             className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors"
           >
-            <HiOutlineCalendar className="w-5 h-5" />
-            <span>Add Menu</span>
+            <HiViewList className="w-5 h-5" />
+            <span>{showAllMenus ? "Show Today's Menu" : "View All Menus"}</span>
           </button>
-        )}
+          {(isAdmin || isHostelPresident) && (
+            <button
+              onClick={() => setIsEditing(true)}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-400 rounded-lg transition-colors"
+            >
+              <HiOutlineCalendar className="w-5 h-5" />
+              <span>Add Menu</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {(isAdmin || isHostelPresident) && (isEditing || editingDay) && (
@@ -237,64 +273,88 @@ const MessMenu = ({ hostelId }) => {
               type="submit"
               className="px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-colors"
             >
-              {isEditing ? "Update Menu" : "Add Menu"}
+              {editingDay ? "Update Menu" : "Add Menu"}
             </button>
           </div>
         </form>
       )}
 
-      {errors.menu && (
+      {errors?.menu && (
         <div className="mb-4 p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400">
           {errors.menu}
         </div>
       )}
 
-      <div className="space-y-4">
-        {days.map((day) => {
-          const menu = menus[hostelId]?.find((m) => m.day === day);
-          return (
-            <div
-              key={day}
-              className="bg-black/20 backdrop-blur-sm rounded-lg p-4 border border-white/5"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-lg font-medium text-white">{day}</h3>
-                {(isAdmin || isHostelPresident) && (
-                  <button
-                    onClick={() => handleEdit(day)}
-                    className="text-purple-400 hover:text-purple-300 transition-colors"
-                  >
-                    <HiPencil className="w-5 h-5" />
-                  </button>
+      <div className="space-y-6">
+        {!showAllMenus && hostelMenus.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400">
+              No menu available for today ({today})
+            </p>
+          </div>
+        )}
+        {showAllMenus && hostelMenus.length === 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400">No menus available for this week</p>
+          </div>
+        )}
+        {hostelMenus.map((menu) => (
+          <div
+            key={menu.day}
+            className="bg-black/20 rounded-lg p-4 border border-white/5"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium text-white">
+                {menu.day}{" "}
+                {!showAllMenus && (
+                  <span className="text-purple-400">(Today)</span>
                 )}
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {["breakfast", "lunch", "snacks", "dinner"].map((meal) => (
-                  <div key={meal} className="relative group">
-                    <div className="bg-black/30 rounded-lg p-3">
-                      <h4 className="text-sm font-medium text-gray-300 mb-1 capitalize">
-                        {meal}
-                      </h4>
-                      <p className="text-white">
-                        {menu?.[meal] || "Not specified"}
-                      </p>
-                    </div>
-                    {(isAdmin || isHostelPresident) && (
-                      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleDeleteMeal(day, meal)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
-                        >
-                          <HiTrash className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+              </h3>
+              {(isAdmin || isHostelPresident) && (
+                <button
+                  onClick={() => handleEdit(menu.day)}
+                  className="text-purple-400 hover:text-purple-300"
+                >
+                  <HiPencil className="w-5 h-5" />
+                </button>
+              )}
             </div>
-          );
-        })}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {menu.breakfast && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">
+                    Breakfast
+                  </h4>
+                  <p className="text-white">{menu.breakfast}</p>
+                </div>
+              )}
+              {menu.lunch && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">
+                    Lunch
+                  </h4>
+                  <p className="text-white">{menu.lunch}</p>
+                </div>
+              )}
+              {menu.snacks && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">
+                    Snacks
+                  </h4>
+                  <p className="text-white">{menu.snacks}</p>
+                </div>
+              )}
+              {menu.dinner && (
+                <div>
+                  <h4 className="text-sm font-medium text-gray-400 mb-1">
+                    Dinner
+                  </h4>
+                  <p className="text-white">{menu.dinner}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </motion.div>
   );

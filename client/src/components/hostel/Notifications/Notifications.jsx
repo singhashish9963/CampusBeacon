@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Bell, Plus, XCircle } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
@@ -8,10 +8,13 @@ import {
 } from "../../../slices/hostelSlice";
 
 const Notifications = ({ hostelId }) => {
-  const { notifications, loading } = useSelector((state) => state.hostel);
+  const { notifications, loading, error } = useSelector(
+    (state) => state.hostel
+  );
   const { roles } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [isCreating, setIsCreating] = useState(false);
+  const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({
     message: "",
     type: "info",
@@ -20,8 +23,21 @@ const Notifications = ({ hostelId }) => {
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
 
+  // Memoize filtered notifications for the current hostel
+  const hostelNotifications = useMemo(() => {
+    if (!Array.isArray(notifications[hostelId])) return [];
+    return notifications[hostelId];
+  }, [notifications, hostelId]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
+
+    if (!formData.message.trim()) {
+      setFormError("Message is required");
+      return;
+    }
+
     try {
       await dispatch(
         createNotification({
@@ -35,11 +51,13 @@ const Notifications = ({ hostelId }) => {
       });
       setIsCreating(false);
     } catch (error) {
+      setFormError(error.message || "Error creating notification");
       console.error("Error creating notification:", error);
     }
   };
 
   const handleDeleteNotification = async (notificationId) => {
+    if (!notificationId) return;
     try {
       await dispatch(deleteNotification({ hostelId, notificationId })).unwrap();
     } catch (error) {
@@ -77,6 +95,18 @@ const Notifications = ({ hostelId }) => {
     );
   }
 
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-red-500/50"
+      >
+        <p className="text-red-400">Error: {error}</p>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -108,11 +138,14 @@ const Notifications = ({ hostelId }) => {
             <textarea
               value={formData.message}
               onChange={(e) =>
-                setFormData({ ...formData, message: e.target.value })
+                setFormData({ ...formData, message: e.target.value.trim() })
               }
               className="w-full px-4 py-2 bg-black/50 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none"
               required
             />
+            {formError && (
+              <p className="mt-1 text-sm text-red-400">{formError}</p>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -150,7 +183,7 @@ const Notifications = ({ hostelId }) => {
 
       {/* Notifications List */}
       <div className="space-y-4">
-        {notifications[hostelId]?.map((notif) => (
+        {hostelNotifications.map((notif) => (
           <motion.div
             key={notif.notification_id}
             initial={{ opacity: 0, x: -20 }}
@@ -181,6 +214,9 @@ const Notifications = ({ hostelId }) => {
             )}
           </motion.div>
         ))}
+        {hostelNotifications.length === 0 && (
+          <p className="text-gray-400 text-center">No notifications yet</p>
+        )}
       </div>
     </motion.div>
   );

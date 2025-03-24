@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import { Wrench, CheckCircle, XCircle } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
@@ -11,12 +11,19 @@ import {
 const Complaints = ({ hostelId }) => {
   const [selectedComplaintType, setSelectedComplaintType] = useState("");
   const [complaintDescription, setComplaintDescription] = useState("");
+  const [formError, setFormError] = useState("");
   const dispatch = useDispatch();
-  const { complaints, loading } = useSelector((state) => state.hostel);
+  const { complaints, loading, error } = useSelector((state) => state.hostel);
   const { roles } = useSelector((state) => state.auth);
 
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
+
+  // Memoize filtered complaints for the current hostel
+  const hostelComplaints = useMemo(() => {
+    if (!Array.isArray(complaints[hostelId])) return [];
+    return complaints[hostelId];
+  }, [complaints, hostelId]);
 
   const complaintTypes = [
     "Maintenance Issue",
@@ -27,23 +34,36 @@ const Complaints = ({ hostelId }) => {
   ];
 
   const submitComplaint = async () => {
-    if (selectedComplaintType && complaintDescription) {
-      try {
-        const complaintData = {
-          hostel_id: hostelId,
-          complaint_type: selectedComplaintType,
-          complaint_description: complaintDescription,
-        };
-        await dispatch(createComplaint(complaintData)).unwrap();
-        setSelectedComplaintType("");
-        setComplaintDescription("");
-      } catch (error) {
-        console.error("Failed to file complaint:", error);
-      }
+    setFormError("");
+
+    if (!selectedComplaintType) {
+      setFormError("Please select a complaint type");
+      return;
+    }
+
+    if (!complaintDescription.trim()) {
+      setFormError("Please provide a complaint description");
+      return;
+    }
+
+    try {
+      const complaintData = {
+        hostel_id: hostelId,
+        complaint_type: selectedComplaintType,
+        complaint_description: complaintDescription.trim(),
+      };
+      await dispatch(createComplaint(complaintData)).unwrap();
+      setSelectedComplaintType("");
+      setComplaintDescription("");
+      setFormError("");
+    } catch (error) {
+      setFormError(error.message || "Failed to file complaint");
+      console.error("Failed to file complaint:", error);
     }
   };
 
   const handleStatusUpdate = async (complaintId, status) => {
+    if (!complaintId) return;
     try {
       await dispatch(
         updateComplaintStatus({
@@ -57,12 +77,25 @@ const Complaints = ({ hostelId }) => {
   };
 
   const handleDeleteComplaint = async (complaintId) => {
+    if (!complaintId) return;
     try {
       await dispatch(deleteComplaint(complaintId)).unwrap();
     } catch (error) {
       console.error("Failed to delete complaint:", error);
     }
   };
+
+  if (error) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="bg-black/40 backdrop-blur-lg rounded-xl p-6 border border-red-500/50"
+      >
+        <p className="text-red-400">Error: {error}</p>
+      </motion.div>
+    );
+  }
 
   if (loading) {
     return (
@@ -102,6 +135,7 @@ const Complaints = ({ hostelId }) => {
           value={selectedComplaintType}
           onChange={(e) => setSelectedComplaintType(e.target.value)}
           className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white"
+          required
         >
           <option value="">Select Type</option>
           {complaintTypes.map((type) => (
@@ -115,7 +149,9 @@ const Complaints = ({ hostelId }) => {
           onChange={(e) => setComplaintDescription(e.target.value)}
           placeholder="Describe your complaint..."
           className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white h-32 resize-none"
+          required
         />
+        {formError && <p className="text-red-400 mb-4">{formError}</p>}
         <button
           onClick={submitComplaint}
           className="w-full bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors"
@@ -129,9 +165,9 @@ const Complaints = ({ hostelId }) => {
         <h3 className="text-lg font-semibold text-white mb-4">
           Recent Complaints
         </h3>
-        {complaints[hostelId]?.map((complaint) => (
+        {hostelComplaints.map((complaint) => (
           <motion.div
-            key={complaint.id}
+            key={complaint.complaint_id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="p-4 rounded-lg border bg-black/30"
@@ -164,7 +200,7 @@ const Complaints = ({ hostelId }) => {
                   {complaint.status === "pending" && (
                     <button
                       onClick={() =>
-                        handleStatusUpdate(complaint.id, "resolved")
+                        handleStatusUpdate(complaint.complaint_id, "resolved")
                       }
                       className="text-green-500 hover:text-green-600"
                     >
@@ -173,7 +209,9 @@ const Complaints = ({ hostelId }) => {
                   )}
                   {isAdmin && (
                     <button
-                      onClick={() => handleDeleteComplaint(complaint.id)}
+                      onClick={() =>
+                        handleDeleteComplaint(complaint.complaint_id)
+                      }
                       className="text-red-500 hover:text-red-600"
                     >
                       <XCircle className="w-5 h-5" />
@@ -184,6 +222,9 @@ const Complaints = ({ hostelId }) => {
             </div>
           </motion.div>
         ))}
+        {hostelComplaints.length === 0 && (
+          <p className="text-gray-400 text-center">No complaints filed yet</p>
+        )}
       </div>
     </motion.div>
   );

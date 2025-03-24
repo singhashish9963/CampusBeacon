@@ -447,7 +447,21 @@ const hostelSlice = createSlice({
       })
       .addCase(createMenu.fulfilled, (state, action) => {
         state.loading = false;
-        state.menus[action.payload.hostel_id] = action.payload;
+        const hostelId = action.payload.hostel_id;
+        if (!state.menus[hostelId]) {
+          state.menus[hostelId] = [];
+        }
+        // Check if menu for this day already exists
+        const existingIndex = state.menus[hostelId].findIndex(
+          (menu) => menu.day === action.payload.day
+        );
+        if (existingIndex !== -1) {
+          // Update existing menu
+          state.menus[hostelId][existingIndex] = action.payload;
+        } else {
+          // Add new menu
+          state.menus[hostelId].push(action.payload);
+        }
       })
       .addCase(createMenu.rejected, (state, action) => {
         state.loading = false;
@@ -459,7 +473,10 @@ const hostelSlice = createSlice({
       })
       .addCase(getMenuByHostel.fulfilled, (state, action) => {
         state.loading = false;
-        state.menus[action.payload.hostel_id] = action.payload;
+        const hostelId = action.payload[0]?.hostel_id;
+        if (hostelId) {
+          state.menus[hostelId] = action.payload;
+        }
       })
       .addCase(getMenuByHostel.rejected, (state, action) => {
         state.loading = false;
@@ -471,9 +488,13 @@ const hostelSlice = createSlice({
       })
       .addCase(updateMenuMeal.fulfilled, (state, action) => {
         state.loading = false;
-        state.menus[action.payload.hostel_id][action.payload.day][
-          action.payload.meal
-        ] = action.payload;
+        const { hostel_id, day, meal } = action.payload;
+        const menuIndex = state.menus[hostel_id]?.findIndex(
+          (menu) => menu.day === day
+        );
+        if (menuIndex !== -1) {
+          state.menus[hostel_id][menuIndex][meal] = action.payload[meal];
+        }
       })
       .addCase(updateMenuMeal.rejected, (state, action) => {
         state.loading = false;
@@ -486,8 +507,11 @@ const hostelSlice = createSlice({
       .addCase(deleteMenuMeal.fulfilled, (state, action) => {
         state.loading = false;
         const { hostelId, day, meal } = action.payload;
-        if (state.menus[hostelId]) {
-          state.menus[hostelId][day][meal] = null;
+        const menuIndex = state.menus[hostelId]?.findIndex(
+          (menu) => menu.day === day
+        );
+        if (menuIndex !== -1) {
+          state.menus[hostelId][menuIndex][meal] = null;
         }
       })
       .addCase(deleteMenuMeal.rejected, (state, action) => {
