@@ -14,11 +14,19 @@ export const authMiddleware = asyncHandler(async (req, res, next) => {
     throw new ApiError("Not authenticated. Please log in.", 401);
   }
 
-  // It is important to ensure process.env.JWT_SECRET is defined otherwise this will throw.
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-  req.user = decoded;
-  next();
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new ApiError("Session expired. Please log in again.", 401);
+    }
+    if (error instanceof jwt.JsonWebTokenError) {
+      throw new ApiError("Invalid token. Please log in again.", 401);
+    }
+    throw new ApiError("Authentication failed. Please log in again.", 401);
+  }
 });
 
 export default authMiddleware;

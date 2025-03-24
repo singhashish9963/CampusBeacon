@@ -7,10 +7,11 @@ import authReducer from "./slices/authSlice";
 import profileReducer from "./slices/profileSlice";
 import eateriesReducer from "./slices/eateriesSlice";
 import contactsReducer from "./slices/contactSlice";
-import buyAndSellReducer from "./slices/buyandsellSlice";
+import buyAndSellReducer from "./slices/buyAndSellSlice";
 import notificationReducer from "./slices/notificationSlice";
 import lostAndFoundReducer from "./slices/lostAndFoundSlice";
 import chatbotReducer from "./slices/chatbotSlice";
+import hostelReducer from "./slices/hostelSlice";
 
 const persistConfig = {
   key: "root",
@@ -29,6 +30,7 @@ const rootReducer = combineReducers({
   buyAndSell: buyAndSellReducer,
   lostAndFound: lostAndFoundReducer,
   chatbot: chatbotReducer,
+  hostel: hostelReducer,
 });
 
 // Create the persisted reducer

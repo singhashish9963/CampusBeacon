@@ -54,36 +54,27 @@ const LoginSignup = () => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-
-    const toastId = toast.info(`Processing ${type} request...`, {
-      position: "top-right",
-      autoClose: 2000,
-    });
+    dispatch(clearError());
 
     try {
       let response;
       if (type === "forgotPassword") {
         const email = e.target.email.value;
         response = await dispatch(handleForgetPassword(email)).unwrap();
-        if (response && response.success) {
-          toast.info("Password reset link sent to your email", {
-            position: "top-center",
-            autoClose: 4000,
-          });
-          setAuthMode("default");
-        }
+        toast.success("Password reset link sent to your email", {
+          position: "top-center",
+          autoClose: 4000,
+        });
+        setAuthMode("default");
       } else {
         const email = e.target.email.value;
         const password = e.target.password.value;
+
         if (type === "signUp") {
           response = await dispatch(handleSignUp({ email, password })).unwrap();
         } else {
           response = await dispatch(handleSignIn({ email, password })).unwrap();
         }
-      }
-
-      if (!response?.success) {
-        throw new Error(response?.message || "Authentication failed");
       }
     } catch (err) {
       setError(err.message || "An error occurred");
@@ -93,7 +84,6 @@ const LoginSignup = () => {
       });
     } finally {
       setIsLoading(false);
-      toast.dismiss(toastId);
     }
   };
 

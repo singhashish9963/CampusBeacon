@@ -289,14 +289,32 @@ export const editOfficial = asyncHandler(async (req, res, next) => {
 
 export const deleteOfficial = asyncHandler(async (req, res, next) => {
   const { official_id } = req.params;
+
+  if (!official_id) {
+    throw new ApiError("Official ID is required", 400);
+  }
+
   const official = await Official.findByPk(official_id);
+
   if (!official) {
     throw new ApiError("Official not found", 404);
   }
-  await official.destroy();
-  res
-    .status(200)
-    .json(new ApiResponse(200, null, "Official deleted successfully"));
+
+  try {
+    await official.destroy();
+    res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          { officialId: official_id },
+          "Official deleted successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Error deleting official:", error);
+    throw new ApiError("Failed to delete official", 500);
+  }
 });
 
 /*
@@ -304,14 +322,14 @@ export const deleteOfficial = asyncHandler(async (req, res, next) => {
        Complaint Controllers 
 =============================
 */
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail', // or another email service
+  service: "gmail", // or another email service
   auth: {
     user: process.env.EMAIL_USERNAME,
-    pass: process.env.EMAIL_PASSWORD
-  }
+    pass: process.env.EMAIL_PASSWORD,
+  },
 });
 const sendComplaintEmail = async (complaint) => {
   try {
@@ -323,23 +341,26 @@ const sendComplaintEmail = async (complaint) => {
         <h2>New Complaint Submitted</h2>
         <p><strong>Complaint ID:</strong> ${complaint.complaint_id}</p>
         <p><strong>Hostel:</strong> ${complaint.hostel_id}</p>
-        <p><strong>Student:</strong> ${complaint.student_name} (${complaint.student_email})</p>
+        <p><strong>Student:</strong> ${complaint.student_name} (${
+        complaint.student_email
+      })</p>
         <p><strong>Complaint Type:</strong> ${complaint.complaint_type}</p>
         <p><strong>Description:</strong> ${complaint.complaint_description}</p>
-        <p><strong>Due Date:</strong> ${new Date(complaint.due_date).toLocaleDateString()}</p>
+        <p><strong>Due Date:</strong> ${new Date(
+          complaint.due_date
+        ).toLocaleDateString()}</p>
         <p>Please address this complaint before the due date.</p>
-      `
+      `,
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent: ' + info.response);
+    console.log("Email sent: " + info.response);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error("Error sending email:", error);
     return false;
   }
 };
-
 
 export const createComplaint = asyncHandler(async (req, res) => {
   const {
@@ -414,9 +435,6 @@ export const getComplaintById = asyncHandler(async (req, res, next) => {
 export const getComplaintsByHostel = asyncHandler(async (req, res, next) => {
   const { hostel_id } = req.params;
   const complaints = await Complaint.findAll({ where: { hostel_id } });
-  if (!complaints.length) {
-    throw new ApiError("No complaints found for this hostel", 404);
-  }
   res
     .status(200)
     .json(
@@ -524,7 +542,9 @@ export const getHostelNotifications = asyncHandler(async (req, res) => {
   const { hostel_id } = req.params;
   const hostel = await Hostel.findByPk(hostel_id);
   if (!hostel) throw new ApiError("Hostel not found", 404);
-  const notifications = await HostelNotification.findAll({ where: { hostel_id } });
+  const notifications = await HostelNotification.findAll({
+    where: { hostel_id },
+  });
   res
     .status(200)
     .json(
@@ -563,7 +583,9 @@ export const updateNotification = asyncHandler(async (req, res) => {
 
 export const deleteNotification = asyncHandler(async (req, res) => {
   const { notification_id } = req.params;
-  const deleted = await HostelNotification.destroy({ where: { notification_id } });
+  const deleted = await HostelNotification.destroy({
+    where: { notification_id },
+  });
   if (!deleted) throw new ApiError("Notification not found", 404);
   res
     .status(200)

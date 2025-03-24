@@ -19,8 +19,12 @@ export const checkAuthStatus = createAsyncThunk(
 
 export const handleSignIn = createAsyncThunk(
   "auth/handleSignIn",
-  async ({ email, password }) => {
+  async ({ email, password }, { dispatch }) => {
     const response = await api.post("/users/login", { email, password });
+    // Add a small delay to ensure cookie is set
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    // Verify auth status after login
+    await dispatch(checkAuthStatus()).unwrap();
     return response.data.data.user;
   }
 );
