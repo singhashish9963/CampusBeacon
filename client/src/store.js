@@ -7,7 +7,7 @@ import authReducer from "./slices/authSlice";
 import profileReducer from "./slices/profileSlice";
 import eateriesReducer from "./slices/eateriesSlice";
 import contactsReducer from "./slices/contactSlice";
-import buyAndSellReducer from "./slices/buyAndSellSlice";
+import buyAndSellReducer from "./slices/buyandsellSlice";
 import notificationReducer from "./slices/notificationSlice";
 import lostAndFoundReducer from "./slices/lostAndFoundSlice";
 import chatbotReducer from "./slices/chatbotSlice";
