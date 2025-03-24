@@ -1,6 +1,14 @@
 import { motion } from "framer-motion";
 import React from "react";
-import { Calendar, FileText, User, Phone } from "lucide-react";
+import {
+  Calendar,
+  FileText,
+  User,
+  Phone,
+  Newspaper,
+  Map,
+  Lightbulb,
+} from "lucide-react";
 import { Link } from "react-router-dom";
 
 const QuickLinks = () => {
@@ -27,11 +35,33 @@ const QuickLinks = () => {
       gradient: "from-green-500 via-emerald-500 to-teal-500",
     },
     {
-      icon: User,
+      icon: Phone,
       label: "Contacts",
       description: "Important contact information",
       href: "/contact",
       gradient: "from-amber-500 via-orange-500 to-red-500",
+    },
+    // Fun Pages Section
+    {
+      icon: Map,
+      label: "Campus Explorer",
+      description: "Discover hidden gems around campus",
+      href: "/explore",
+      gradient: "from-indigo-500 via-purple-500 to-pink-500",
+    },
+    {
+      icon: Lightbulb,
+      label: "Facts Generator",
+      description: "Interesting facts about MNNIT",
+      href: "/facts",
+      gradient: "from-yellow-400 via-orange-500 to-red-500",
+    },
+    {
+      icon: Newspaper,
+      label: "MNNIT Time Capsule",
+      description: "Journey through MNNIT's history",
+      href: "/time",
+      gradient: "from-blue-400 via-indigo-500 to-purple-500",
     },
   ];
 
@@ -71,7 +101,6 @@ const QuickLinks = () => {
               className="relative group"
             >
               <Link to={link.href}>
-                {/* Main card content */}
                 <div
                   className={`
                   relative flex flex-col items-center 
@@ -80,9 +109,9 @@ const QuickLinks = () => {
                   border border-gray-700/50
                   group-hover:border-transparent
                   transition duration-300
+                  h-full
                 `}
                 >
-                  {/* Icon container with gradient */}
                   <div
                     className={`
                     relative p-3 rounded-lg
@@ -96,23 +125,23 @@ const QuickLinks = () => {
                     <link.icon className="h-8 w-8 text-white relative z-10" />
                   </div>
 
-                  {/* Label with gradient text on hover */}
                   <h3
                     className={`
                     mt-4 text-lg font-semibold
-                    text-gray-200
-                   
+                    text-gray-200 group-hover:bg-gradient-to-r
+                    group-hover:${link.gradient}
+                    group-hover:bg-clip-text
+                    group-hover:text-transparent
+                    transition duration-300
                   `}
                   >
                     {link.label}
                   </h3>
 
-                  {/* Description */}
                   <p className="mt-2 text-sm text-gray-400 text-center opacity-80 group-hover:opacity-100">
                     {link.description}
                   </p>
 
-                  {/* Animated arrow */}
                   <motion.span
                     className="mt-4 text-gray-400 group-hover:text-white"
                     initial={{ x: 0 }}

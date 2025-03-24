@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -22,26 +22,34 @@ import {
 import { NotificationIcon } from "../components/features/notifications";
 import { useSelector } from "react-redux";
 
+// Debounce helper
+const debounce = (func, wait) => {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
+
 const HomePage = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("home");
 
-  // Use auth slice instead of Auth Context
   const { isAuthenticated, user } = useSelector((state) => state.auth);
-
   const navigate = useNavigate();
 
-  // Scroll spy and login status logic
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-    }
-    const handleScroll = () => {
+  // Memoize the scroll handler
+  const handleScroll = useCallback(
+    debounce(() => {
       const sections = document.querySelectorAll("section[id]");
       const scrollPosition = window.scrollY + 100;
-      sections.forEach((section) => {
+
+      for (const section of sections) {
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
         if (
@@ -49,20 +57,86 @@ const HomePage = () => {
           scrollPosition < sectionTop + sectionHeight
         ) {
           setActiveSection(section.id);
+          break; // Exit loop once found
         }
-      });
-    };
+      }
+    }, 100),
+    []
+  );
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      setIsLoggedIn(true);
+    }
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [handleScroll]);
 
-  const scrollToSection = (sectionId) => {
+  const scrollToSection = useCallback((sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
     }
     setIsMenuOpen(false);
-  };
+  }, []);
+
+  // Memoize feature cards data
+  const featureCards = useMemo(
+    () => [
+      {
+        icon: Coffee,
+        title: "Eateries",
+        description: "Discover amazing places to eat around campus",
+        href: "/eatries",
+        gradient: "from-amber-500 via-orange-500 to-red-500",
+      },
+      {
+        icon: Users,
+        title: "Hostel Management",
+        description: "Seamless hostel allocation and maintenance system",
+        href: "/hostel",
+        gradient: "from-blue-500 via-indigo-500 to-purple-500",
+      },
+      {
+        icon: Search,
+        title: "Lost & Found",
+        description: "Connect with campus community to find lost items",
+        href: "/lost-found",
+        gradient: "from-green-500 via-teal-500 to-cyan-500",
+      },
+      {
+        icon: ShoppingBag,
+        title: "Buy & Sell",
+        description: "Campus marketplace for books and essentials",
+        href: "/marketplace",
+        gradient: "from-pink-500 via-rose-500 to-red-500",
+      },
+      {
+        icon: Book,
+        title: "Resource Hub",
+        description: "Access academic resources and track attendance",
+        href: "/resource",
+        gradient: "from-violet-500 via-purple-500 to-fuchsia-500",
+      },
+      {
+        icon: Globe,
+        title: "Community",
+        description: "Connect with peers and join campus activities",
+        href: "/chat",
+        gradient: "from-cyan-500 via-blue-500 to-indigo-500",
+      },
+      {
+        icon: Car,
+        title: "Ride Sharing",
+        description: "Share rides and save Price",
+        href: "/rides",
+        gradient: "from-amber-800 via-orange-700 to-orange-900",
+      },
+    ],
+    []
+  );
 
   return (
     <>
@@ -130,55 +204,16 @@ const HomePage = () => {
               </p>
             </motion.div>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              <FeatureCard
-                icon={Coffee}
-                title="Eateries"
-                description="Discover amazing places to eat around campus"
-                href="/eatries"
-                gradient="from-amber-500 via-orange-500 to-red-500"
-              />
-              <FeatureCard
-                icon={Users}
-                title="Hostel Management"
-                description="Seamless hostel allocation and maintenance system"
-                href="/hostel"
-                gradient="from-blue-500 via-indigo-500 to-purple-500"
-              />
-              <FeatureCard
-                icon={Search}
-                title="Lost & Found"
-                description="Connect with campus community to find lost items"
-                href="/lost-found"
-                gradient="from-green-500 via-teal-500 to-cyan-500"
-              />
-              <FeatureCard
-                icon={ShoppingBag}
-                title="Buy & Sell"
-                description="Campus marketplace for books and essentials"
-                href="/marketplace"
-                gradient="from-pink-500 via-rose-500 to-red-500"
-              />
-              <FeatureCard
-                icon={Book}
-                title="Resource Hub"
-                description="Access academic resources and track attendance"
-                href="/resource"
-                gradient="from-violet-500 via-purple-500 to-fuchsia-500"
-              />
-              <FeatureCard
-                icon={Globe}
-                title="Community"
-                description="Connect with peers and join campus activities"
-                href="/chat"
-                gradient="from-cyan-500 via-blue-500 to-indigo-500"
-              />
-              <FeatureCard
-                icon={Car}
-                title="Ride Sharing"
-                description="Share rides and save Price"
-                href="/rides"
-                gradient="from-amber-800 via-orange-700 to-orange-900"
-              />
+              {featureCards.map((card, index) => (
+                <FeatureCard
+                  key={card.href}
+                  icon={card.icon}
+                  title={card.title}
+                  description={card.description}
+                  href={card.href}
+                  gradient={card.gradient}
+                />
+              ))}
             </div>
           </div>
         </section>
@@ -252,4 +287,4 @@ const HomePage = () => {
   );
 };
 
-export default HomePage;
+export default React.memo(HomePage);
