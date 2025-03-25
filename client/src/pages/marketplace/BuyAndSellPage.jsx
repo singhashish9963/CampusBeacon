@@ -21,7 +21,7 @@ import {
   createItem,
   getAllItems,
   clearError,
-} from "../../slices/buyAndSellSlice";
+} from "../../slices/buyandsellSlice";
 
 const Marketplace = () => {
   const navigate = useNavigate();
