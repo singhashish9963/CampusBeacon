@@ -197,7 +197,6 @@ export const getRide = asyncHandler(async (req, res) => {
 });
 
 export const getAllRides = asyncHandler(async (req, res) => {
-  console.log("Getting all rides..."); // Debug log
   try {
     const rides = await Rides.findAll({
       where: {
@@ -225,14 +224,14 @@ export const getAllRides = asyncHandler(async (req, res) => {
           ],
         },
       ],
+      limit: 50, // Limit the number of rides returned
     });
 
-    console.log(`Found ${rides.length} rides`); // Debug log
     return res
       .status(200)
-      .json(new ApiResponse(200, rides, "All rides retrieved successfully"));
+      .json(new ApiResponse(200, rides, "Rides retrieved successfully"));
   } catch (error) {
-    console.error("Error in getAllRides:", error); // Debug log
+    console.error("Error in getAllRides:", error);
     throw new ApiError("Error retrieving rides: " + error.message, 500);
   }
 });
@@ -254,7 +253,19 @@ export const getUserRides = asyncHandler(async (req, res) => {
           as: "creator",
           attributes: ["id", "name", "email"],
         },
+        {
+          model: RideParticipant,
+          as: "participants",
+          include: [
+            {
+              model: User,
+              as: "participant",
+              attributes: ["id", "name", "email"],
+            },
+          ],
+        },
       ],
+      limit: 20, // Limit the number of rides returned
     });
 
     return res
