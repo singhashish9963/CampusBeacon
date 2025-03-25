@@ -1,26 +1,38 @@
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { isRideActive } from "../../utils/dateUtils";
 import RideCard from "./RideCard";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { joinRide, unjoinRide } from "../../slices/ridesSlice";
+import { toast } from "react-hot-toast";
 
 const RideGrid = ({ rides, currentUser, onEdit, onDelete }) => {
   const dispatch = useDispatch();
+  const [loadingRideId, setLoadingRideId] = useState(null);
 
   const handleJoin = async (rideId) => {
     try {
-      await dispatch(joinRide(rideId));
+      setLoadingRideId(rideId);
+      await dispatch(joinRide(rideId)).unwrap();
+      toast.success("Successfully joined the ride!");
     } catch (error) {
       console.error("Error joining ride:", error);
+      toast.error(error.message || "Failed to join ride. Please try again.");
+    } finally {
+      setLoadingRideId(null);
     }
   };
 
   const handleUnjoin = async (rideId) => {
     try {
-      await dispatch(unjoinRide(rideId));
+      setLoadingRideId(rideId);
+      await dispatch(unjoinRide(rideId)).unwrap();
+      toast.success("Successfully cancelled ride join!");
     } catch (error) {
       console.error("Error cancelling join:", error);
+      toast.error(error.message || "Failed to cancel join. Please try again.");
+    } finally {
+      setLoadingRideId(null);
     }
   };
 
@@ -48,6 +60,7 @@ const RideGrid = ({ rides, currentUser, onEdit, onDelete }) => {
             onDelete={() => onDelete(ride.id)}
             onJoin={handleJoin}
             onUnjoin={handleUnjoin}
+            isLoading={loadingRideId === ride.id}
           />
         </motion.div>
       ))}

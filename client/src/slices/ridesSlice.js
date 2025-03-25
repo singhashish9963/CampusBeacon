@@ -144,14 +144,60 @@ const ridesSlice = createSlice({
         updateFilteredRides(state);
       })
       .addCase(joinRide.fulfilled, (state, action) => {
+        // Update the ride in the rides array
+        const rideIndex = state.rides.findIndex(
+          (ride) => ride.id === action.meta.arg
+        );
+        if (rideIndex !== -1) {
+          state.rides[rideIndex].participants = action.payload;
+          state.rides[rideIndex].availableSeats -= 1;
+        }
+
+        // Update the ride in userRides if it exists
+        const userRideIndex = state.userRides.findIndex(
+          (ride) => ride.id === action.meta.arg
+        );
+        if (userRideIndex !== -1) {
+          state.userRides[userRideIndex].participants = action.payload;
+          state.userRides[userRideIndex].availableSeats -= 1;
+        }
+
+        // Update currentRide if it exists
         if (state.currentRide && state.currentRide.id === action.meta.arg) {
           state.currentRide.participants = action.payload;
+          state.currentRide.availableSeats -= 1;
         }
+
+        // Update filtered rides
+        updateFilteredRides(state);
       })
       .addCase(unjoinRide.fulfilled, (state, action) => {
+        // Update the ride in the rides array
+        const rideIndex = state.rides.findIndex(
+          (ride) => ride.id === action.meta.arg
+        );
+        if (rideIndex !== -1) {
+          state.rides[rideIndex].participants = action.payload;
+          state.rides[rideIndex].availableSeats += 1;
+        }
+
+        // Update the ride in userRides if it exists
+        const userRideIndex = state.userRides.findIndex(
+          (ride) => ride.id === action.meta.arg
+        );
+        if (userRideIndex !== -1) {
+          state.userRides[userRideIndex].participants = action.payload;
+          state.userRides[userRideIndex].availableSeats += 1;
+        }
+
+        // Update currentRide if it exists
         if (state.currentRide && state.currentRide.id === action.meta.arg) {
           state.currentRide.participants = action.payload;
+          state.currentRide.availableSeats += 1;
         }
+
+        // Update filtered rides
+        updateFilteredRides(state);
       });
   },
 });

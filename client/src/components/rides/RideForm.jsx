@@ -14,19 +14,73 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
     ...initialData,
   });
 
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Pickup Location validation
+    if (!formData.pickupLocation.trim()) {
+      newErrors.pickupLocation = "Pickup location is required";
+    }
+
+    // Drop Location validation
+    if (!formData.dropLocation.trim()) {
+      newErrors.dropLocation = "Drop location is required";
+    }
+
+    // Departure Time validation
+    if (!formData.departureDateTime) {
+      newErrors.departureDateTime = "Departure time is required";
+    } else {
+      const departureDate = new Date(formData.departureDateTime);
+      const now = new Date();
+      if (departureDate < now) {
+        newErrors.departureDateTime = "Departure time cannot be in the past";
+      }
+    }
+
+    // Total Seats validation
+    if (!formData.totalSeats || formData.totalSeats < 1) {
+      newErrors.totalSeats = "Total seats must be at least 1";
+    } else if (formData.totalSeats > 8) {
+      newErrors.totalSeats = "Maximum 8 seats allowed";
+    }
+
+    // Estimated Cost validation
+    if (formData.estimatedCost && formData.estimatedCost < 0) {
+      newErrors.estimatedCost = "Cost cannot be negative";
+    }
+
+    // Phone Number validation
+    if (!formData.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required";
+    } else if (!/^[0-9]{10}$/.test(formData.phoneNumber)) {
+      newErrors.phoneNumber = "Please enter a valid 10-digit phone number";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (validateForm()) {
+      onSubmit(formData);
+    }
   };
 
   return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(formData);
-      }}
-      className="space-y-6"
-    >
+    <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-3">
           <label className="block text-gray-200 font-medium">
@@ -37,9 +91,14 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             name="pickupLocation"
             value={formData.pickupLocation}
             onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-            required
+            className={`w-full bg-gray-800 border ${
+              errors.pickupLocation ? "border-red-500" : "border-gray-700"
+            } rounded-lg px-4 py-2 text-white`}
+            placeholder="Enter pickup location"
           />
+          {errors.pickupLocation && (
+            <p className="text-red-500 text-sm">{errors.pickupLocation}</p>
+          )}
         </div>
         <div className="space-y-3">
           <label className="block text-gray-200 font-medium">
@@ -50,9 +109,14 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             name="dropLocation"
             value={formData.dropLocation}
             onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-            required
+            className={`w-full bg-gray-800 border ${
+              errors.dropLocation ? "border-red-500" : "border-gray-700"
+            } rounded-lg px-4 py-2 text-white`}
+            placeholder="Enter drop location"
           />
+          {errors.dropLocation && (
+            <p className="text-red-500 text-sm">{errors.dropLocation}</p>
+          )}
         </div>
       </div>
 
@@ -66,9 +130,13 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             name="departureDateTime"
             value={formData.departureDateTime}
             onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-            required
+            className={`w-full bg-gray-800 border ${
+              errors.departureDateTime ? "border-red-500" : "border-gray-700"
+            } rounded-lg px-4 py-2 text-white`}
           />
+          {errors.departureDateTime && (
+            <p className="text-red-500 text-sm">{errors.departureDateTime}</p>
+          )}
         </div>
         <div className="space-y-3">
           <label className="block text-gray-200 font-medium">Total Seats</label>
@@ -79,9 +147,13 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             onChange={handleChange}
             min="1"
             max="8"
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-            required
+            className={`w-full bg-gray-800 border ${
+              errors.totalSeats ? "border-red-500" : "border-gray-700"
+            } rounded-lg px-4 py-2 text-white`}
           />
+          {errors.totalSeats && (
+            <p className="text-red-500 text-sm">{errors.totalSeats}</p>
+          )}
         </div>
       </div>
 
@@ -95,9 +167,15 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             name="estimatedCost"
             value={formData.estimatedCost}
             onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-            required
+            min="0"
+            className={`w-full bg-gray-800 border ${
+              errors.estimatedCost ? "border-red-500" : "border-gray-700"
+            } rounded-lg px-4 py-2 text-white`}
+            placeholder="Enter estimated cost"
           />
+          {errors.estimatedCost && (
+            <p className="text-red-500 text-sm">{errors.estimatedCost}</p>
+          )}
         </div>
         <div className="space-y-3">
           <label className="block text-gray-200 font-medium">
@@ -108,9 +186,14 @@ const RideForm = ({ initialData, onSubmit, onCancel }) => {
             name="phoneNumber"
             value={formData.phoneNumber}
             onChange={handleChange}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white"
-            required
+            className={`w-full bg-gray-800 border ${
+              errors.phoneNumber ? "border-red-500" : "border-gray-700"
+            } rounded-lg px-4 py-2 text-white`}
+            placeholder="Enter 10-digit phone number"
           />
+          {errors.phoneNumber && (
+            <p className="text-red-500 text-sm">{errors.phoneNumber}</p>
+          )}
         </div>
       </div>
 
