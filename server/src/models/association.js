@@ -16,6 +16,7 @@ import { Branch, Year, StudyMaterial } from "./resources.model.js";
 import Rides from "./ride.model.js";
 import RideParticipant from "./rideParticipant.model.js";
 import { Role, UserRole } from "./role.model.js";
+import { Message, Channel, ChannelMember } from "./chat.model.js";
 
 export const initializeAssociations = () => {
   // User - Roles associations (many-to-many)
@@ -109,6 +110,42 @@ export const initializeAssociations = () => {
   });
   Rides.hasMany(RideParticipant, { foreignKey: "rideId", as: "participants" });
   RideParticipant.belongsTo(Rides, { foreignKey: "rideId" });
+
+  // Chat associations
+  User.hasMany(Message, {
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  });
+  Message.belongsTo(User, { foreignKey: "userId" });
+
+  Channel.hasMany(Message, {
+    foreignKey: "channelId",
+    onDelete: "CASCADE",
+    onUpdate: "CASCADE",
+  });
+  Message.belongsTo(Channel, { foreignKey: "channelId" });
+
+  User.belongsToMany(Channel, {
+    through: ChannelMember,
+    foreignKey: "userId",
+    onDelete: "CASCADE",
+  });
+  Channel.belongsToMany(User, {
+    through: ChannelMember,
+    foreignKey: "channelId",
+    onDelete: "CASCADE",
+  });
+
+  // Channel creator association
+  Channel.belongsTo(User, {
+    foreignKey: "createdBy",
+    as: "creator",
+  });
+  User.hasMany(Channel, {
+    foreignKey: "createdBy",
+    as: "createdChannels",
+  });
 };
 
 export {
@@ -122,4 +159,7 @@ export {
   Rides,
   Role,
   UserRole,
+  Message,
+  Channel,
+  ChannelMember,
 };
