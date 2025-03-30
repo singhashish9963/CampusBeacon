@@ -10,8 +10,7 @@ import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 dotenv.config();
 
-
-console.log(process.env.FRONTEND_URL)
+console.log(process.env.CLIENT_URL)
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /*
@@ -203,7 +202,7 @@ export const forgotPassword = asyncHandler(async (req, res, next) => {
   const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
     expiresIn: "15m",
   });
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+  const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
 
   try {
     await sendEmail({
@@ -471,14 +470,13 @@ export const getUserById = asyncHandler(async (req, res, next) => {
     );
 });
 
-
 const sendVerificationEmailToUser = async (user) => {
   const token = jwt.sign(
     { id: user.id, email: user.email },
     process.env.JWT_SECRET,
     { expiresIn: "1h" }
   );
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+  const verificationUrl = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
 
   await sendEmail({
     to: user.email,

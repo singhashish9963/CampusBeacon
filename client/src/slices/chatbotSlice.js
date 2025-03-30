@@ -21,7 +21,7 @@ export const askQuestion = createAsyncThunk(
   async ({ question, sessionId }, { rejectWithValue }) => {
     try {
       const response = await api.post(
-        "/api/chatbot/ask",
+        "chatbot/ask",
         { question },
         {
           headers: {

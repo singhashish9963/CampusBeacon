@@ -1,4 +1,4 @@
-import { NlpManager}  from "node-nlp";
+import { NlpManager } from "node-nlp";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -465,7 +465,6 @@ class AdvancedLanguageProcessor {
   }
 
   // Enhanced Context Analysis
-  // Enhanced Context Analysis (continued)
   enhancedContextAnalysis(question, sessionId) {
     if (!question) {
       return { bestMatch: null, bestSimilarity: 0 }; // Handle null or undefined
@@ -499,12 +498,8 @@ const processor = new AdvancedLanguageProcessor();
 // Train the model if it doesn't exist
 const trainModel = async () => {
   try {
-    console.log("Initializing chatbot model...");
-
     // Load and clean corpus data
     const corpus = processor.loadCorpus();
-    console.log(`Loaded ${corpus.phrases.length} phrases from corpus`);
-
     // Add all phrases from corpus to the manager
     for (const phrase of corpus.phrases) {
       if (phrase.question && phrase.answer && phrase.category) {
@@ -514,12 +509,10 @@ const trainModel = async () => {
     }
 
     // Train the model
-    console.log("Training model with corpus data...");
     await manager.train();
 
     // Save the model
     await manager.save();
-    console.log("Model trained and saved successfully");
   } catch (error) {
     console.error("Error training model:", error);
     throw error;
@@ -542,7 +535,6 @@ export const processQuestion = async (question, sessionId) => {
 
     // Process the question using the NLP manager
     const result = await manager.process("en", question);
-    console.log("NLP Result:", result); // Debug log
 
     if (!result || !result.answer) {
       // If no direct match, try to find similar questions
@@ -565,10 +557,9 @@ export const processQuestion = async (question, sessionId) => {
       };
     }
 
-    // Get similar questions from the corpus
+    // Get similar questions from the corpus using all available questions
     const corpus = processor.loadCorpus();
     const similarQuestions = corpus.phrases
-      .filter((phrase) => phrase.category === result.intent)
       .map((phrase) => phrase.question)
       .filter((q) => q !== question)
       .slice(0, 3);
