@@ -106,7 +106,7 @@ const LoginSignup = () => {
           draggable: false,
           closeButton: false
         });
-        setAuthMode("login");
+        setIsSignUp(false);
       } else if (type === "forgot") {
         await dispatch(handleForgetPassword(email)).unwrap();
         toast.success("Password reset instructions sent to your email!", {
