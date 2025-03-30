@@ -2,7 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/hostels",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
 });
 
@@ -11,7 +11,7 @@ export const createHostel = createAsyncThunk(
   "hostel/createHostel",
   async (hostelData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/hostels/hostels", hostelData);
+      const response = await api.post("/hostels", hostelData);
       if (response.data.success) {
         return response.data.data;
       }
@@ -28,7 +28,7 @@ export const getAllHostels = createAsyncThunk(
   "hostel/getAllHostels",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/hostels/hostels");
+      const response = await api.get("/hostels");
       if (response.data.success) {
         return response.data.data;
       }
@@ -45,7 +45,7 @@ export const getHostelById = createAsyncThunk(
   "hostel/getHostelById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/hostels/hostels/${id}`);
+      const response = await api.get(`/hostels/${id}`);
       if (response.data.success) {
         return response.data.data;
       }
@@ -63,7 +63,7 @@ export const createMenu = createAsyncThunk(
   "hostel/createMenu",
   async (menuData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/menus", menuData);
+      const response = await api.post("/hostels/menus", menuData);
       if (response.data.success) {
         return response.data.data;
       }
@@ -80,7 +80,7 @@ export const getMenuByHostel = createAsyncThunk(
   "hostel/getMenuByHostel",
   async (hostelId, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/menus/hostel/${hostelId}`);
+      const response = await api.get(`/hostels/menus/hostel/${hostelId}`);
       if (response.data.success) {
         return response.data.data;
       }
@@ -93,12 +93,30 @@ export const getMenuByHostel = createAsyncThunk(
   }
 );
 
+// New action for updating entire menu
+export const updateMenu = createAsyncThunk(
+  "hostel/updateMenu",
+  async ({ menuId, data }, { rejectWithValue }) => {
+    try {
+      const response = await api.put(`/hostels/menus/${menuId}`, data);
+      if (response.data.success) {
+        return response.data.data;
+      }
+      return rejectWithValue(response.data.message);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Error updating menu"
+      );
+    }
+  }
+);
+
 export const updateMenuMeal = createAsyncThunk(
   "hostel/updateMenuMeal",
   async ({ hostelId, day, meal, data }, { rejectWithValue }) => {
     try {
       const response = await api.put(
-        `/menus/meal/${hostelId}/${day}/${meal}`,
+        `/hostels/menus/meal/${hostelId}/${day}/${meal}`,
         data
       );
       if (response.data.success) {
@@ -118,7 +136,7 @@ export const deleteMenuMeal = createAsyncThunk(
   async ({ hostelId, day, meal }, { rejectWithValue }) => {
     try {
       const response = await api.delete(
-        `/menus/meal/${hostelId}/${day}/${meal}`
+        `/hostels/menus/meal/${hostelId}/${day}/${meal}`
       );
       if (response.data.success) {
         return { hostelId, day, meal };
@@ -171,7 +189,7 @@ export const createOfficial = createAsyncThunk(
   "hostel/createOfficial",
   async ({ hostelId, ...officialData }, { rejectWithValue }) => {
     try {
-      const response = await api.post("/officials", {
+      const response = await api.post("/hostels/officials", {
         hostel_id: hostelId,
         ...officialData,
       });
@@ -189,12 +207,9 @@ export const createOfficial = createAsyncThunk(
 
 export const editOfficial = createAsyncThunk(
   "hostel/editOfficial",
-  async ({ hostelId, officialId, ...officialData }, { rejectWithValue }) => {
+  async ({ officialId, ...officialData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/officials/${officialId}`, {
-        hostel_id: hostelId,
-        ...officialData,
-      });
+      const response = await api.put(`/hostels/officials/${officialId}`, officialData);
       if (response.data.success) {
         return response.data.data;
       }
@@ -211,7 +226,7 @@ export const getOfficialsByHostel = createAsyncThunk(
   "hostel/getOfficialsByHostel",
   async (hostelId, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/officials/hostel/${hostelId}`);
+      const response = await api.get(`/hostels/officials/hostel/${hostelId}`);
       if (response.data.success) {
         return response.data.data;
       }
@@ -226,11 +241,11 @@ export const getOfficialsByHostel = createAsyncThunk(
 
 export const deleteOfficial = createAsyncThunk(
   "hostel/deleteOfficial",
-  async ({ hostelId, officialId }, { rejectWithValue }) => {
+  async (officialId, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/officials/${officialId}`);
+      const response = await api.delete(`/hostels/officials/${officialId}`);
       if (response.data.success) {
-        return { hostelId, officialId };
+        return officialId;
       }
       return rejectWithValue(response.data.message);
     } catch (err) {
@@ -246,7 +261,7 @@ export const createComplaint = createAsyncThunk(
   "hostel/createComplaint",
   async (complaintData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/complaints", complaintData);
+      const response = await api.post("/hostels/complaints", complaintData);
       if (response.data.success) {
         return response.data.data;
       }
@@ -263,7 +278,7 @@ export const getComplaintsByHostel = createAsyncThunk(
   "hostel/getComplaintsByHostel",
   async (hostelId, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/complaints/hostel/${hostelId}`);
+      const response = await api.get(`/hostels/complaints/hostel/${hostelId}`);
       if (response.data.success) {
         return response.data.data;
       }
@@ -280,7 +295,7 @@ export const updateComplaintStatus = createAsyncThunk(
   "hostel/updateComplaintStatus",
   async ({ complaintId, status }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/complaints/${complaintId}/status`, {
+      const response = await api.put(`/hostels/complaints/${complaintId}`, {
         status,
       });
       if (response.data.success) {
@@ -299,7 +314,7 @@ export const deleteComplaint = createAsyncThunk(
   "hostel/deleteComplaint",
   async (complaintId, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/complaints/${complaintId}`);
+      const response = await api.delete(`/hostels/complaints/${complaintId}`);
       if (response.data.success) {
         return complaintId;
       }
@@ -321,7 +336,7 @@ export const createNotification = createAsyncThunk(
       Object.keys(notificationData).forEach((key) => {
         formData.append(key, notificationData[key]);
       });
-      const response = await api.post("/notifications", formData, {
+      const response = await api.post("/hostels/notifications", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       if (response.data.success) {
@@ -340,7 +355,7 @@ export const getHostelNotifications = createAsyncThunk(
   "hostel/getHostelNotifications",
   async (hostelId, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/notifications/${hostelId}`);
+      const response = await api.get(`/hostels/notifications/${hostelId}`);
       if (response.data.success) {
         return response.data.data;
       }
@@ -355,11 +370,11 @@ export const getHostelNotifications = createAsyncThunk(
 
 export const deleteNotification = createAsyncThunk(
   "hostel/deleteNotification",
-  async ({ hostelId, notificationId }, { rejectWithValue }) => {
+  async (notificationId, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/notifications/${notificationId}`);
+      const response = await api.delete(`/hostels/notifications/${notificationId}`);
       if (response.data.success) {
-        return { hostelId, notificationId };
+        return notificationId;
       }
       return rejectWithValue(response.data.message);
     } catch (err) {
@@ -473,12 +488,31 @@ const hostelSlice = createSlice({
       })
       .addCase(getMenuByHostel.fulfilled, (state, action) => {
         state.loading = false;
-        const hostelId = action.payload[0]?.hostel_id;
-        if (hostelId) {
+        if (action.payload && action.payload.length > 0) {
+          const hostelId = action.payload[0].hostel_id;
           state.menus[hostelId] = action.payload;
         }
       })
       .addCase(getMenuByHostel.rejected, (state, action) => {
+        state.loading = false;
+        state.errors.menu = action.payload;
+      })
+      // New case for updateMenu
+      .addCase(updateMenu.pending, (state) => {
+        state.loading = true;
+        state.errors.menu = null;
+      })
+      .addCase(updateMenu.fulfilled, (state, action) => {
+        state.loading = false;
+        const hostelId = action.payload.hostel_id;
+        const menuIndex = state.menus[hostelId]?.findIndex(
+          (menu) => menu.menu_id === action.payload.menu_id
+        );
+        if (menuIndex !== -1) {
+          state.menus[hostelId][menuIndex] = action.payload;
+        }
+      })
+      .addCase(updateMenu.rejected, (state, action) => {
         state.loading = false;
         state.errors.menu = action.payload;
       })
@@ -492,7 +526,7 @@ const hostelSlice = createSlice({
         const menuIndex = state.menus[hostel_id]?.findIndex(
           (menu) => menu.day === day
         );
-        if (menuIndex !== -1) {
+        if (menuIndex !== -1 && state.menus[hostel_id][menuIndex]) {
           state.menus[hostel_id][menuIndex][meal] = action.payload[meal];
         }
       })
@@ -510,7 +544,7 @@ const hostelSlice = createSlice({
         const menuIndex = state.menus[hostelId]?.findIndex(
           (menu) => menu.day === day
         );
-        if (menuIndex !== -1) {
+        if (menuIndex !== -1 && state.menus[hostelId][menuIndex]) {
           state.menus[hostelId][menuIndex][meal] = null;
         }
       })
@@ -525,10 +559,11 @@ const hostelSlice = createSlice({
       })
       .addCase(createOfficial.fulfilled, (state, action) => {
         state.loading = false;
-        if (!state.officials[action.payload.hostel_id]) {
-          state.officials[action.payload.hostel_id] = [];
+        const hostelId = action.payload.hostel_id;
+        if (!state.officials[hostelId]) {
+          state.officials[hostelId] = [];
         }
-        state.officials[action.payload.hostel_id].push(action.payload);
+        state.officials[hostelId].push(action.payload);
       })
       .addCase(createOfficial.rejected, (state, action) => {
         state.loading = false;
@@ -540,11 +575,14 @@ const hostelSlice = createSlice({
       })
       .addCase(editOfficial.fulfilled, (state, action) => {
         state.loading = false;
-        const index = state.officials[action.payload.hostel_id].findIndex(
-          (o) => o.official_id === action.payload.official_id
-        );
-        if (index !== -1) {
-          state.officials[action.payload.hostel_id][index] = action.payload;
+        const hostelId = action.payload.hostel_id;
+        if (state.officials[hostelId]) {
+          const index = state.officials[hostelId].findIndex(
+            (o) => o.official_id === action.payload.official_id
+          );
+          if (index !== -1) {
+            state.officials[hostelId][index] = action.payload;
+          }
         }
       })
       .addCase(editOfficial.rejected, (state, action) => {
@@ -557,7 +595,14 @@ const hostelSlice = createSlice({
       })
       .addCase(getOfficialsByHostel.fulfilled, (state, action) => {
         state.loading = false;
-        state.officials[action.payload[0]?.hostel_id] = action.payload;
+        if (action.payload && action.payload.length > 0) {
+          const hostelId = action.payload[0].hostel_id;
+          state.officials[hostelId] = action.payload;
+        } else {
+          // Handle empty array case
+          const hostelId = action.meta.arg; // The hostelId from the original argument
+          state.officials[hostelId] = [];
+        }
       })
       .addCase(getOfficialsByHostel.rejected, (state, action) => {
         state.loading = false;
@@ -569,9 +614,13 @@ const hostelSlice = createSlice({
       })
       .addCase(deleteOfficial.fulfilled, (state, action) => {
         state.loading = false;
-        state.officials[action.payload.hostelId] = state.officials[
-          action.payload.hostelId
-        ].filter((o) => o.official_id !== action.payload.officialId);
+        // Find which hostel contains this official ID
+        const officialId = action.payload;
+        Object.keys(state.officials).forEach(hostelId => {
+          state.officials[hostelId] = state.officials[hostelId].filter(
+            o => o.official_id !== officialId
+          );
+        });
       })
       .addCase(deleteOfficial.rejected, (state, action) => {
         state.loading = false;
@@ -584,10 +633,11 @@ const hostelSlice = createSlice({
       })
       .addCase(createComplaint.fulfilled, (state, action) => {
         state.loading = false;
-        if (!state.complaints[action.payload.hostel_id]) {
-          state.complaints[action.payload.hostel_id] = [];
+        const hostelId = action.payload.hostel_id;
+        if (!state.complaints[hostelId]) {
+          state.complaints[hostelId] = [];
         }
-        state.complaints[action.payload.hostel_id].push(action.payload);
+        state.complaints[hostelId].push(action.payload);
       })
       .addCase(createComplaint.rejected, (state, action) => {
         state.loading = false;
@@ -599,7 +649,14 @@ const hostelSlice = createSlice({
       })
       .addCase(getComplaintsByHostel.fulfilled, (state, action) => {
         state.loading = false;
-        state.complaints[action.payload[0]?.hostel_id] = action.payload;
+        if (action.payload && action.payload.length > 0) {
+          const hostelId = action.payload[0].hostel_id;
+          state.complaints[hostelId] = action.payload;
+        } else {
+          // Handle empty array case
+          const hostelId = action.meta.arg; // The hostelId from the original argument
+          state.complaints[hostelId] = [];
+        }
       })
       .addCase(getComplaintsByHostel.rejected, (state, action) => {
         state.loading = false;
@@ -631,12 +688,13 @@ const hostelSlice = createSlice({
       })
       .addCase(deleteComplaint.fulfilled, (state, action) => {
         state.loading = false;
-        const hostelId = action.payload.hostel_id;
-        if (state.complaints[hostelId]) {
+        const complaintId = action.payload;
+        // Find which hostel contains this complaint ID
+        Object.keys(state.complaints).forEach(hostelId => {
           state.complaints[hostelId] = state.complaints[hostelId].filter(
-            (c) => c.id !== action.payload
+            c => c.id !== complaintId
           );
-        }
+        });
       })
       .addCase(deleteComplaint.rejected, (state, action) => {
         state.loading = false;
@@ -649,10 +707,11 @@ const hostelSlice = createSlice({
       })
       .addCase(createNotification.fulfilled, (state, action) => {
         state.loading = false;
-        if (!state.notifications[action.payload.hostel_id]) {
-          state.notifications[action.payload.hostel_id] = [];
+        const hostelId = action.payload.hostel_id;
+        if (!state.notifications[hostelId]) {
+          state.notifications[hostelId] = [];
         }
-        state.notifications[action.payload.hostel_id].push(action.payload);
+        state.notifications[hostelId].push(action.payload);
       })
       .addCase(createNotification.rejected, (state, action) => {
         state.loading = false;
@@ -664,7 +723,14 @@ const hostelSlice = createSlice({
       })
       .addCase(getHostelNotifications.fulfilled, (state, action) => {
         state.loading = false;
-        state.notifications[action.payload[0]?.hostel_id] = action.payload;
+        if (action.payload && action.payload.length > 0) {
+          const hostelId = action.payload[0].hostel_id;
+          state.notifications[hostelId] = action.payload;
+        } else {
+          // Handle empty array case
+          const hostelId = action.meta.arg; // The hostelId from the original argument
+          state.notifications[hostelId] = [];
+        }
       })
       .addCase(getHostelNotifications.rejected, (state, action) => {
         state.loading = false;
@@ -676,10 +742,13 @@ const hostelSlice = createSlice({
       })
       .addCase(deleteNotification.fulfilled, (state, action) => {
         state.loading = false;
-        const { hostelId, notificationId } = action.payload;
-        state.notifications[hostelId] = state.notifications[hostelId].filter(
-          (notification) => notification.id !== notificationId
-        );
+        const notificationId = action.payload;
+        // Find which hostel contains this notification ID
+        Object.keys(state.notifications).forEach(hostelId => {
+          state.notifications[hostelId] = state.notifications[hostelId].filter(
+            notification => notification.id !== notificationId
+          );
+        });
       })
       .addCase(deleteNotification.rejected, (state, action) => {
         state.loading = false;

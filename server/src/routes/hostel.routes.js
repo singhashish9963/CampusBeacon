@@ -44,11 +44,11 @@ const upload = multer({ dest: "./public/temp" });
         Hostel Routes
 =============================
 */
-router.post("/hostels", authMiddleware, createHostel);
-router.get("/hostels", authMiddleware, getAllHostels);
-router.get("/hostels/:id", authMiddleware, getHostelById);
-router.put("/hostels/:id", authMiddleware, editHostel);
-router.delete("/hostels/:id", authMiddleware, deleteHostel);
+router.post("/", authMiddleware, createHostel);
+router.get("/", authMiddleware, getAllHostels);
+router.get("/:id", authMiddleware, getHostelById);
+router.put("/:id", authMiddleware, editHostel);
+router.delete("/:id", authMiddleware, deleteHostel);
 
 /*
 =============================
