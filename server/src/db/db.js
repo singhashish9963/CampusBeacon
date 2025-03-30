@@ -4,24 +4,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Database Configuration
-const DB_NAME = process.env.DB_NAME;
-const DB_USER = process.env.DB_USER;
-const DB_PASSWORD = process.env.DB_PASSWORD;
-const DB_HOST = process.env.DB_HOST.replace(/^.*@/, ''); 
-
-const DB_PORT = process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432;
-const DB_SSL = process.env.DB_SSL === "true";
+const { DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_SSL } = process.env;
 
 // Sequelize Instance
 const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
   host: DB_HOST,
   dialect: "postgres",
-  port: DB_PORT,
+  port: Number(DB_PORT) || 6453,
   dialectOptions: {
-    ssl: {
-      require: true,
-      rejectUnauthorized: false,
-    },
+    ssl:
+      DB_SSL === "true" ? { require: true, rejectUnauthorized: false } : false,
   },
 });
 
@@ -34,11 +26,10 @@ sequelize
     console.error("Error updating database schema:", error);
   });
 
-
 // Connect to Database
 export const connectDb = asyncHandler(async () => {
   await sequelize.authenticate();
-  console.log("Database Connection has been established successfully.");
+  console.log("Database connection has been established successfully.");
 });
 
 export default sequelize;
