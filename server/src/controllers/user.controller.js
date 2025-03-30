@@ -125,7 +125,7 @@ export const loginUser = asyncHandler(async (req, res, next) => {
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     maxAge: 60 * 60 * 1000,
   });
 
@@ -302,7 +302,7 @@ export const logoutUser = asyncHandler(async (req, res, next) => {
   res.clearCookie("token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
   });
 
   console.log(
@@ -369,7 +369,7 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
     maxAge: 60 * 60 * 1000,
   });
 
@@ -456,7 +456,7 @@ export const verifyEmail = asyncHandler(async (req, res, next) => {
   res.cookie("token", authToken, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    sameSite:"none",
     maxAge: 60 * 60 * 1000,
   });
 
