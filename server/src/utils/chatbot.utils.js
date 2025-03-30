@@ -1,4 +1,4 @@
-import { NlpManager } from "node-nlp";
+import { NlpManager}  from "node-nlp";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";

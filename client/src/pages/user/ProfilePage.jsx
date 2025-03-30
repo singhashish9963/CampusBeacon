@@ -7,14 +7,12 @@ import {
   Star,
   Edit,
   Home,
-  Award,
   AlertCircle,
   Save,
   X,
   Check,
 } from "lucide-react";
 import Profile from "../../components/ProfilePage/profileCard";
-import Achievements from "../../components/ProfilePage/achievements";
 import LoadingScreen from "../../components/LoadingScreen";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -38,8 +36,6 @@ const ProfilePage = () => {
     semester: "",
     graduation_year: 2025,
     hostel: "",
-    attendance: "87%",
-    semesterCredits: "21",
   });
 
   const branchOptions = [
@@ -89,8 +85,6 @@ const ProfilePage = () => {
         semester: user.semester || "",
         graduation_year: user.graduation_year || 2025,
         hostel: user.hostel || "",
-        attendance: "87%",
-        semesterCredits: "21",
       };
       setUserData(newUserData);
       setOriginalData(newUserData);
@@ -158,25 +152,11 @@ const ProfilePage = () => {
 
   const stats = [
     {
-      label: "Attendance",
-      value: userData.attendance,
-      icon: Calendar,
-      readonly: true,
-      color: "text-green-400",
-    },
-    {
       label: "Semester",
       value: userData.semester,
       icon: Book,
       isSelect: true,
       color: "text-blue-400",
-    },
-    {
-      label: "Semester Credits",
-      value: userData.semesterCredits,
-      icon: Star,
-      readonly: true,
-      color: "text-yellow-400",
     },
     {
       label: "Registration",
@@ -339,7 +319,7 @@ const ProfilePage = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mt-12">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
               {stats.map((stat) => (
                 <motion.div
                   key={stat.label}
@@ -405,44 +385,6 @@ const ProfilePage = () => {
                 </motion.button>
               </motion.div>
             )}
-
-            <motion.div
-              className="mt-12 border-t border-white/10 pt-8"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
-            >
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
-                  Achievements
-                </h2>
-                <Award className="text-purple-400 w-8 h-8" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {Array.isArray(Achievements) ? (
-                  Achievements.map((achievement) => (
-                    <motion.div
-                      key={achievement.title}
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-white/5 rounded-xl p-6 hover:bg-white/10 transition-all border border-white/5"
-                    >
-                      <achievement.icon className="w-8 h-8 text-purple-400 mb-4" />
-                      <h3 className="text-xl font-semibold text-purple-400 mb-2">
-                        {achievement.title}
-                      </h3>
-                      <p className="text-gray-400">{achievement.description}</p>
-                      {achievement.date && (
-                        <p className="text-sm text-gray-500 mt-2">
-                          {new Date(achievement.date).toLocaleDateString()}
-                        </p>
-                      )}
-                    </motion.div>
-                  ))
-                ) : (
-                  <Achievements />
-                )}
-              </div>
-            </motion.div>
 
             <motion.div
               initial={{ opacity: 0 }}

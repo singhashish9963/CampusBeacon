@@ -81,7 +81,11 @@ export const updateRide = asyncHandler(async (req, res) => {
   const ride = await Rides.findByPk(id);
   if (!ride) throw new ApiError("Ride not found", 404);
 
-  if (ride.creatorId !== req.user?.id) throw new ApiError("Unauthorized", 403);
+  // Check if user is admin or creator
+  const isAdmin = req.user?.roles?.includes("admin");
+  if (ride.creatorId !== req.user?.id && !isAdmin) {
+    throw new ApiError("Unauthorized", 403);
+  }
 
   if (status && !["OPEN", "FULL", "CANCELLED", "COMPLETED"].includes(status)) {
     throw new ApiError(
@@ -121,15 +125,44 @@ export const updateRide = asyncHandler(async (req, res) => {
 export const deleteRide = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
-  const ride = await Rides.findByPk(id);
-  if (!ride) throw new ApiError("Ride not found", 404);
+  // Find the ride with its participants
+  const ride = await Rides.findByPk(id, {
+    include: [
+      {
+        model: RideParticipant,
+        as: "participants",
+      },
+    ],
+  });
 
-  if (ride.creatorId !== req.user?.id) throw new ApiError("Unauthorized", 403);
+  if (!ride) {
+    throw new ApiError("Ride not found", 404);
+  }
 
-  await ride.destroy();
-  return res
-    .status(200)
-    .json(new ApiResponse(200, null, "Ride deleted successfully"));
+  // Check if user is admin or creator
+  const isAdmin = req.user?.roles?.includes("admin");
+  if (ride.creatorId !== req.user?.id && !isAdmin) {
+    throw new ApiError("Unauthorized", 403);
+  }
+
+  try {
+    // First delete all participants
+    if (ride.participants && ride.participants.length > 0) {
+      await RideParticipant.destroy({
+        where: { rideId: id },
+      });
+    }
+
+    // Then delete the ride
+    await ride.destroy();
+
+    return res
+      .status(200)
+      .json(new ApiResponse(200, null, "Ride deleted successfully"));
+  } catch (error) {
+    console.error("Error deleting ride:", error);
+    throw new ApiError("Error deleting ride: " + error.message, 500);
+  }
 });
 
 export const getRide = asyncHandler(async (req, res) => {
@@ -142,6 +175,17 @@ export const getRide = asyncHandler(async (req, res) => {
         as: "creator",
         attributes: ["id", "name", "email"],
       },
+      {
+        model: RideParticipant,
+        as: "participants",
+        include: [
+          {
+            model: User,
+            as: "participant",
+            attributes: ["id", "name", "email"],
+          },
+        ],
+      },
     ],
   });
 
@@ -152,9 +196,7 @@ export const getRide = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, ride, "Ride retrieved successfully"));
 });
 
-// Improved error handling and logging in getAllRides
 export const getAllRides = asyncHandler(async (req, res) => {
-  console.log("Getting all rides..."); // Debug log
   try {
     const rides = await Rides.findAll({
       where: {
@@ -170,15 +212,26 @@ export const getAllRides = asyncHandler(async (req, res) => {
           as: "creator",
           attributes: ["id", "name", "email"],
         },
+        {
+          model: RideParticipant,
+          as: "participants",
+          include: [
+            {
+              model: User,
+              as: "participant",
+              attributes: ["id", "name", "email"],
+            },
+          ],
+        },
       ],
+      limit: 50, // Limit the number of rides returned
     });
 
-    console.log(`Found ${rides.length} rides`); // Debug log
     return res
       .status(200)
-      .json(new ApiResponse(200, rides, "All rides retrieved successfully"));
+      .json(new ApiResponse(200, rides, "Rides retrieved successfully"));
   } catch (error) {
-    console.error("Error in getAllRides:", error); // Debug log
+    console.error("Error in getAllRides:", error);
     throw new ApiError("Error retrieving rides: " + error.message, 500);
   }
 });
@@ -200,7 +253,19 @@ export const getUserRides = asyncHandler(async (req, res) => {
           as: "creator",
           attributes: ["id", "name", "email"],
         },
+        {
+          model: RideParticipant,
+          as: "participants",
+          include: [
+            {
+              model: User,
+              as: "participant",
+              attributes: ["id", "name", "email"],
+            },
+          ],
+        },
       ],
+      limit: 20, // Limit the number of rides returned
     });
 
     return res
@@ -226,6 +291,11 @@ export const joinRide = asyncHandler(async (req, res) => {
     throw new ApiError("Ride not found", 404);
   }
 
+  // Check if ride is active
+  if (ride.status !== "OPEN") {
+    throw new ApiError("This ride is not available for joining", 400);
+  }
+
   // Check if user already joined the ride
   const existingEntry = await RideParticipant.findOne({
     where: { rideId: id, userId },
@@ -245,9 +315,15 @@ export const joinRide = asyncHandler(async (req, res) => {
 
   // Decrement availableSeats by 1
   ride.availableSeats = ride.availableSeats - 1;
+
+  // Update ride status if full
+  if (ride.availableSeats === 0) {
+    ride.status = "FULL";
+  }
+
   await ride.save();
 
-  // Optionally, fetch all participants to return with the response
+  // Fetch all participants with user details
   const participants = await RideParticipant.findAll({
     where: { rideId: id },
     include: [
@@ -263,6 +339,7 @@ export const joinRide = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, participants, "Joined ride successfully"));
 });
+
 export const unjoinRide = asyncHandler(async (req, res) => {
   const { id } = req.params; // ride ID from URL params
   const userId = req.user?.id;
@@ -290,9 +367,15 @@ export const unjoinRide = asyncHandler(async (req, res) => {
 
   // Increment availableSeats by 1
   ride.availableSeats = ride.availableSeats + 1;
+
+  // Update ride status if it was full
+  if (ride.status === "FULL") {
+    ride.status = "OPEN";
+  }
+
   await ride.save();
 
-  // Optionally, fetch updated participants list
+  // Fetch updated participants list
   const participants = await RideParticipant.findAll({
     where: { rideId: id },
     include: [

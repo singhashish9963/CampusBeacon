@@ -3,8 +3,11 @@ import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import session from "express-session";
+import { createServer } from "http";
 import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
 import { initializeAssociations } from "./src/models/association.js";
+import setupSocket from "./src/config/socket.js";
+
 // Import routes
 import userRoutes from "./src/routes/user.routes.js";
 import contactRoutes from "./src/routes/contact.routes.js";
@@ -19,6 +22,7 @@ import ridesRoutes from "./src/routes/ride.routes.js";
 import resourcesRoutes from "./src/routes/resources.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
 import chatBotRoutes from "./src/routes/chatBot.routes.js";
+import chatRoutes from "./src/routes/chat.routes.js";
 
 dotenv.config({ path: "./.env" });
 const app = express();
@@ -29,7 +33,7 @@ const corsOptions = {
   origin: ["http://localhost:5173", "https://campus-beacon.vercel.app"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-session-id"], // Added x-session-id
+  allowedHeaders: ["Content-Type", "Authorization", "x-session-id"],
 };
 
 app.use(cors(corsOptions));
@@ -70,7 +74,8 @@ app.use("/api/v1/user-subjects", userSubjectsRoutes);
 app.use("/api/eateries", eateriesRoutes);
 app.use("/api/resources", resourcesRoutes);
 app.use("/api/notification", notificationRoutes);
-app.use("/api/chatbot", chatBotRoutes); // Fixed the path here
+app.use("/api/chatbot", chatBotRoutes);
+app.use("/api/chat", chatRoutes);
 
 import { connectDb } from "./src/db/db.js";
 
@@ -79,7 +84,15 @@ const startServer = async () => {
     console.log("Connecting to database...");
     await connectDb();
     console.log("Database connected successfully");
-    app.listen(PORT, () => {
+
+    // Create HTTP server
+    const httpServer = createServer(app);
+
+    // Setup Socket.IO
+    const io = setupSocket(httpServer);
+
+    // Start server
+    httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
   } catch (error) {

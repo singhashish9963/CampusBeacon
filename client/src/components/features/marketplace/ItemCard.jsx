@@ -9,7 +9,7 @@ import {
 import { IoMdCall, IoMdTime, IoMdPricetag } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteItem } from "../../../slices/buyAndSellSlice";
+import { deleteItem } from "../../../slices/buyandsellSlice";
 
 function ItemCard({ item }) {
   const dispatch = useDispatch();
