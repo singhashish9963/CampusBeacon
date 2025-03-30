@@ -128,13 +128,14 @@ const LoginSignup = () => {
   };
 
   const AuthForm = ({ type }) => (
-    <form onSubmit={(e) => handleFormSubmit(e, type)} className="space-y-6">
+    <form onSubmit={(e) => handleFormSubmit(e, type)} className="space-y-6" autoComplete="off">
       <input
         type="email"
         name="email"
         placeholder="Enter your email"
         className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500 transition-all"
         required
+        autoComplete="new-email"
       />
       {type !== "forgot" && (
         <input
@@ -143,6 +144,7 @@ const LoginSignup = () => {
           placeholder="Enter password"
           className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500 transition-all"
           required
+          autoComplete="new-password"
         />
       )}
       <ButtonColourfull
