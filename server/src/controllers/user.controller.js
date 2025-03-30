@@ -10,6 +10,8 @@ import { OAuth2Client } from "google-auth-library";
 import dotenv from "dotenv";
 dotenv.config();
 
+
+console.log(process.env.FRONTEND_URL)
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 /*
@@ -63,25 +65,9 @@ export const registerUser = asyncHandler(async (req, res, next) => {
 
   console.log(`New user registered at ${getCurrentUTCDateTime()}`);
 
-  const token = jwt.sign(
-    { id: newUser.id, email: newUser.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-
   try {
-    await sendEmail({
-      to: newUser.email,
-      subject: "Verify Your Email Address",
-      text: `Please verify your email by clicking the following link: ${verificationUrl}`,
-      html: `
-        <h1>Email Verification</h1>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verificationUrl}">Verify Email</a>
-        <p>This link will expire in 1 hour.</p>
-      `,
-    });
+    // Directly use the helper function instead of calling the API endpoint
+    await sendVerificationEmailToUser(newUser);
   } catch (error) {
     return next(new ApiError("Error sending verification email", 500));
   }
@@ -399,27 +385,8 @@ export const sendVerificationEmail = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ where: { email }, include: Role });
   if (!user) return next(new ApiError("User not found", 404));
 
-  const token = jwt.sign(
-    { id: user.id, email: user.email },
-    process.env.JWT_SECRET,
-    { expiresIn: "1h" }
-  );
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-
   try {
-    await sendEmail({
-      to: user.email,
-      subject: "Verify Your Email Address",
-      text: `Please verify your email by clicking the following link: ${verificationUrl}`,
-      html: `
-        <h1>Email Verification</h1>
-        <p>Please click the link below to verify your email address:</p>
-        <a href="${verificationUrl}">Verify Email</a>
-        <p>This link will expire in 1 hour.</p>
-      `,
-    });
-
-    console.log(`Verification email sent to ${user.email}`);
+    await sendVerificationEmailToUser(user);
     res
       .status(200)
       .json(new ApiResponse(200, null, "Verification email sent successfully"));
@@ -503,3 +470,28 @@ export const getUserById = asyncHandler(async (req, res, next) => {
       )
     );
 });
+
+
+const sendVerificationEmailToUser = async (user) => {
+  const token = jwt.sign(
+    { id: user.id, email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "1h" }
+  );
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
+
+  await sendEmail({
+    to: user.email,
+    subject: "Verify Your Email Address",
+    text: `Please verify your email by clicking the following link: ${verificationUrl}`,
+    html: `
+      <h1>Email Verification</h1>
+      <p>Please click the link below to verify your email address:</p>
+      <a href="${verificationUrl}">Verify Email</a>
+      <p>This link will expire in 1 hour.</p>
+    `,
+  });
+
+  console.log(`Verification email sent to ${user.email}`);
+  return token;
+};
