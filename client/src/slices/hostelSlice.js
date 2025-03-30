@@ -11,7 +11,7 @@ export const createHostel = createAsyncThunk(
   "hostel/createHostel",
   async (hostelData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/hostels", hostelData);
+      const response = await api.post("/hostels/hostels", hostelData);
       if (response.data.success) {
         return response.data.data;
       }
@@ -28,7 +28,7 @@ export const getAllHostels = createAsyncThunk(
   "hostel/getAllHostels",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/hostels");
+      const response = await api.get("/hostels/hostels");
       if (response.data.success) {
         return response.data.data;
       }
@@ -45,7 +45,7 @@ export const getHostelById = createAsyncThunk(
   "hostel/getHostelById",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/hostels/${id}`);
+      const response = await api.get(`/hostels/hostels/${id}`);
       if (response.data.success) {
         return response.data.data;
       }
