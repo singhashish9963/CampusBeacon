@@ -27,7 +27,12 @@ export const createBuyAndSellItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item name is required", 400);
   }
 
-  if (!item_condition || !["Good", "Fair", "Poor"].includes(item_condition)) {
+  if (
+    !item_condition ||
+    !["Good", "Fair", "Poor", "New", "Like New", "Fair"].includes(
+      item_condition
+    )
+  ) {
     throw new ApiError(
       "Valid item condition is required (Good, Fair, or Poor)",
       400
