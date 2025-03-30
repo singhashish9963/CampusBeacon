@@ -16,6 +16,7 @@ import {
 import { handleLogout } from "../../../slices/authSlice";
 import { getAllHostels } from "../../../slices/hostelSlice";
 import { Building } from "lucide-react";
+import "react-toastify/dist/ReactToastify.css";
 
 // DropdownMenu component to show dropdown options
 const DropdownMenu = ({ title, options, dropdownKey, icon: Icon }) => {
@@ -188,7 +189,6 @@ function NavBar() {
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      // You might want to show a toast notification here
     }
   };
 

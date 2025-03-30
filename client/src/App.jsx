@@ -24,6 +24,8 @@ import MNNITFactsGenerator from "./pages/utility/FactsGenerator";
 import CampusExplorer from "./pages/utility/CampusExplorer";
 import MNNITTimeCapsule from "./pages/utility/MNNITTimeCapsule";
 import RideShare from "./pages/services/RideShare";
+import { ToastContainer, Slide } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 import ChatTestPage from "./pages/chat/ChatTestPage";
 import AdminPanel from "./pages/admin/AdminPanel";
@@ -33,6 +35,22 @@ function App() {
     <BrowserRouter>
       <div className="flex flex-col min-h-screen">
         <NavBar />
+        <ToastContainer
+          position="top-right"
+          autoClose={1000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick={true}
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={false}
+          pauseOnHover={false}
+          theme="dark"
+          limit={3}
+          transition={Slide}
+          toastClassName="bg-gray-800 text-white"
+          progressClassName="bg-purple-500"
+        />
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<HomePage />} />

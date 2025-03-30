@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,9 +7,10 @@ import {
   handleSignUp,
   handleForgetPassword,
   clearError,
+  checkAuthStatus,
 } from "../../slices/authSlice";
 import { ButtonColourfull } from "../../components/common/buttons";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const LoginSignup = () => {
@@ -24,18 +25,38 @@ const LoginSignup = () => {
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const loginSuccessShown = useRef(false);
+  const shouldRedirect = useRef(false);
 
+  // Clear any existing errors when component mounts or auth mode changes
   useEffect(() => {
-    if (isAuthenticated && !loading) {
-      toast.success("Login successful!", {
-        position: "top-right",
-        autoClose: 2000,
-      });
+    setError(null);
+    dispatch(clearError());
+  }, [dispatch, authMode]);
 
+  // Handle successful login toast
+  useEffect(() => {
+    if (isAuthenticated && !loading && !loginSuccessShown.current) {
+      loginSuccessShown.current = true;
+      shouldRedirect.current = true;
+      toast.success("Welcome back!", {
+        position: "top-right",
+        autoClose: 1000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        closeButton: false
+      });
+    }
+  }, [isAuthenticated, loading]);
+
+  // Handle redirection after successful login
+  useEffect(() => {
+    if (isAuthenticated && !loading && shouldRedirect.current) {
       const timer = setTimeout(() => {
         navigate("/");
-      }, 2000);
-
+      }, 1000);
       return () => clearTimeout(timer);
     }
   }, [isAuthenticated, loading, navigate]);
@@ -46,42 +67,61 @@ const LoginSignup = () => {
       toast.error(authError, {
         position: "top-right",
         autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: false,
+        draggable: false,
+        closeButton: false
       });
+      // Clear the error from Redux store
+      dispatch(clearError());
     }
-  }, [authError, loading]);
+  }, [authError, loading, dispatch]);
 
   const handleFormSubmit = async (e, type) => {
     e.preventDefault();
     setError(null);
     setIsLoading(true);
-    dispatch(clearError());
+    loginSuccessShown.current = false;
+    shouldRedirect.current = false;
+
+    const email = e.target.email.value;
+    const password = e.target.password?.value;
 
     try {
-      let response;
-      if (type === "forgotPassword") {
-        const email = e.target.email.value;
-        response = await dispatch(handleForgetPassword(email)).unwrap();
-        toast.success("Password reset link sent to your email", {
-          position: "top-center",
-          autoClose: 4000,
+      if (type === "login") {
+        await dispatch(handleSignIn({ email, password })).unwrap();
+        // After successful login, check auth status after a small delay
+        setTimeout(() => {
+          dispatch(checkAuthStatus());
+        }, 100);
+      } else if (type === "signup") {
+        await dispatch(handleSignUp({ email, password })).unwrap();
+        toast.success("Registration successful! Please check your email to verify your account.", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          closeButton: false
         });
-        setAuthMode("default");
-      } else {
-        const email = e.target.email.value;
-        const password = e.target.password.value;
-
-        if (type === "signUp") {
-          response = await dispatch(handleSignUp({ email, password })).unwrap();
-        } else {
-          response = await dispatch(handleSignIn({ email, password })).unwrap();
-        }
+        setAuthMode("login");
+      } else if (type === "forgot") {
+        await dispatch(handleForgetPassword(email)).unwrap();
+        toast.success("Password reset instructions sent to your email!", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+          draggable: false,
+          closeButton: false
+        });
+        setAuthMode("login");
       }
     } catch (err) {
-      setError(err.message || "An error occurred");
-      toast.error(err.message || "An error occurred", {
-        position: "top-right",
-        autoClose: 5000,
-      });
+      setError(err);
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +136,7 @@ const LoginSignup = () => {
         className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500 transition-all"
         required
       />
-      {type !== "forgotPassword" && (
+      {type !== "forgot" && (
         <input
           type="password"
           name="password"
@@ -107,9 +147,9 @@ const LoginSignup = () => {
       )}
       <ButtonColourfull
         text={
-          type === "signUp"
+          type === "signup"
             ? "Create Account"
-            : type === "signIn"
+            : type === "login"
             ? "Sign In"
             : "Send Reset Link"
         }
@@ -121,20 +161,6 @@ const LoginSignup = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-purple-900 to-black flex items-center justify-center p-4">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="dark"
-        style={{ zIndex: 9999 }}
-      />
-
       <AnimatePresence mode="wait">
         {authMode === "default" ? (
           <motion.div
@@ -220,7 +246,7 @@ const LoginSignup = () => {
                         {error}
                       </motion.div>
                     )}
-                    <AuthForm type="signUp" />
+                    <AuthForm type="signup" />
                     <div className="mt-6 flex justify-center">
                       <button
                         onClick={() => {
@@ -248,12 +274,12 @@ const LoginSignup = () => {
                         {error}
                       </motion.div>
                     )}
-                    <AuthForm type="signIn" />
+                    <AuthForm type="login" />
                     <div className="mt-4 flex flex-col items-center space-y-3">
                       <button
                         className="text-purple-400 hover:text-purple-300 transition-colors"
                         onClick={() => {
-                          setAuthMode("forgotPassword");
+                          setAuthMode("forgot");
                           setError(null);
                           dispatch(clearError());
                         }}
@@ -289,7 +315,7 @@ const LoginSignup = () => {
                   {error}
                 </motion.div>
               )}
-              <AuthForm type={isSignUp ? "signUp" : "signIn"} />
+              <AuthForm type="signup" />
             </div>
 
             <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden hidden md:block">
@@ -305,11 +331,11 @@ const LoginSignup = () => {
                   {error}
                 </motion.div>
               )}
-              <AuthForm type="signIn" />
+              <AuthForm type="login" />
               <button
                 className="mt-4 text-purple-400 hover:text-purple-300 transition-colors"
                 onClick={() => {
-                  setAuthMode("forgotPassword");
+                  setAuthMode("forgot");
                   setError(null);
                   dispatch(clearError());
                 }}
@@ -338,7 +364,7 @@ const LoginSignup = () => {
                 {error}
               </motion.div>
             )}
-            <AuthForm type="forgotPassword" />
+            <AuthForm type="forgot" />
             <button
               className="mt-4 text-purple-400 hover:text-purple-300 transition-colors w-full text-center"
               onClick={() => {
