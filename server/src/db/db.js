@@ -3,20 +3,25 @@ import asyncHandler from "../utils/asyncHandler.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-// Database Configuration
-const { DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_SSL } = process.env;
-
-// Sequelize Instance
-const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-  host: DB_HOST,
+// Database Connection using URI
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
-  port: Number(DB_PORT) || 6453,
+  logging: false, // Disable logging for cleaner output
   dialectOptions: {
-    ssl:
-      DB_SSL === "true" ? { require: true, rejectUnauthorized: false } : false,
+    ssl: {
+      require: true,
+      rejectUnauthorized: false, // Supabase requires SSL
+    },
+  },
+  pool: {
+    max: 10,
+    min: 1,
+    acquire: 30000,
+    idle: 10000,
   },
 });
 
+// Sync Database
 sequelize
   .sync()
   .then(() => {
@@ -29,7 +34,7 @@ sequelize
 // Connect to Database
 export const connectDb = asyncHandler(async () => {
   await sequelize.authenticate();
-  console.log("Database connection has been established successfully.");
+  console.log("Database Connection has been established successfully.");
 });
 
 export default sequelize;
