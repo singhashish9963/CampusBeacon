@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import toast from 'react-hot-toast'; // Import toast
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
@@ -96,13 +97,7 @@ export const handleSignUp = createAsyncThunk(
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const response = await api.post("/users/signup", { email, password });
-      const { user } = response.data.data;
-      
-      if (!user) {
-        return rejectWithValue("Signup failed. Please try again.");
-      }
-      
-      return user;
+      return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Signup failed");
     }
@@ -253,11 +248,12 @@ const authSlice = createSlice({
       })
       .addCase(handleSignUp.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        state.roles = action.payload.roles;
-        state.isAuthenticated = true;
+        state.user = null;
+        state.roles = [];
+        state.isAuthenticated = false;
         state.lastChecked = Date.now();
         state.error = null;
+        toast.success('Verification link sent to your email. Please check your inbox.');
       })
       .addCase(handleSignUp.rejected, (state, action) => {
         state.loading = false;
