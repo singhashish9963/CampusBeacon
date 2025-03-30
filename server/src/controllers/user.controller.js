@@ -60,7 +60,7 @@ export const registerUser = asyncHandler(async (req, res, next) => {
   // Assign default role to new user
   const userRole = await Role.findOne({ where: { role_name: "user" } });
   if (userRole) {
-    await UserRole.create({ user_id: newUser.id, role_id: userRole.id });
+    await UserRole.create({ user_id: newUser.id, role_id: userRole.role_id }); 
   }
 
   console.log(`New user registered at ${getCurrentUTCDateTime()}`);
