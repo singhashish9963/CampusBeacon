@@ -23,7 +23,7 @@ export const BranchProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    const API_URL = "http://localhost:5000/api";
+    const API_URL = "https://campusbeacon.onrender.com/api";
 
     // Fetch all branches
     const fetchBranches = async () => {
@@ -106,7 +106,7 @@ export const YearProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
-    const API_URL = "http://localhost:5000/api";
+    const API_URL = "https://campusbeacon.onrender.com/api";
 
     // Fetch all years
     const fetchYears = async () => {
@@ -186,7 +186,7 @@ export const StudyMaterialProvider = ({ children }) => {
     const [error, setError] = useState(null);
     
 
-    const API_URL = "http://localhost:5000/api";
+    const API_URL = "https://campusbeacon.onrender.com/api";
 
     // Fetch all study materials
     const fetchStudyMaterials = async () => {
