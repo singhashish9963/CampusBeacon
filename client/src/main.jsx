@@ -9,8 +9,30 @@ import { checkAuthStatus } from "./slices/authSlice";
 
 // Create a wrapper component to handle auth check
 const AppWrapper = () => {
+
   useEffect(() => {
-    store.dispatch(checkAuthStatus());
+   
+    const persistedAuth = localStorage.getItem("persist:root");
+    let needsServerCheck = true;
+    if (persistedAuth) {
+      try {
+        const { auth } = JSON.parse(persistedAuth);
+        const { user } = JSON.parse(auth);
+
+        if (!isTokenValid(user)) {
+ 
+          localStorage.removeItem("persist:root");
+          store.dispatch(logout());
+          needsServerCheck = false;
+        }
+      } catch (e) {
+        localStorage.removeItem("persist:root");
+        needsServerCheck = false;
+      }
+    }
+    if (needsServerCheck) {
+      store.dispatch(checkAuthStatus());
+    }
   }, []);
 
   return <App />;
