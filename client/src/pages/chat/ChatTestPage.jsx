@@ -5,8 +5,6 @@ import {
   Users,
   Hash,
   Bell,
-  Settings,
-  LogOut,
   Menu,
   X,
   Search,
@@ -29,6 +27,9 @@ const ChatTestPage = () => {
   const [darkMode, setDarkMode] = useState(
     localStorage.getItem("chatDarkMode") === "true" || false
   );
+
+  // Check if user is admin
+  const isAdmin = authUser?.roles?.includes('admin');
 
   // Toggle dark mode function
   const toggleDarkMode = () => {
@@ -95,6 +96,27 @@ const ChatTestPage = () => {
       supabase.removeChannel(channelSubscription);
     };
   }, [selectedChannel]);
+
+  // Add new channel (admin only)
+  const addNewChannel = async () => {
+    if (!isAdmin) return;
+    
+    const channelName = prompt("Enter channel name:");
+    if (!channelName || !channelName.trim()) return;
+    
+    try {
+      const { error } = await supabase
+        .from("Channels")
+        .insert([{ name: channelName.trim() }]);
+        
+      if (error) {
+        console.error("Error creating channel:", error);
+        alert("Failed to create channel");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
 
   // Filter channels based on search query
   const filteredChannels = channels.filter((channel) =>
@@ -195,11 +217,17 @@ const ChatTestPage = () => {
               <div className="flex-1 overflow-y-auto py-2 px-2">
                 <div className="mb-2 px-4 flex items-center justify-between">
                   <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500">Channels</h2>
-                  <button className={`p-1 rounded-md ${
-                    darkMode ? "hover:bg-gray-800" : "hover:bg-gray-200"
-                  }`}>
-                    <Plus size={16} className="text-gray-400" />
-                  </button>
+                  {isAdmin && (
+                    <button 
+                      onClick={addNewChannel}
+                      className={`p-1 rounded-md ${
+                        darkMode ? "hover:bg-gray-800" : "hover:bg-gray-200"
+                      }`}
+                      title="Add new channel (Admin only)"
+                    >
+                      <Plus size={16} className="text-gray-400" />
+                    </button>
+                  )}
                 </div>
                 <div className="space-y-1">
                   {filteredChannels.map((channel) => (
@@ -235,32 +263,27 @@ const ChatTestPage = () => {
               <div className={`p-4 border-t ${
                 darkMode ? "border-gray-800" : "border-gray-200"
               }`}>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="relative">
-                      <img
-                        src={authUser?.avatar_url || `https://ui-avatars.com/api/?name=${authUser?.name || "User"}&background=random`}
-                        alt="Profile"
-                        className="w-10 h-10 rounded-full object-cover"
-                      />
-                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium text-sm">{authUser?.name || authUser?.email?.split('@')[0] || "User"}</span>
-                      <span className="text-xs text-gray-500">Online</span>
-                    </div>
+                <div className="flex items-center">
+                  <div className="relative">
+                    <img
+                      src={authUser?.avatar_url || `https://ui-avatars.com/api/?name=${authUser?.name || "User"}&background=random`}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></span>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <button className={`p-2 rounded-md ${
-                      darkMode ? "hover:bg-gray-800" : "hover:bg-gray-200"
-                    }`}>
-                      <Settings size={18} className="text-gray-400" />
-                    </button>
-                    <button className={`p-2 rounded-md ${
-                      darkMode ? "hover:bg-gray-800" : "hover:bg-gray-200"
-                    }`}>
-                      <LogOut size={18} className="text-gray-400" />
-                    </button>
+                  <div className="flex flex-col ml-3">
+                    <span className="font-medium text-sm">{authUser?.name || authUser?.email?.split('@')[0] || "User"}</span>
+                    <div className="flex items-center">
+                      <span className="text-xs text-gray-500 mr-1">
+                        {authUser?.registration_number || ""}
+                      </span>
+                      {isAdmin && (
+                        <span className="text-xs bg-amber-500 text-white px-1.5 py-0.5 rounded-full">
+                          Admin
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -276,7 +299,8 @@ const ChatTestPage = () => {
             key={selectedChannel.id}
             channelId={selectedChannel.id}
             channelName={selectedChannel.name}
-            darkMode={darkMode} // Pass darkMode as a prop to ensure it's available
+            darkMode={darkMode}
+            isAdmin={isAdmin}
           />
         ) : (
           <div className="flex-1 flex items-center justify-center">
