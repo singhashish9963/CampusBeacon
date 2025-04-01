@@ -1,7 +1,8 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import toast from 'react-hot-toast'; // Import toast
+import toast from "react-hot-toast";
 
+// Configure axios to send cookies with every request.
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
@@ -10,40 +11,20 @@ const api = axios.create({
   },
 });
 
-// Add request interceptor to handle token
-api.interceptors.request.use(
-  (config) => {
-    // Check if there's a persisted auth state
-    const persistedAuth = localStorage.getItem("persist:root");
-    if (persistedAuth) {
-      try {
-        const { auth } = JSON.parse(persistedAuth);
-        const { user } = JSON.parse(auth);
-        if (user && user.token) {
-          config.headers.Authorization = `Bearer ${user.token}`;
-        }
-      } catch (error) {
-        console.error("Error parsing persisted auth:", error);
-      }
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+// Remove the request interceptor that was reading token from localStorage.
 
-// Add response interceptor to handle common errors
+
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't handle 401 errors for auth-related endpoints
-    const isAuthEndpoint = error.config.url.includes("/users/login") || 
-                          error.config.url.includes("/users/signup") ||
-                          error.config.url.includes("/users/current");
-    
+    const isAuthEndpoint =
+      error.config.url.includes("/users/login") ||
+      error.config.url.includes("/users/signup") ||
+      error.config.url.includes("/users/current");
+
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      // Clear persisted state on unauthorized (only for non-auth endpoints)
-      localStorage.removeItem("persist:root");
-      // Redirect to login if needed
+      // Redirect to login if needed – since cookie-based sessions are used.
       window.location.href = "/login";
     }
     return Promise.reject(error);
@@ -56,12 +37,8 @@ export const checkAuthStatus = createAsyncThunk(
     try {
       const response = await api.get("/users/current");
       const { user } = response.data.data;
-      
-      if (!user) {
-        return null;
-      }
-      
-      return user;
+
+      return user ? user : null;
     } catch (error) {
       return null;
     }
@@ -74,11 +51,11 @@ export const handleSignIn = createAsyncThunk(
     try {
       const response = await api.post("/users/login", { email, password });
       const { user } = response.data.data;
-      
+
       if (!user) {
         return rejectWithValue("Login failed. Please try again.");
       }
-      
+
       return user;
     } catch (error) {
       if (error.response?.status === 403) {
@@ -111,7 +88,9 @@ export const handleForgetPassword = createAsyncThunk(
       const response = await api.post("/users/forgot-password", { email });
       return response.data.message;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Password reset failed");
+      return rejectWithValue(
+        error.response?.data?.message || "Password reset failed"
+      );
     }
   }
 );
@@ -126,7 +105,9 @@ export const handleResetPassword = createAsyncThunk(
       });
       return response.data.message;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Password reset failed");
+      return rejectWithValue(
+        error.response?.data?.message || "Password reset failed"
+      );
     }
   }
 );
@@ -137,14 +118,16 @@ export const handleEmailVerification = createAsyncThunk(
     try {
       const response = await api.get(`/users/verify-email?token=${token}`);
       const { user } = response.data.data;
-      
+
       if (!user) {
         return rejectWithValue("Email verification failed. Please try again.");
       }
-      
+
       return user;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Email verification failed");
+      return rejectWithValue(
+        error.response?.data?.message || "Email verification failed"
+      );
     }
   }
 );
@@ -154,14 +137,8 @@ export const handleLogout = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       await api.post("/users/logout");
-      // Disconnect socket if it exists
-      if (window.socket) {
-        window.socket.disconnect();
-        window.socket = null;
-      }
-      // Clear localStorage before resetting state
-      localStorage.removeItem("persist:root");
-      // Reset auth state
+      // Since we now solely use cookie-based auth,
+      // simply dispatch logout on a successful response.
       dispatch(logout());
       return true;
     } catch (error) {
@@ -253,7 +230,9 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
         state.lastChecked = Date.now();
         state.error = null;
-        toast.success('Verification link sent to your email. Please check your inbox.');
+        toast.success(
+          "Verification link sent to your email. Please check your inbox."
+        );
       })
       .addCase(handleSignUp.rejected, (state, action) => {
         state.loading = false;
