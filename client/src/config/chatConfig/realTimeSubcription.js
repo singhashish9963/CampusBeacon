@@ -12,8 +12,13 @@ import supabase from "./supabaseClient.js";
 const subscribeToMessages = (channelId, callbacks = {}) => {
   const { onInsert, onUpdate, onDelete } = callbacks;
   
+  // Create a more reliable channel name
+  const channelName = `messages-channel-${channelId}-${Date.now()}`;
+  
+  console.log(`Setting up real-time subscription for channel ${channelId} with name ${channelName}`);
+  
   const subscription = supabase
-    .channel(`messages-channel-${channelId}`)
+    .channel(channelName)
     .on(
       "postgres_changes",
       {
@@ -23,6 +28,7 @@ const subscribeToMessages = (channelId, callbacks = {}) => {
         filter: `channelId=eq.${channelId}`,
       },
       (payload) => {
+        console.log("Real-time INSERT event received:", payload.new);
         if (onInsert) onInsert(payload.new);
       }
     )
@@ -35,22 +41,32 @@ const subscribeToMessages = (channelId, callbacks = {}) => {
         filter: `channelId=eq.${channelId}`,
       },
       (payload) => {
+        console.log("Real-time UPDATE event received:", payload.new);
         if (onUpdate) onUpdate(payload.new, payload.old);
       }
     )
     .on(
       "postgres_changes",
       {
-        event: "DELETE",
+        event: "*", // Listen to all events for DELETE to ensure it's captured
         schema: "public",
         table: "Messages",
-        filter: `channelId=eq.${channelId}`,
       },
       (payload) => {
-        if (onDelete) onDelete(payload.old);
+        // Only process DELETE events here
+        if (payload.eventType === "DELETE") {
+          console.log("Real-time DELETE event received:", payload);
+          
+          // Check if the deleted message belongs to this channel
+          // Note: For DELETE events, we might not have channelId in payload.old
+          // so we'll handle all DELETE events and let the component filter them
+          if (onDelete) onDelete(payload.old);
+        }
       }
     )
-    .subscribe();
+    .subscribe((status) => {
+      console.log(`Subscription status for channel ${channelId}:`, status);
+    });
 
   return subscription;
 };

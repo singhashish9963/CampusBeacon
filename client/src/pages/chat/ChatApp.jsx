@@ -44,10 +44,14 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesPerPage = 20;
 
-  // Fetch messages with pagination and subscribe to real-time updates.
+  // Fetch messages and subscribe to real-time updates.
   useEffect(() => {
+    setMessages([]);
+    setIsTyping(true);
+    setCurrentPage(1);
+    setHasMoreMessages(true);
+    
     const fetchMessages = async () => {
-      setMessages([]);
       setIsTyping(true);
       setCurrentPage(1);
       setHasMoreMessages(true);
@@ -79,32 +83,57 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     // Subscribe to real-time message updates
     const messageSubscription = subscribeToMessages(channelId, {
       onInsert: (newMessage) => {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
-        // Auto-scroll to bottom when new message arrives
-        setTimeout(() => {
-          if (chatBoxRef.current) {
-            chatBoxRef.current.scrollToBottom();
-          }
-        }, 100);
+        // Only add messages for the current channel
+        if (newMessage.channelId === channelId) {
+          console.log("Adding new message to UI:", newMessage);
+          setMessages((prevMessages) => [...prevMessages, newMessage]);
+          // Auto-scroll to bottom when new message arrives
+          setTimeout(() => {
+            if (chatBoxRef.current) {
+              chatBoxRef.current.scrollToBottom();
+            }
+          }, 100);
+        }
       },
       onUpdate: (updatedMessage) => {
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) =>
-            msg.id === updatedMessage.id ? updatedMessage : msg
-          )
-        );
+        // Only update messages for the current channel
+        if (updatedMessage.channelId === channelId) {
+          console.log("Updating message in UI:", updatedMessage);
+          setMessages((prevMessages) =>
+            prevMessages.map((msg) =>
+              msg.id === updatedMessage.id ? updatedMessage : msg
+            )
+          );
+        }
       },
       onDelete: (deletedMessage) => {
-        setMessages((prevMessages) =>
-          prevMessages.filter((msg) => msg.id !== deletedMessage.id)
-        );
+        console.log("Processing delete event for message:", deletedMessage);
+        
+        // For delete events, we need to be more careful as the payload might be incomplete
+        if (deletedMessage && deletedMessage.id) {
+          console.log("Removing deleted message from UI:", deletedMessage.id);
+          setMessages((prevMessages) =>
+            prevMessages.filter((msg) => msg.id !== deletedMessage.id)
+          );
+        }
       }
     });
     
     return () => {
+      console.log("Cleaning up message subscription for channel:", channelId);
       supabase.removeChannel(messageSubscription);
     };
   }, [channelId]);
+
+  // Handle scroll events for the chat box
+  const handleChatScroll = (e) => {
+    if (chatBoxRef.current && chatBoxRef.current.element) {
+      const { scrollTop, scrollHeight, clientHeight } = chatBoxRef.current.element;
+      // Show scroll button when not at bottom (with a larger threshold for better UX)
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 150;
+      setShowScrollButton(!isAtBottom);
+    }
+  };
 
   // Load more messages (pagination)
   const loadMoreMessages = async () => {
@@ -116,6 +145,10 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     const endRange = startRange + messagesPerPage - 1;
     
     try {
+      // Add a small delay to make the loading indicator visible
+      // This improves UX by making the pagination more noticeable
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
       const { data, error } = await supabase
         .from("Messages")
         .select("*")
@@ -179,16 +212,6 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     };
   }, []);
 
-  // Handle scroll events for the chat box
-  const handleChatScroll = (e) => {
-    if (chatBoxRef.current && chatBoxRef.current.element) {
-      const { scrollTop, scrollHeight, clientHeight } = chatBoxRef.current.element;
-      // Show scroll button when not at bottom
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 100;
-      setShowScrollButton(!isAtBottom);
-    }
-  };
-
   // Handle sending a new message.
   const sendMessage = async () => {
     if (!newMessageContent.trim()) return;
@@ -230,6 +253,12 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
   const handleDeleteResponse = async (confirmed) => {
     if (confirmed && deleteConfirmation) {
       try {
+        // Get the message to delete before deleting it (for logging)
+        const messageToDelete = messages.find(msg => msg.id === deleteConfirmation);
+        
+        // Log the deletion attempt
+        console.log("Attempting to delete message:", deleteConfirmation, messageToDelete);
+        
         const { error } = await supabase
           .from("Messages")
           .delete()
@@ -237,6 +266,13 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
           
         if (error) {
           console.error("Error deleting message:", error);
+        } else {
+          console.log("Message deleted successfully, updating UI immediately");
+          
+          // Update the UI immediately without waiting for the subscription
+          setMessages(prevMessages => 
+            prevMessages.filter(msg => msg.id !== deleteConfirmation)
+          );
         }
       } catch (err) {
         console.error("Error in message delete:", err);
