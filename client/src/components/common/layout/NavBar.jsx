@@ -11,8 +11,8 @@ import {
   HiLogout,
   HiLogin,
   HiMenu,
-  HiAcademicCap,
 } from "react-icons/hi";
+import { HiChatBubbleLeftRight, HiTruck } from "react-icons/hi2";
 import { handleLogout } from "../../../slices/authSlice";
 import { getAllHostels } from "../../../slices/hostelSlice";
 import { Building } from "lucide-react";
@@ -106,82 +106,12 @@ function NavBar() {
     ? [
         { name: "Home", path: "/", icon: HiHome },
         { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
-        { name: "Buy & Sell", path: "/marketplace", icon: HiShoppingBag },
+        { name: "Market", path: "/marketplace", icon: HiShoppingBag },
+        { name: "Rides", path: "/rides", icon: HiTruck },
+        { name: "Chat", path: "/chat", icon: HiChatBubbleLeftRight },
         { name: "Profile", path: "/profile", icon: HiUser },
       ]
     : [{ name: "Home", path: "/", icon: HiHome }];
-
-  // Options for dropdown menus
-  const hostelOptions = [
-    {
-      name: "SVBH",
-      path: "/SVBH",
-      description: "Swami Vivekanand Boys Hostel",
-    },
-    {
-      name: "DGJH",
-      path: "/DJGH",
-      description: "Dr. G.J. Hostel",
-    },
-    {
-      name: "PG Hostel",
-      path: "/PGHostel",
-      description: "Post Graduate Hostel",
-    },
-    {
-      name: "KNGH",
-      path: "/KNGH",
-      description: "Kamla Nehru Girls Hostel",
-    },
-    {
-      name: "SNGH",
-      path: "/SNGH",
-      description: "Sarojini Naidu Girls Hostel",
-    },
-    {
-      name: "IGH",
-      path: "/IGH",
-      description: "International House (B-block) and Bachelor's Flat",
-    },
-    {
-      name: "RN TAGORE HOSTEL",
-      path: "/RNTH",
-      description: "RABINDRANATH TAGORE BOYS HOSTEL",
-    },
-    {
-      name: "CV RAMAN HOSTEL",
-      path: "/CVRH",
-      description: "Chandrasekhara Venkata Raman Boys Hostel",
-    },
-    {
-      name: "M.M MALAVIYA HOSTEL",
-      path: "/MMMH",
-      description: "Madan Mohan Malviya Boys Hostel",
-    },
-    {
-      name: "B.G Tilak Hostel",
-      path: "/BGTH",
-      description: "Bal Gangadhar Tilak Boys Hostel",
-    },
-    {
-      name: "S.V. Patel Hostel",
-      path: "/SVTH",
-      description: "Sardar Vallabh Bhai Patel Boys Hostel",
-    },
-    {
-      name: "P.D Tandon Hostel",
-      path: "/PDTH",
-      description: "Pandit Deen Dayal Tandon Boys Hostel",
-    },
-  ];
-
-  const academicsOptions = [
-    {
-      name: "Attendance Manager",
-      path: "/attendance",
-      description: "Track and manage your attendance",
-    },
-  ];
 
   const handleLogoutClick = async () => {
     try {
@@ -192,12 +122,15 @@ function NavBar() {
     }
   };
 
+  // Load hostels only after successful authentication
   useEffect(() => {
-    dispatch(getAllHostels());
+    if (isAuthenticated && !loading) {
+      dispatch(getAllHostels());
+    }
     return () => {
       if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
     };
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated, loading]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
@@ -205,14 +138,14 @@ function NavBar() {
 
   return (
     <>
-      {/* Desktop Trigger Area */}
+      {/* Desktop Trigger Area - visible on all screen sizes */}
       <div
-        className="fixed top-0 left-0 w-full h-8 z-50 md:block hidden"
+        className="fixed top-0 left-0 w-full h-8 z-50"
         onMouseEnter={() => setIsVisible(true)}
       />
 
-      {/* Mobile Menu Button */}
-      <div className="fixed top-4 right-4 z-50 md:hidden">
+      {/* Mobile Menu Button - visible on all screen sizes */}
+      <div className="fixed top-4 right-4 z-50 sm:hidden">
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -231,10 +164,10 @@ function NavBar() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: "100%" }}
             transition={{ type: "spring", damping: 30 }}
-            className="fixed inset-0 z-40 md:hidden"
+            className="fixed inset-0 z-40 sm:hidden"
           >
             <div className="absolute inset-0 bg-black/80 backdrop-blur-lg">
-              <div className="flex flex-col h-full py-20 px-6">
+              <div className="flex flex-col h-full py-20 px-6 overflow-y-auto">
                 {mainLinks.map((link) => (
                   <Link
                     key={link.name}
@@ -245,50 +178,22 @@ function NavBar() {
                     <span>{link.name}</span>
                   </Link>
                 ))}
-                {isAuthenticated && (
+                {isAuthenticated && hostels.length > 0 && (
                   <>
-                    {/* Mobile Hostels Section */}
+                    {/* Mobile Hostels Section - Dynamic from Redux */}
                     <div className="mt-4 border-t border-white/10 pt-4">
                       <div className="px-4 py-2 text-sm text-gray-400">
                         Hostels
                       </div>
-                      {hostelOptions.map((option) => (
+                      {hostels.map((hostel) => (
                         <Link
-                          key={option.name}
-                          to={option.path}
+                          key={hostel.hostel_id}
+                          to={`/hostels/${hostel.hostel_id}`}
                           className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
                         >
                           <HiOfficeBuilding className="w-6 h-6" />
                           <div>
-                            <div>{option.name}</div>
-                            {option.description && (
-                              <div className="text-sm text-gray-400">
-                                {option.description}
-                              </div>
-                            )}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                    {/* Mobile Academics Section */}
-                    <div className="mt-4 border-t border-white/10 pt-4">
-                      <div className="px-4 py-2 text-sm text-gray-400">
-                        Academics
-                      </div>
-                      {academicsOptions.map((option) => (
-                        <Link
-                          key={option.name}
-                          to={option.path}
-                          className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
-                        >
-                          <HiAcademicCap className="w-6 h-6" />
-                          <div>
-                            <div>{option.name}</div>
-                            {option.description && (
-                              <div className="text-sm text-gray-400">
-                                {option.description}
-                              </div>
-                            )}
+                            <div>{hostel.hostel_name}</div>
                           </div>
                         </Link>
                       ))}
@@ -320,7 +225,7 @@ function NavBar() {
         )}
       </AnimatePresence>
 
-      {/* Desktop Navigation */}
+      {/* Desktop Navigation - now responsive for all screen sizes */}
       <AnimatePresence>
         {isVisible && (
           <motion.nav
@@ -328,7 +233,7 @@ function NavBar() {
             animate={{ y: 0 }}
             exit={{ y: -100 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50 md:block hidden"
+            className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50 hidden sm:block"
             onMouseLeave={() => {
               showTimeoutRef.current = setTimeout(() => {
                 setIsVisible(false);
@@ -339,35 +244,35 @@ function NavBar() {
             }}
           >
             <div className="relative rounded-2xl overflow-visible bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-purple-500/10">
-              <div className="max-w-7xl mx-auto px-6">
+              <div className="max-w-7xl mx-auto px-4 lg:px-6">
                 <div className="flex items-center justify-between h-16">
                   <Link
                     to="/"
-                    className="text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
+                    className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
                   >
                     CampusBeacon
                   </Link>
-                  <div className="flex items-center space-x-8 text-l">
+                  <div className="flex items-center space-x-4 md:space-x-8 text-sm md:text-base">
                     {mainLinks.map((link) => (
                       <Link
                         key={link.name}
                         to={link.path}
-                        className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors relative group"
+                        className="flex items-center space-x-1 md:space-x-2 text-gray-300 hover:text-white transition-colors relative group"
                       >
-                        <link.icon className="w-5 h-5" />
+                        <link.icon className="w-4 h-4 md:w-5 md:h-5" />
                         <span>{link.name}</span>
                         <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
                       </Link>
                     ))}
-                    {isAuthenticated && (
+                    {isAuthenticated && hostels.length > 0 && (
                       <>
-                        {/* Updated Hostel Dropdown */}
+                        {/* Updated Hostel Dropdown - Dynamic from Redux */}
                         <div className="relative group">
                           <button
-                            className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors relative group"
+                            className="flex items-center space-x-1 md:space-x-2 text-gray-300 hover:text-white transition-colors relative group"
                             onMouseEnter={() => setShowHostelMenu(true)}
                           >
-                            <Building className="w-5 h-5" />
+                            <Building className="w-4 h-4 md:w-5 md:h-5" />
                             <span>Hostels</span>
                             <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
                           </button>
@@ -400,30 +305,23 @@ function NavBar() {
                             </AnimatePresence>
                           </div>
                         </div>
-
-                        <DropdownMenu
-                          title="Academics"
-                          options={academicsOptions}
-                          dropdownKey="academics"
-                          icon={HiAcademicCap}
-                        />
                       </>
                     )}
                     {isAuthenticated ? (
                       <button
                         onClick={handleLogoutClick}
-                        className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors relative group"
+                        className="flex items-center space-x-1 md:space-x-2 text-gray-300 hover:text-white transition-colors relative group"
                       >
-                        <HiLogout className="w-5 h-5" />
+                        <HiLogout className="w-4 h-4 md:w-5 md:h-5" />
                         <span>Logout</span>
                         <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
                       </button>
                     ) : (
                       <Link
                         to="/login"
-                        className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors relative group"
+                        className="flex items-center space-x-1 md:space-x-2 text-gray-300 hover:text-white transition-colors relative group"
                       >
-                        <HiLogin className="w-5 h-5" />
+                        <HiLogin className="w-4 h-4 md:w-5 md:h-5" />
                         <span>Login</span>
                         <span className="absolute inset-x-0 -bottom-1 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transform scale-x-0 group-hover:scale-x-100 transition-transform" />
                       </Link>

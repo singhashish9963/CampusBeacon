@@ -1,7 +1,16 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import supabase from "../../config/chatConfig/supabaseClient";
-import { subscribeToMessages, subscribeToUsers } from "../../config/chatConfig/realTimeSubcription";
+import {
+  subscribeToMessages,
+  subscribeToUsers,
+} from "../../config/chatConfig/realTimeSubcription";
 import {
   Send,
   Smile,
@@ -48,10 +57,10 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   // Check if user can edit or delete a message
   const canModifyMessage = (message) => {
     if (!authUser) return false;
-    
+
     // Admin can edit/delete any message
     if (isAdmin) return true;
-    
+
     // Regular users can only edit/delete their own messages
     return message.userId === authUser.id;
   };
@@ -102,7 +111,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
           // Auto-scroll to bottom when new message arrives
           setTimeout(() => {
             if (chatBoxRef.current) {
-              chatBoxRef.current.scrollToBottom();
+              chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
             }
           }, 100);
         }
@@ -139,8 +148,8 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
 
   // Handle scroll events for the chat box
   const handleChatScroll = (e) => {
-    if (chatBoxRef.current && chatBoxRef.current.element) {
-      const { scrollTop, scrollHeight, clientHeight } = chatBoxRef.current.element;
+    if (chatBoxRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = chatBoxRef.current;
       // Show scroll button when not at bottom (with a larger threshold for better UX)
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 150;
       setShowScrollButton(!isAtBottom);
@@ -225,6 +234,8 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   }, []);
 
   // Handle sending a new message.
+
+
   const sendMessage = async () => {
     if (!newMessageContent.trim()) return;
     if (!authUser) {
@@ -250,6 +261,13 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         setNewMessageContent("");
         // Focus back on input after sending
         document.getElementById("message-input")?.focus();
+
+        // Auto-scroll to bottom after sending
+        setTimeout(() => {
+          if (chatBoxRef.current) {
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+          }
+        }, 100);
       }
     } catch (err) {
       console.error("Error in message send:", err);
@@ -258,14 +276,14 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
 
   // Trigger delete confirmation.
   const confirmAndDeleteMessage = (messageId) => {
-    const message = messages.find(msg => msg.id === messageId);
-    
+    const message = messages.find((msg) => msg.id === messageId);
+
     // Check permission before showing delete confirmation
     if (!canModifyMessage(message)) {
       alert("You don't have permission to delete this message");
       return;
     }
-    
+
     setDeleteConfirmation(messageId);
   };
 
@@ -274,7 +292,9 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
     if (confirmed && deleteConfirmation) {
       try {
         // Get the message to delete before deleting it (for logging)
-        const messageToDelete = messages.find((msg) => msg.id === deleteConfirmation);
+        const messageToDelete = messages.find(
+          (msg) => msg.id === deleteConfirmation
+        );
 
         // Double-check permissions before deleting
         if (!canModifyMessage(messageToDelete)) {
@@ -283,7 +303,11 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         }
 
         // Log the deletion attempt
-        console.log("Attempting to delete message:", deleteConfirmation, messageToDelete);
+        console.log(
+          "Attempting to delete message:",
+          deleteConfirmation,
+          messageToDelete
+        );
 
         const { error } = await supabase
           .from("Messages")
@@ -314,7 +338,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
       alert("You don't have permission to edit this message");
       return;
     }
-    
+
     setEditingMessageId(message.id);
     setEditingMessageContent(message.content);
   };
@@ -322,9 +346,9 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   // Handle message editing.
   const updateMessage = async (messageId, newContent) => {
     if (!newContent.trim()) return;
-    
-    const messageToUpdate = messages.find(msg => msg.id === messageId);
-    
+
+    const messageToUpdate = messages.find((msg) => msg.id === messageId);
+
     // Double-check permissions before updating
     if (!canModifyMessage(messageToUpdate)) {
       console.error("Permission denied: Cannot edit this message");
@@ -392,18 +416,25 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   }, [messages]);
 
   // Get user data from message
-  const getUserFromMessage = useCallback((message) => {
-    const user = users.find((u) => u.id === message.userId);
-    return {
-      id: message.userId,
-      name: user?.name || user?.email?.split("@")[0] || "Unknown User",
-      registration_number: user?.registration_number || "",
-      avatar: user?.avatar_url || getAvatarURL(message.userId),
-    };
-  }, [users]);
+  const getUserFromMessage = useCallback(
+    (message) => {
+      const user = users.find((u) => u.id === message.userId);
+      return {
+        id: message.userId,
+        name: user?.name || user?.email?.split("@")[0] || "Unknown User",
+        registration_number: user?.registration_number || "",
+        avatar: user?.avatar_url || getAvatarURL(message.userId),
+      };
+    },
+    [users]
+  );
 
   return (
-    <div className={`flex flex-col h-full ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"}`}>
+    <div
+      className={`flex flex-col h-full ${
+        darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"
+      }`}
+    >
       {/* Channel Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -416,9 +447,11 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         }`}
       >
         <div className="flex items-center space-x-3">
-          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
-            darkMode ? "bg-gray-800" : "bg-gray-100"
-          }`}>
+          <div
+            className={`w-8 h-8 rounded-md flex items-center justify-center ${
+              darkMode ? "bg-gray-800" : "bg-gray-100"
+            }`}
+          >
             <Hash size={16} className="text-amber-500" />
           </div>
           <div>
@@ -440,7 +473,11 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
       </motion.div>
 
       {/* Chat Window */}
-      <div className="flex-1 overflow-y-auto p-4" onScroll={handleChatScroll} ref={chatBoxRef}>
+      <div
+        className="flex-1 overflow-y-auto p-4"
+        onScroll={handleChatScroll}
+        ref={chatBoxRef}
+      >
         {isTyping && messages.length === 0 ? (
           <div className="flex justify-center py-10">
             <div className="animate-pulse flex space-x-2">
@@ -451,13 +488,19 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-10">
-            <div className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-              darkMode ? "bg-gray-800" : "bg-gray-200"
-            }`}>
+            <div
+              className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                darkMode ? "bg-gray-800" : "bg-gray-200"
+              }`}
+            >
               <Image size={24} className="text-amber-500" />
             </div>
             <h3 className="text-xl font-medium mb-2">No messages yet</h3>
-            <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+            <p
+              className={`text-sm ${
+                darkMode ? "text-gray-400" : "text-gray-500"
+              }`}
+            >
               Be the first to send a message in this channel!
             </p>
           </div>
@@ -466,7 +509,11 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
             {Object.entries(groupedMessages).map(([date, dateMessages]) => (
               <div key={date} className="space-y-4">
                 <div className="relative flex items-center py-2">
-                  <div className={`flex-grow border-t border-dashed ${darkMode ? "border-gray-700" : "border-gray-300"} opacity-30`} />
+                  <div
+                    className={`flex-grow border-t border-dashed ${
+                      darkMode ? "border-gray-700" : "border-gray-300"
+                    } opacity-30`}
+                  />
                   <span className="px-3 text-xs font-medium text-gray-400">
                     {new Date(date).toLocaleDateString([], {
                       month: "long",
@@ -474,14 +521,20 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                       year: "numeric",
                     })}
                   </span>
-                  <div className={`flex-grow border-t border-dashed ${darkMode ? "border-gray-700" : "border-gray-300"} opacity-30`} />
+                  <div
+                    className={`flex-grow border-t border-dashed ${
+                      darkMode ? "border-gray-700" : "border-gray-300"
+                    } opacity-30`}
+                  />
                 </div>
 
                 {dateMessages.map((message, index) => {
                   const user = getUserFromMessage(message);
                   const isCurrentUser = message.userId === authUser?.id;
                   const canModify = canModifyMessage(message);
-                  const showAvatar = index === 0 || dateMessages[index - 1]?.userId !== message.userId;
+                  const showAvatar =
+                    index === 0 ||
+                    dateMessages[index - 1]?.userId !== message.userId;
 
                   return (
                     <motion.div
@@ -489,9 +542,17 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.2 }}
-                      className={`group flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
+                      className={`group flex ${
+                        isCurrentUser ? "justify-end" : "justify-start"
+                      }`}
                     >
-                      <div className={`flex max-w-[85%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"} items-end space-x-2 ${isCurrentUser ? "space-x-reverse" : ""}`}>
+                      <div
+                        className={`flex max-w-[85%] ${
+                          isCurrentUser ? "flex-row-reverse" : "flex-row"
+                        } items-end space-x-2 ${
+                          isCurrentUser ? "space-x-reverse" : ""
+                        }`}
+                      >
                         {/* Avatar (only show for first message in a group) */}
                         {!isCurrentUser && showAvatar ? (
                           <img
@@ -508,7 +569,9 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                           {/* Username and registration number (only show for first message in a group) */}
                           {showAvatar && !isCurrentUser && (
                             <div className="flex items-center mb-1 ml-1">
-                              <span className="text-sm font-medium mr-2">{user.name}</span>
+                              <span className="text-sm font-medium mr-2">
+                                {user.name}
+                              </span>
                               {user.registration_number && (
                                 <span className="text-xs text-gray-400">
                                   {user.registration_number}
@@ -518,10 +581,16 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                           )}
 
                           {editingMessageId === message.id ? (
-                            <div className={`p-2 rounded-lg ${darkMode ? "bg-gray-800" : "bg-gray-100"}`}>
+                            <div
+                              className={`p-2 rounded-lg ${
+                                darkMode ? "bg-gray-800" : "bg-gray-100"
+                              }`}
+                            >
                               <textarea
                                 value={editingMessageContent}
-                                onChange={(e) => setEditingMessageContent(e.target.value)}
+                                onChange={(e) =>
+                                  setEditingMessageContent(e.target.value)
+                                }
                                 className={`w-full p-2 rounded border ${
                                   darkMode
                                     ? "bg-gray-700 border-gray-600 text-white"
@@ -546,7 +615,10 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                 </button>
                                 <button
                                   onClick={() =>
-                                    updateMessage(message.id, editingMessageContent)
+                                    updateMessage(
+                                      message.id,
+                                      editingMessageContent
+                                    )
                                   }
                                   className="px-3 py-1 rounded text-sm bg-amber-500 hover:bg-amber-600 text-white"
                                 >
@@ -592,17 +664,28 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                   : "bg-gray-100 text-gray-800 rounded-bl-none"
                               }`}
                             >
-                              <p className="whitespace-pre-wrap">{message.content}</p>
-                              <span className={`text-xs ${isCurrentUser ? "text-amber-200" : "text-gray-400"} mt-1 inline-block`}>
+                              <p className="whitespace-pre-wrap">
+                                {message.content}
+                              </p>
+                              <span
+                                className={`text-xs ${
+                                  isCurrentUser
+                                    ? "text-amber-200"
+                                    : "text-gray-400"
+                                } mt-1 inline-block`}
+                              >
                                 {formatTime(message.createdAt)}
-                                {message.updatedAt !== message.createdAt && " (edited)"}
+                                {message.updatedAt !== message.createdAt &&
+                                  " (edited)"}
                               </span>
 
                               {/* Message actions */}
                               {canModify && (
                                 <div
                                   className={`absolute top-0 ${
-                                    isCurrentUser ? "left-0 -translate-x-full" : "right-0 translate-x-full"
+                                    isCurrentUser
+                                      ? "left-0 -translate-x-full"
+                                      : "right-0 translate-x-full"
                                   } flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity`}
                                 >
                                   <button
@@ -617,7 +700,9 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                     <Edit size={14} className="text-gray-500" />
                                   </button>
                                   <button
-                                    onClick={() => confirmAndDeleteMessage(message.id)}
+                                    onClick={() =>
+                                      confirmAndDeleteMessage(message.id)
+                                    }
                                     className={`p-1.5 rounded-full ${
                                       darkMode
                                         ? "bg-gray-800 hover:bg-gray-700"
@@ -625,7 +710,10 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                     } shadow`}
                                     title="Delete message"
                                   >
-                                    <Trash2 size={14} className="text-red-500" />
+                                    <Trash2
+                                      size={14}
+                                      className="text-red-500"
+                                    />
                                   </button>
                                 </div>
                               )}
@@ -698,7 +786,9 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
               }
             }}
             className={`flex-1 bg-transparent focus:outline-none ${
-              darkMode ? "text-white placeholder-gray-400" : "text-gray-800 placeholder-gray-500"
+              darkMode
+                ? "text-white placeholder-gray-400"
+                : "text-gray-800 placeholder-gray-500"
             }`}
           />
           <button
@@ -724,52 +814,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      <AnimatePresence>
-        {deleteConfirmation && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-            onClick={() => handleDeleteResponse(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.9 }}
-              className={`p-6 rounded-lg shadow-xl max-w-sm w-full mx-4 ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              }`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3 className="text-lg font-medium mb-4">Delete Message</h3>
-              <p className="mb-6">
-                Are you sure you want to delete this message? This action cannot be
-                undone.
-              </p>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={() => handleDeleteResponse(false)}
-                  className={`px-4 py-2 rounded ${
-                    darkMode
-                      ? "bg-gray-700 hover:bg-gray-600"
-                      : "bg-gray-200 hover:bg-gray-300"
-                  }`}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => handleDeleteResponse(true)}
-                  className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white"
-                >
-                  Delete
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

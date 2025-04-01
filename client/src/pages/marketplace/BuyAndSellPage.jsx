@@ -268,7 +268,7 @@ const Marketplace = () => {
                       placeholder="Search marketplace..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full p-3 pl-10 bg-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 transition-all"
+                      className="w-full p-3 bg-gray-700/50 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-yellow-500 transition-all"
                     />
                   </div>
                   <button
@@ -360,7 +360,7 @@ const Marketplace = () => {
                   {error}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                   {filteredAndSortedItems.length > 0 ? (
                     filteredAndSortedItems.map((item) => (
                       <ItemCard key={item.id} item={item} />
@@ -387,15 +387,15 @@ const Marketplace = () => {
             >
               <form
                 onSubmit={handleSubmit}
-                className="bg-gray-800/30 backdrop-blur-sm p-8 rounded-xl border border-white/10 shadow-xl max-w-2xl w-full"
+                className="bg-gray-800/30 backdrop-blur-sm p-4 md:p-6 rounded-xl shadow-xl max-w-2xl w-full border border-white/10"
               >
-                <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-yellow-400 to-purple-400 bg-clip-text text-transparent">
+                <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center bg-gradient-to-r from-yellow-400 to-purple-400 bg-clip-text text-transparent">
                   List Your Item
                 </h2>
 
-                <div className="space-y-6">
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-300">
+                    <label className="block text-xs md:text-sm font-medium mb-1 text-gray-300">
                       Item Name *
                     </label>
                     <input
@@ -403,27 +403,27 @@ const Marketplace = () => {
                       name="item_name"
                       value={listingItem.item_name}
                       onChange={handleInputChange}
-                      className="w-full p-3 bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
+                      className="w-full p-2 text-sm bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
                       required
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-300">
+                      <label className="block text-xs md:text-sm font-medium mb-1 text-gray-300">
                         Price (₹) *
                       </label>
                       <div className="relative">
                         <Tag
                           className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                          size={18}
+                          size={16}
                         />
                         <input
                           type="number"
                           name="price"
                           value={listingItem.price}
                           onChange={handleInputChange}
-                          className="w-full p-3 pl-10 bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
+                          className="w-full p-2 pl-9 text-sm bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
                           required
                           min="0"
                           step="1"
@@ -432,14 +432,14 @@ const Marketplace = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium mb-2 text-gray-300">
+                      <label className="block text-xs md:text-sm font-medium mb-1 text-gray-300">
                         Category *
                       </label>
                       <select
                         name="category"
                         value={listingItem.category}
                         onChange={handleInputChange}
-                        className="w-full p-3 bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
+                        className="w-full p-2 text-sm bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
                         required
                       >
                         <option value="">Select Category</option>
@@ -453,10 +453,10 @@ const Marketplace = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-300">
+                    <label className="block text-xs md:text-sm font-medium mb-1 text-gray-300">
                       Condition *
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                       {conditions.map(({ value, label }) => (
                         <button
                           key={value}
@@ -467,7 +467,7 @@ const Marketplace = () => {
                               item_condition: value,
                             }))
                           }
-                          className={`p-2 rounded-lg text-sm transition-all ${
+                          className={`p-2 rounded-lg text-xs transition-all ${
                             listingItem.item_condition === value
                               ? "bg-yellow-500 text-black"
                               : "bg-gray-700/50 text-gray-300 hover:bg-gray-700"
@@ -480,27 +480,28 @@ const Marketplace = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-300">
+                    <label className="block text-xs md:text-sm font-medium mb-1 text-gray-300">
                       Description *
                     </label>
                     <textarea
                       name="description"
                       value={listingItem.description}
                       onChange={handleInputChange}
-                      className="w-full p-3 bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all min-h-[120px]"
+                      rows="3"
+                      className="w-full p-2 text-sm bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
                       placeholder="Describe your item's features, condition, and any other relevant details..."
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-300">
+                    <label className="block text-xs md:text-sm font-medium mb-1 text-gray-300">
                       Contact Number *
                     </label>
                     <div className="relative">
                       <Phone
                         className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                        size={18}
+                        size={16}
                       />
                       <input
                         type="tel"
@@ -508,7 +509,7 @@ const Marketplace = () => {
                         value={listingItem.owner_contact}
                         onChange={handleInputChange}
                         pattern="[0-9]{10}"
-                        className="w-full p-3 pl-10 bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
+                        className="w-full p-2 pl-9 text-sm bg-gray-700/50 rounded-lg text-white focus:ring-2 focus:ring-yellow-500 transition-all"
                         placeholder="10-digit mobile number"
                         required
                       />
@@ -516,64 +517,67 @@ const Marketplace = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium mb-2 text-gray-300">
+                    <label className="block text-xs md:text-sm font-medium mb-1 text-gray-300">
                       Item Image *
                     </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                      id="imageUpload"
-                      required={!listingItem.image}
-                    />
-                    <label
-                      htmlFor="imageUpload"
-                      className="flex flex-col items-center justify-center w-full p-6 bg-gray-700/50 rounded-lg cursor-pointer hover:bg-gray-700 transition-all border-2 border-dashed border-gray-600 hover:border-yellow-500 group"
-                    >
-                      {listingItem.image ? (
-                        <div className="relative w-full">
-                          <img
-                            src={URL.createObjectURL(listingItem.image)}
-                            alt="Preview"
-                            className="w-full h-48 object-cover rounded-lg"
-                          />
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                            <span className="text-white">Change Image</span>
+                    <div className="relative border-2 border-dashed border-gray-600 rounded-lg p-4 text-center hover:border-yellow-500 transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                        id="imageUpload"
+                        required={!listingItem.image}
+                      />
+                      <div className="flex flex-col items-center justify-center space-y-2">
+                        {listingItem.image ? (
+                          <div className="relative w-full">
+                            <img
+                              src={URL.createObjectURL(listingItem.image)}
+                              alt="Preview"
+                              className="w-full h-32 sm:h-48 object-cover rounded-lg"
+                            />
+                            <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                              <span className="text-white text-sm">Change Image</span>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center">
-                          <ImageIcon className="w-12 h-12 text-gray-400 mb-2 group-hover:text-yellow-500 transition-colors" />
-                          <span className="text-gray-400 group-hover:text-yellow-500 transition-colors">
-                            Click to upload image
-                          </span>
-                          <span className="text-gray-500 text-sm mt-1">
-                            Max size: 5MB
-                          </span>
-                        </div>
-                      )}
-                    </label>
+                        ) : (
+                          <div className="flex flex-col items-center">
+                            <ImageIcon className="text-gray-400 mb-2" size={24} />
+                            <p className="text-sm text-gray-400">
+                              Click to upload (max 5MB)
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
 
-                  <motion.button
-                    type="submit"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    disabled={loading}
-                    className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black p-4 rounded-lg font-medium shadow-lg hover:shadow-yellow-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? (
-                      <div className="flex items-center justify-center">
-                        <Loader2 className="animate-spin mr-2" size={20} />
-                        <span>Listing Item...</span>
-                      </div>
-                    ) : (
-                      "List Item for Sale"
-                    )}
-                  </motion.button>
+                  <div className="flex justify-end space-x-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("browse")}
+                      className="px-4 py-2 text-sm rounded-lg bg-gray-700 hover:bg-gray-600 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-4 py-2 text-sm rounded-lg bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-medium hover:shadow-lg hover:shadow-yellow-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? (
+                        <div className="flex items-center justify-center">
+                          <Loader2 className="animate-spin mr-2" size={16} />
+                          <span>Listing Item...</span>
+                        </div>
+                      ) : (
+                        "List Item for Sale"
+                      )}
+                    </button>
+                  </div>
 
-                  <p className="text-sm text-gray-400 text-center">
+                  <p className="text-xs text-gray-400 text-center">
                     By listing an item, you agree to our marketplace guidelines
                     and terms of service.
                   </p>

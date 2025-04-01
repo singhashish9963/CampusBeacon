@@ -57,17 +57,15 @@ function ItemCard({ item }) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="w-full"
+      className="relative overflow-hidden"
     >
-      <div className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 group">
-        {/* Image Container */}
-        <div className="relative aspect-[4/3] overflow-hidden">
+      <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
+        {/* Image Container - Match LostItemCard height */}
+        <div className="relative group">
           <motion.img
             src={item.image_url}
             alt={item.name}
-            className={`w-full h-full object-cover transition-transform duration-300 group-hover:scale-110 ${
-              imageLoaded ? "opacity-100" : "opacity-0"
-            }`}
+            className="w-full h-40 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-105"
             onLoad={() => setImageLoaded(true)}
           />
           {!imageLoaded && (
@@ -75,42 +73,42 @@ function ItemCard({ item }) {
           )}
 
           {/* Overlay Actions */}
-          <div className="absolute top-2 right-2 flex space-x-2">
+          <div className="absolute top-2 right-2 flex space-x-1.5">
             {user?.id === item.userId && (
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleDelete}
-                className="p-2 bg-red-500/20 backdrop-blur-sm rounded-full hover:bg-red-500/40 transition-colors"
+                className="p-1.5 text-red-500 hover:text-red-400 transition-colors rounded-full bg-red-500/10 hover:bg-red-500/20"
                 title="Delete Item"
               >
-                <FaTrash className="text-red-500" size={16} />
+                <FaTrash size={14} />
               </motion.button>
             )}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleShare}
-              className="p-2 bg-blue-500/20 backdrop-blur-sm rounded-full hover:bg-blue-500/40 transition-colors"
+              className="p-1.5 text-blue-500 hover:text-blue-400 transition-colors rounded-full bg-blue-500/10 hover:bg-blue-500/20"
               title="Share Item"
             >
-              <FaShareAlt className="text-blue-500" size={16} />
+              <FaShareAlt size={14} />
             </motion.button>
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={() => setIsLiked(!isLiked)}
-              className={`p-2 backdrop-blur-sm rounded-full transition-colors ${
+              className={`p-1.5 transition-colors rounded-full ${
                 isLiked
-                  ? "bg-pink-500/20 hover:bg-pink-500/40"
-                  : "bg-gray-500/20 hover:bg-gray-500/40"
+                  ? "text-pink-500 hover:text-pink-400 bg-pink-500/10 hover:bg-pink-500/20"
+                  : "text-gray-400 hover:text-gray-300 bg-gray-500/10 hover:bg-gray-500/20"
               }`}
               title={isLiked ? "Unlike" : "Like"}
             >
               {isLiked ? (
-                <FaHeart className="text-pink-500" size={16} />
+                <FaHeart size={14} />
               ) : (
-                <FaRegHeart className="text-gray-400" size={16} />
+                <FaRegHeart size={14} />
               )}
             </motion.button>
           </div>
@@ -120,26 +118,29 @@ function ItemCard({ item }) {
             <motion.div
               initial={{ x: 100 }}
               animate={{ x: 0 }}
-              className="flex items-center bg-green-500/90 backdrop-blur-sm px-3 py-1.5 rounded-full shadow-lg"
+              className="flex items-center bg-green-500/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-lg"
             >
-              <FaRupeeSign className="mr-1 text-white" size={14} />
-              <span className="font-bold text-white">{item.price}</span>
+              <FaRupeeSign className="mr-0.5 text-white" size={12} />
+              <span className="font-bold text-white text-sm">{item.price}</span>
             </motion.div>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-5 space-y-4">
-          <div className="space-y-2">
-            <h2 className="text-xl font-bold text-white group-hover:text-yellow-400 transition-colors">
+        {/* Content - Match LostItemCard padding and spacing */}
+        <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+          <div className="flex justify-between items-start">
+            <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent">
               {item.item_name}
             </h2>
-            <p className="text-gray-300 line-clamp-2">{item.description}</p>
           </div>
 
-          <div className="flex flex-wrap gap-2">
+          <p className="text-gray-300 text-sm sm:text-base font-medium leading-relaxed line-clamp-2">
+            {item.description}
+          </p>
+
+          <div className="flex flex-wrap gap-1.5">
             <span
-              className={`text-sm px-3 py-1 rounded-full font-medium ${
+              className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                 item.item_condition === "New"
                   ? "bg-green-500/20 text-green-400"
                   : item.item_condition === "Like New"
@@ -149,27 +150,27 @@ function ItemCard({ item }) {
             >
               {item.item_condition}
             </span>
-            <span className="text-sm bg-purple-500/20 text-purple-400 px-3 py-1 rounded-full font-medium">
+            <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-medium">
               {item.category}
             </span>
           </div>
 
-          <div className="flex items-center text-sm text-gray-400">
-            <IoMdTime className="mr-1" />
-            <span>Posted {formatDate(item.createdAt)}</span>
-          </div>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => setShowContact(!showContact)}
-            className="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-medium px-4 py-3 rounded-lg hover:shadow-lg hover:shadow-yellow-500/20 transition-all duration-300"
-          >
-            <div className="flex items-center justify-center">
-              <IoMdCall size={20} className="mr-2" />
-              {showContact ? item.owner_contact : "Show Contact"}
+          <div className="space-y-2">
+            <div className="flex items-center text-xs text-gray-400">
+              <IoMdTime className="mr-1.5 flex-shrink-0" size={14} />
+              <span className="truncate">Posted {formatDate(item.createdAt)}</span>
             </div>
-          </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setShowContact(!showContact)}
+              className="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-lg text-sm font-medium shadow-lg hover:shadow-yellow-500/20 transition-all duration-300"
+            >
+              <IoMdCall size={16} className="mr-1.5 flex-shrink-0" />
+              <span className="truncate">{showContact ? item.owner_contact : "Show Contact"}</span>
+            </motion.button>
+          </div>
         </div>
       </div>
     </motion.div>

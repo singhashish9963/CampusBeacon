@@ -59,86 +59,86 @@ function LostItemCard({ item }) {
         onHoverEnd={() => setIsHovered(false)}
       >
         <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
-          {/* Image Section */}
+          {/* Image Section - Reduced height */}
           <div className="relative group">
             {item.image_url ? (
               <>
                 <img
                   src={item.image_url}
                   alt={item.item_name}
-                  className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-40 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                   onClick={() => setShowFullImage(true)}
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <FaExpand className="text-white text-2xl" />
+                  <FaExpand className="text-white text-xl" />
                 </div>
               </>
             ) : (
-              <div className="w-full h-56 bg-gradient-to-r from-gray-800 to-gray-700 flex items-center justify-center">
-                <p className="text-gray-500 font-medium">No image available</p>
+              <div className="w-full h-40 sm:h-48 bg-gradient-to-r from-gray-800 to-gray-700 flex items-center justify-center">
+                <p className="text-gray-500 text-sm font-medium">No image available</p>
               </div>
             )}
           </div>
 
-          {/* Content Section */}
-          <div className="p-6 space-y-4">
+          {/* Content Section - Reduced padding and spacing */}
+          <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
             <div className="flex justify-between items-start">
               <motion.h2
-                className="text-2xl font-bold bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent"
+                className="text-lg sm:text-xl font-bold bg-gradient-to-r from-yellow-200 to-yellow-500 bg-clip-text text-transparent"
                 layout
               >
                 {item.item_name}
               </motion.h2>
-              <div className="flex space-x-2">
+              <div className="flex space-x-1 sm:space-x-2">
                 {isOwner && (
                   <motion.button
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleDelete}
-                    className="p-2 text-red-500 hover:text-red-400 transition-colors rounded-full bg-red-500/10 hover:bg-red-500/20"
+                    className="p-1.5 text-red-500 hover:text-red-400 transition-colors rounded-full bg-red-500/10 hover:bg-red-500/20"
                     title="Delete Item"
                   >
-                    <FaTrash size={16} />
+                    <FaTrash size={14} />
                   </motion.button>
                 )}
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleShare}
-                  className="p-2 text-yellow-500 hover:text-yellow-400 transition-colors rounded-full bg-yellow-500/10 hover:bg-yellow-500/20"
+                  className="p-1.5 text-yellow-500 hover:text-yellow-400 transition-colors rounded-full bg-yellow-500/10 hover:bg-yellow-500/20"
                   title="Share Item"
                 >
-                  <FaShare size={16} />
+                  <FaShare size={14} />
                 </motion.button>
               </div>
             </div>
 
-            <p className="text-gray-300 font-medium leading-relaxed">
+            <p className="text-gray-300 text-sm sm:text-base font-medium leading-relaxed line-clamp-2">
               {item.description}
             </p>
 
-            <div className="space-y-3">
-              <div className="flex items-center text-gray-400">
-                <IoMdPin className="mr-2 text-yellow-500" size={20} />
-                <span>{item.location_found}</span>
+            <div className="space-y-2">
+              <div className="flex items-center text-gray-400 text-sm">
+                <IoMdPin className="mr-1.5 text-yellow-500 flex-shrink-0" size={16} />
+                <span className="truncate">{item.location_found}</span>
               </div>
 
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-6 py-3 rounded-lg font-medium shadow-lg hover:shadow-yellow-500/20 transition-all duration-300"
+                className="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-lg text-sm font-medium shadow-lg hover:shadow-yellow-500/20 transition-all duration-300"
               >
-                <IoMdCall size={20} className="mr-2" />
-                {item.owner_contact}
+                <IoMdCall size={16} className="mr-1.5 flex-shrink-0" />
+                <span className="truncate">{item.owner_contact}</span>
               </motion.button>
 
-              <div className="flex items-center justify-between text-sm text-gray-400">
+              <div className="flex items-center justify-between text-xs sm:text-sm text-gray-400">
                 <div className="flex items-center">
-                  <IoMdTime className="mr-1" />
-                  <span>Posted: {formatDate(item.createdAt)}</span>
+                  <IoMdTime className="mr-1 flex-shrink-0" size={14} />
+                  <span className="truncate">Posted: {formatDate(item.createdAt)}</span>
                 </div>
                 {item.status && (
-                  <span className="px-3 py-1 rounded-full bg-green-500/20 text-green-400">
+                  <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs">
                     {item.status}
                   </span>
                 )}
