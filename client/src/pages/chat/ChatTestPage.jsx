@@ -1,291 +1,323 @@
-// React and third-party imports
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  MessageSquare,
+  Users,
   Hash,
-  Code,
   Bell,
-  Zap,
+  Menu,
+  X,
   Search,
-  Settings,
+  Plus,
   Moon,
   Sun,
-  LogOut,
-  BellRing,
 } from "lucide-react";
-
-// Redux imports
-import { useDispatch, useSelector } from "react-redux";
-
-// Local imports
+import supabase from "../../config/chatConfig/supabaseClient";
 import ChatApp from "./ChatApp";
 
-// Define available channels.
-const channels = [
-  { id: 1, name: "General Chat", icon: <MessageSquare size={18} /> },
-  { id: 2, name: "Random", icon: <Hash size={18} /> },
-  { id: 3, name: "Tech Talk", icon: <Code size={18} /> },
-  { id: 4, name: "Announcements", icon: <Bell size={18} /> },
-  { id: 5, name: "Sports", icon: <Zap size={18} /> },
-];
-
-// Array of dynamic fact and quote strings related to MNNIT
-const mnnitFacts = [
-  "MNNIT– Excellence in Engineering and Innovation",
-  "Campus Festivities: Diwali, Holi, TechFest and Annual Cultural Fiesta",
-  "MNNIT: Where tradition meets cutting-edge research",
-  "Explore our state-of-the-art labs and creative minds",
-  "MNNIT has a rich heritage and vibrant festival spirit",
-  "Commitment, Creativity & Community – That's MNNIT",
-  "Drowned in knowledge, driven by passion: MNNIT",
-];
-
 const ChatTestPage = () => {
-  const dispatch = useDispatch();
-  const { user: authUser } = useSelector((state) => state.auth);
-  const { user: profileUser } = useSelector((state) => state.profile);
-  const [selectedChannel, setSelectedChannel] = useState(channels[0]);
+  const [channels, setChannels] = useState([]);
+  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [darkMode, setDarkMode] = useState(true);
-  const [showUserPanel, setShowUserPanel] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
+  const { user: authUser } = useSelector((state) => state.auth);
+  
+  // Add local state for dark mode instead of using Redux
+  const [darkMode, setDarkMode] = useState(
+    localStorage.getItem("chatDarkMode") === "true" || false
+  );
 
-  // Dynamic fact displayed on the sidebar with interval 10 seconds
-  const [currentFactIndex, setCurrentFactIndex] = useState(0);
+  // Check if user is admin
+  const isAdmin = authUser?.roles?.includes('admin');
+
+  // Toggle dark mode function
+  const toggleDarkMode = () => {
+    const newMode = !darkMode;
+    setDarkMode(newMode);
+    localStorage.setItem("chatDarkMode", newMode);
+  };
+
+  // Check if screen is mobile
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentFactIndex((prevIndex) =>
-        prevIndex === mnnitFacts.length - 1 ? 0 : prevIndex + 1
-      );
-    }, 10000);
-    return () => clearInterval(interval);
+    const checkIfMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+      if (window.innerWidth < 768) {
+        setSidebarOpen(false);
+      } else {
+        setSidebarOpen(true);
+      }
+    };
+
+    checkIfMobile();
+    window.addEventListener("resize", checkIfMobile);
+    return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  // Additional informational elements to be displayed in the sidebar
-  const additionalInfo = [
-    "MNNIT stands for Motilal Nehru National Institute of Technology.",
-    "Located in Allahabad, we celebrate our heritage every festival season.",
-    "Our campus is known for its academic excellence and innovation.",
-    "Join events like TechFest, Cultural Fiesta, and Annual Sports Meet.",
-  ];
-
-  // Fetch current user data from backend (using auth and profile data)
+  // Fetch channels
   useEffect(() => {
-    if (authUser && profileUser) {
-      setCurrentUser({
-        id: authUser.id,
-        name: profileUser.name || authUser.email,
-        registration_number:
-          profileUser.registration_number || "Not registered",
-        avatar:
-          profileUser.avatar ||
-          `https://robohash.org/${authUser.id}?set=set4&size=150x150`,
-        status: "online",
-      });
-    }
-  }, [authUser, profileUser]);
+    const fetchChannels = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("Channels")
+          .select("*")
+          .order("name");
 
-  // Filter channels based on search query.
+        if (error) {
+          console.error("Error fetching channels:", error);
+        } else {
+          setChannels(data);
+          // Select first channel by default if none selected
+          if (data.length > 0 && !selectedChannel) {
+            setSelectedChannel(data[0]);
+          }
+        }
+      } catch (err) {
+        console.error("Error:", err);
+      }
+    };
+
+    fetchChannels();
+
+    // Subscribe to channel changes
+    const channelSubscription = supabase
+      .channel("public:Channels")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "Channels" },
+        (payload) => {
+          console.log("Channel change:", payload);
+          fetchChannels(); // Refresh channels on any change
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channelSubscription);
+    };
+  }, [selectedChannel]);
+
+  // Add new channel (admin only)
+  const addNewChannel = async () => {
+    if (!isAdmin) return;
+    
+    const channelName = prompt("Enter channel name:");
+    if (!channelName || !channelName.trim()) return;
+    
+    try {
+      const { error } = await supabase
+        .from("Channels")
+        .insert([{ name: channelName.trim() }]);
+        
+      if (error) {
+        console.error("Error creating channel:", error);
+        alert("Failed to create channel");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
+
+  // Filter channels based on search query
   const filteredChannels = channels.filter((channel) =>
     channel.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  return (
-    <div
-      className={`flex flex-col lg:flex-row min-h-screen transition-colors duration-300 ${
-        darkMode
-          ? "bg-gradient-to-b from-[#0B1026] to-[#1A1B35] text-white"
-          : "bg-gradient-to-b from-gray-100 to-white text-gray-800"
-      }`}
-    >
-      {/* Left Sidebar */}
-      <aside
-        className={`w-full lg:w-64 flex-shrink-0 p-4 ${
-          darkMode ? "bg-gray-900/70" : "bg-gray-100"
-        } border-b lg:border-b-0 lg:border-r ${
-          darkMode ? "border-gray-700" : "border-gray-300"
-        } flex flex-col justify-between`}
-      >
-        <div>
-          {/* App Header */}
-          <div className="flex items-center justify-between mb-4">
-            <motion.div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-md bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white font-bold shadow-lg">
-                M
-              </div>
-              <h1 className="text-2xl font-bold">MNNIT Chat</h1>
-            </motion.div>
-            <button className="p-2 rounded-full hover:bg-gray-800">
-              <BellRing size={20} className="text-white" />
-            </button>
-          </div>
-          {/* Search Input */}
-          <div className="mb-4">
-            <div
-              className={`flex items-center space-x-2 rounded-full ${
-                darkMode ? "bg-gray-800" : "bg-white"
-              } px-4 py-2 shadow-md`}
-            >
-              <Search size={18} className="text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search channels"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="bg-transparent border-none focus:outline-none text-md w-full"
-              />
-            </div>
-          </div>
-          {/* Channel List */}
-          <div className="mb-6">
-            <h2 className="text-xs uppercase tracking-wider text-gray-400 mb-3 font-semibold">
-              Channels
-            </h2>
-            <ul className="space-y-2">
-              {filteredChannels.map((channel) => (
-                <motion.li
-                  key={channel.id}
-                  whileHover={{ x: 4 }}
-                  className={`cursor-pointer rounded-xl p-3 transition-all ${
-                    selectedChannel.id === channel.id
-                      ? "bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-2xl"
-                      : darkMode
-                      ? "hover:bg-gray-800/70"
-                      : "hover:bg-gray-200"
-                  }`}
-                  onClick={() => setSelectedChannel(channel)}
-                >
-                  <div className="flex items-center space-x-3">
-                    {channel.icon}
-                    <span className="font-medium">{channel.name}</span>
-                  </div>
-                </motion.li>
-              ))}
-            </ul>
-          </div>
-          {/* Dynamic Fact Display */}
-          <div className="p-4 bg-gray-800 rounded-xl shadow-inner">
-            <p className="text-lg font-medium text-gray-200">
-              {mnnitFacts[currentFactIndex]}
-            </p>
-          </div>
-          {/* Additional MNNIT Info */}
-          <div className="mt-4 space-y-2">
-            {additionalInfo.map((info, idx) => (
-              <p key={idx} className="text-sm text-gray-400">
-                • {info}
-              </p>
-            ))}
-          </div>
-        </div>
-        {/* Settings Panel */}
-        <div
-          className={`mt-8 p-4 border-t ${
-            darkMode ? "border-gray-700" : "border-gray-300"
-          } flex items-center justify-between cursor-pointer relative`}
-          onClick={() => setShowUserPanel(!showUserPanel)}
-        >
-          {currentUser && (
-            <div className="flex items-center space-x-3">
-              <img
-                src={currentUser.avatar}
-                alt="Avatar"
-                className="w-10 h-10 rounded-full object-cover shadow-md"
-              />
-              <div>
-                <p className="text-lg font-medium">{currentUser.name}</p>
-              </div>
-            </div>
-          )}
-          <Settings size={20} className="text-gray-400" />
-          <AnimatePresence>
-            {showUserPanel && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                className={`absolute bottom-full left-4 w-60 ${
-                  darkMode ? "bg-gray-800" : "bg-white"
-                } rounded-xl shadow-2xl p-4 z-10 border ${
-                  darkMode ? "border-gray-700" : "border-gray-300"
-                }`}
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <span className="text-md font-semibold">Appearance</span>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDarkMode(!darkMode);
-                    }}
-                    className="p-2 rounded-full bg-gray-700 text-white"
-                  >
-                    {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-                  </button>
-                </div>
-                <button className="flex items-center justify-center gap-2 w-full py-2 rounded-xl bg-red-600 text-white font-medium">
-                  <LogOut size={16} />
-                  Sign Out
-                </button>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </aside>
+  // Toggle sidebar on mobile
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
 
-      {/* Middle Chat Area */}
-      <main className="flex-1 bg-gray-900/60">
-        {currentUser && (
+  return (
+    <div className={`flex h-screen overflow-hidden ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"}`}>
+      {/* Mobile sidebar toggle button */}
+      {isMobile && (
+        <button
+          onClick={toggleSidebar}
+          className={`fixed top-4 left-4 z-50 p-2 rounded-md ${
+            darkMode ? "bg-gray-800" : "bg-gray-200"
+          } ${sidebarOpen ? "hidden" : "block"}`}
+        >
+          <Menu size={20} className={darkMode ? "text-white" : "text-gray-800"} />
+        </button>
+      )}
+
+      {/* Sidebar */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ x: -300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: -300, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className={`w-full max-w-xs md:max-w-[280px] h-full flex-shrink-0 border-r ${
+              darkMode ? "bg-gray-900 border-gray-800" : "bg-gray-50 border-gray-200"
+            } ${isMobile ? "fixed z-40 left-0 top-0" : ""}`}
+          >
+            <div className="flex flex-col h-full">
+              {/* Sidebar Header */}
+              <div className={`p-4 border-b flex items-center justify-between ${
+                darkMode ? "border-gray-800" : "border-gray-200"
+              }`}>
+                <div className="flex items-center space-x-2">
+                  <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+                    darkMode ? "bg-amber-500" : "bg-amber-500"
+                  } text-white`}>
+                    <Users size={18} />
+                  </div>
+                  <h1 className="font-bold text-lg">CampusBeacon</h1>
+                </div>
+                <div className="flex items-center space-x-2">
+                  {/* Dark mode toggle button */}
+                  <button
+                    onClick={toggleDarkMode}
+                    className={`p-2 rounded-md transition-colors ${
+                      darkMode 
+                        ? "bg-gray-800 hover:bg-gray-700 text-amber-400" 
+                        : "bg-gray-200 hover:bg-gray-300 text-amber-600"
+                    }`}
+                    aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+                  >
+                    {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+                  </button>
+                  {isMobile && (
+                    <button
+                      onClick={toggleSidebar}
+                      className={`p-2 rounded-md ${
+                        darkMode ? "hover:bg-gray-800" : "hover:bg-gray-200"
+                      }`}
+                    >
+                      <X size={20} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Search */}
+              <div className={`p-4 border-b ${
+                darkMode ? "border-gray-800" : "border-gray-200"
+              }`}>
+                <div className={`flex items-center space-x-2 px-3 py-2 rounded-md ${
+                  darkMode ? "bg-gray-800" : "bg-gray-200"
+                }`}>
+                  <Search size={16} className="text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search channels"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className={`bg-transparent w-full focus:outline-none text-sm ${
+                      darkMode ? "text-white placeholder-gray-400" : "text-gray-800 placeholder-gray-500"
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Channel List */}
+              <div className="flex-1 overflow-y-auto py-2 px-2">
+                <div className="mb-2 px-4 flex items-center justify-between">
+                  <h2 className="text-xs font-semibold uppercase tracking-wider text-gray-500">Channels</h2>
+                  {isAdmin && (
+                    <button 
+                      onClick={addNewChannel}
+                      className={`p-1 rounded-md ${
+                        darkMode ? "hover:bg-gray-800" : "hover:bg-gray-200"
+                      }`}
+                      title="Add new channel (Admin only)"
+                    >
+                      <Plus size={16} className="text-gray-400" />
+                    </button>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  {filteredChannels.map((channel) => (
+                    <button
+                      key={channel.id}
+                      onClick={() => {
+                        setSelectedChannel(channel);
+                        if (isMobile) setSidebarOpen(false);
+                      }}
+                      className={`w-full px-4 py-2 rounded-md flex items-center space-x-2 transition-colors ${
+                        selectedChannel?.id === channel.id
+                          ? darkMode
+                            ? "bg-gray-800 text-amber-500"
+                            : "bg-gray-200 text-amber-600"
+                          : darkMode
+                          ? "hover:bg-gray-800 text-gray-300"
+                          : "hover:bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      <Hash size={18} className={selectedChannel?.id === channel.id ? "text-amber-500" : "text-gray-400"} />
+                      <span className="truncate">{channel.name}</span>
+                    </button>
+                  ))}
+                  {filteredChannels.length === 0 && (
+                    <div className="px-4 py-3 text-sm text-gray-500 text-center">
+                      No channels found
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* User Profile */}
+              <div className={`p-4 border-t ${
+                darkMode ? "border-gray-800" : "border-gray-200"
+              }`}>
+                <div className="flex items-center">
+                  <div className="relative">
+                    <img
+                      src={authUser?.avatar_url || `https://ui-avatars.com/api/?name=${authUser?.name || "User"}&background=random`}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+                  </div>
+                  <div className="flex flex-col ml-3">
+                    <span className="font-medium text-sm">{authUser?.name || authUser?.email?.split('@')[0] || "User"}</span>
+                    <div className="flex items-center">
+                      <span className="text-xs text-gray-500 mr-1">
+                        {authUser?.registration_number || ""}
+                      </span>
+                      {isAdmin && (
+                        <span className="text-xs bg-amber-500 text-white px-1.5 py-0.5 rounded-full">
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {selectedChannel ? (
           <ChatApp
+            key={selectedChannel.id}
             channelId={selectedChannel.id}
             channelName={selectedChannel.name}
             darkMode={darkMode}
-            currentUser={currentUser}
+            isAdmin={isAdmin}
           />
+        ) : (
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${
+                darkMode ? "bg-gray-800" : "bg-gray-200"
+              }`}>
+                <Hash size={24} className="text-amber-500" />
+              </div>
+              <h3 className="text-xl font-medium mb-2">No channel selected</h3>
+              <p className="text-sm text-gray-500 max-w-md">
+                Select a channel from the sidebar to start chatting
+              </p>
+            </div>
+          </div>
         )}
-      </main>
-
-      {/* Right Panel - Cosmic Dashboard */}
-      <aside className="w-full lg:w-80 flex-shrink-0 bg-gray-900/70 border-t lg:border-t-0 lg:border-l border-gray-700 p-6 relative overflow-hidden">
-        {/* Animated Stars Background */}
-        <div className="absolute inset-0 pointer-events-none">
-          <motion.div
-            className="w-full h-full bg-[url('/assets/stars.png')] bg-cover opacity-30 animate-pulse"
-            initial={{ opacity: 0.2 }}
-            animate={{ opacity: 0.5 }}
-            transition={{ yoyo: Infinity, duration: 2 }}
-          />
-        </div>
-        <div className="relative z-10">
-          <motion.h2
-            className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500 mb-4"
-            initial={{ x: -50, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            Cosmic Dashboard
-          </motion.h2>
-          <motion.div
-            className="p-4 rounded-xl border border-amber-500 shadow-xl mb-6 animate-[borderGlow_3s_infinite]"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1 }}
-          >
-            <p className="text-lg font-medium text-gray-200">
-              {mnnitFacts[currentFactIndex]}
-            </p>
-            <p className="mt-2 text-sm text-gray-400">
-              {(() => {
-                const fact = mnnitFacts[currentFactIndex];
-                if (fact.includes("Diwali") || fact.includes("Holi")) {
-                  return "Celebrate the vibrant festivals of MNNIT with joy and unity.";
-                }
-                return "Experience the spirit of MNNIT: innovation, festivity, and academic excellence.";
-              })()}
-            </p>
-          </motion.div>
-        </div>
-      </aside>
+      </div>
     </div>
   );
 };

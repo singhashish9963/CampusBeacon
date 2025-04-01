@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js"
 
-const supabaseUrl = "https://gmjlrmazkwcvuoqhwzee.supabase.co"; // Replace with your Supabase project URL
-const supabaseAnonKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdtamxybWF6a3djdnVvcWh3emVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzk1MzQzNDEsImV4cCI6MjA1NTExMDM0MX0.B98bp7c9SINX_vXoCVuPcjveMViOh7zqC7cggBSgW8s"; // Replace with your Supabase anon/public API key
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://your-supabase-url.supabase.co"; 
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "your-anon-key";
+ 
+console.log("Supabase URL:", supabaseUrl);
+console.log("Supabase Key:", supabaseAnonKey ? "Key exists" : "Key missing");
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
