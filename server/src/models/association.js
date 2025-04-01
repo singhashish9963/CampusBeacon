@@ -2,9 +2,9 @@ import sequelize from "../db/db.js";
 import User from "./user.model.js";
 import BuyAndSell from "./buyandsell.model.js";
 import LostAndFound from "./lostandfound.model.js";
-import UserSubjects from "./userSubjects.model.js";
+
 import { Subject } from "./subject.model.js";
-import { UserAttendance, AttendanceStats } from "./attendance.model.js";
+
 import {
   Menu,
   Hostel,
@@ -39,33 +39,6 @@ export const initializeAssociations = () => {
   });
   BuyAndSell.belongsTo(User, { foreignKey: "userId", as: "users" });
 
-  // User - Subject associations (many-to-many)
-  User.belongsToMany(Subject, { through: UserSubjects });
-  Subject.belongsToMany(User, { through: UserSubjects });
-
-  // Attendance associations - FIXED: standardized to user_id and subject_id
-  User.hasMany(UserAttendance, {
-    foreignKey: "user_id",
-    onDelete: "CASCADE",
-  });
-  UserAttendance.belongsTo(User, { foreignKey: "user_id" });
-  Subject.hasMany(UserAttendance, {
-    foreignKey: "subject_id",
-    onDelete: "CASCADE",
-  });
-  UserAttendance.belongsTo(Subject, { foreignKey: "subject_id" });
-
-  // Attendance Stats associations - FIXED: standardized to user_id and subject_id
-  User.hasMany(AttendanceStats, {
-    foreignKey: "user_id",
-    onDelete: "CASCADE",
-  });
-  AttendanceStats.belongsTo(User, { foreignKey: "user_id" });
-  Subject.hasMany(AttendanceStats, {
-    foreignKey: "subject_id",
-    onDelete: "CASCADE",
-  });
-  AttendanceStats.belongsTo(Subject, { foreignKey: "subject_id" });
 
   // Hostel - Menu associations
   Hostel.hasMany(Menu, { foreignKey: "hostel_id", onDelete: "CASCADE" });
@@ -88,15 +61,16 @@ export const initializeAssociations = () => {
   HostelNotification.belongsTo(Hostel, { foreignKey: "hostel_id" });
 
   // Resources associations
-  Branch.hasMany(Year, { foreignKey: "branch_id", onDelete: "CASCADE" });
-  Year.belongsTo(Branch, { foreignKey: "branch_id" });
-  Year.hasMany(StudyMaterial, { foreignKey: "year_id", onDelete: "CASCADE" });
-  Branch.hasMany(StudyMaterial, {
-    foreignKey: "branch_id",
-    onDelete: "CASCADE",
-  });
-  StudyMaterial.belongsTo(Branch, { foreignKey: "branch_id" });
-  StudyMaterial.belongsTo(Year, { foreignKey: "year_id" });
+Branch.hasMany(Year, { foreignKey: "branch_id" });
+Year.belongsTo(Branch, { foreignKey: "branch_id" });
+
+Branch.hasMany(StudyMaterial, { foreignKey: "branch_id" });
+Year.hasMany(StudyMaterial, { foreignKey: "year_id" });
+Subject.hasMany(StudyMaterial, { foreignKey: "subject_id" });
+
+StudyMaterial.belongsTo(Branch, { foreignKey: "branch_id" });
+StudyMaterial.belongsTo(Year, { foreignKey: "year_id" });
+StudyMaterial.belongsTo(Subject, { foreignKey: "subject_id" });
 
   // User - Rides associations
   User.hasMany(Rides, {
@@ -152,10 +126,7 @@ export {
   User,
   LostAndFound,
   BuyAndSell,
-  UserSubjects,
   Subject,
-  UserAttendance,
-  AttendanceStats,
   Rides,
   Role,
   UserRole,

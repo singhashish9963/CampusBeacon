@@ -11,6 +11,11 @@ import {
   getYearById,
   editYear,
   deleteYear,
+  createSubject,
+  getAllSubjects,
+  getSubjectById,
+  updateSubject,
+  deleteSubject,
   createStudyMaterial,
   getAllStudyMaterials,
   getStudyMaterialById,
@@ -18,13 +23,11 @@ import {
   deleteStudyMaterial,
 } from "../controllers/resources.controllers.js";
 
-import authMiddleware from "../middlewares/auth.middleware.js"
-const router = express.Router();
+import authMiddleware from "../middlewares/auth.middleware.js";
 import filterInputMiddleware from "../middlewares/filter.middleware.js";
 
+const router = express.Router();
 const upload = multer({ dest: "./public/temp" });
-
-
 
 // ========================
 //    Branch Routes
@@ -45,12 +48,25 @@ router.put("/years/:id", editYear);
 router.delete("/years/:id", deleteYear);
 
 // ========================
+//    Subject Routes
+// ========================
+router.post("/subjects", createSubject);
+router.get("/subjects", getAllSubjects);
+router.get("/subjects/:id", getSubjectById);
+router.put("/subjects/:id", updateSubject);
+router.delete("/subjects/:id", deleteSubject);
+
+// ========================
 //    Study Material Routes
 // ========================
 router.post("/study-materials", upload.single("file"), createStudyMaterial);
 router.get("/study-materials", getAllStudyMaterials);
 router.get("/study-materials/:material_id", getStudyMaterialById);
-router.put("/study-materials/:material_id", upload.single("file"), updateStudyMaterial);
+router.put(
+  "/study-materials/:material_id",
+  upload.single("file"),
+  updateStudyMaterial
+);
 router.delete("/study-materials/:material_id", deleteStudyMaterial);
 
 export default router;

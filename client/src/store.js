@@ -10,6 +10,7 @@ import notificationReducer from "./slices/notificationSlice";
 import lostAndFoundReducer from "./slices/lostAndFoundSlice";
 import chatbotReducer from "./slices/chatbotSlice";
 import hostelReducer from "./slices/hostelSlice";
+import resourceReducer from "./slices/resourceSlice";
 
 // Combine reducers without persistence.
 const rootReducer = combineReducers({
@@ -23,6 +24,7 @@ const rootReducer = combineReducers({
   lostAndFound: lostAndFoundReducer,
   chatbot: chatbotReducer,
   hostel: hostelReducer,
+  resource: resourceReducer,
 });
 
 const store = configureStore({
