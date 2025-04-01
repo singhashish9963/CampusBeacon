@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import supabase from "../../config/chatConfig/supabaseClient";
 import { subscribeToMessages, subscribeToUsers } from "../../config/chatConfig/realTimeSubcription";
@@ -12,6 +12,7 @@ import {
   Info,
   Image,
   ChevronDown,
+  Hash,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import ChatBox from "../../components/Chat/ChatBox";
@@ -36,7 +37,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
   const [isTyping, setIsTyping] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const chatBoxRef = useRef(null);
-  
+
   // Pagination state
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreMessages, setHasMoreMessages] = useState(true);
@@ -50,12 +51,12 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     setIsTyping(true);
     setCurrentPage(1);
     setHasMoreMessages(true);
-    
+
     const fetchMessages = async () => {
       setIsTyping(true);
       setCurrentPage(1);
       setHasMoreMessages(true);
-      
+
       try {
         const { data, error } = await supabase
           .from("Messages")
@@ -63,7 +64,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
           .eq("channelId", channelId)
           .order("createdAt", { ascending: false })
           .range(0, messagesPerPage - 1);
-          
+
         if (error) {
           console.error("Error fetching messages:", error);
         } else {
@@ -79,7 +80,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     };
 
     fetchMessages();
-    
+
     // Subscribe to real-time message updates
     const messageSubscription = subscribeToMessages(channelId, {
       onInsert: (newMessage) => {
@@ -108,7 +109,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
       },
       onDelete: (deletedMessage) => {
         console.log("Processing delete event for message:", deletedMessage);
-        
+
         // For delete events, we need to be more careful as the payload might be incomplete
         if (deletedMessage && deletedMessage.id) {
           console.log("Removing deleted message from UI:", deletedMessage.id);
@@ -116,9 +117,9 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
             prevMessages.filter((msg) => msg.id !== deletedMessage.id)
           );
         }
-      }
+      },
     });
-    
+
     return () => {
       console.log("Cleaning up message subscription for channel:", channelId);
       supabase.removeChannel(messageSubscription);
@@ -138,24 +139,24 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
   // Load more messages (pagination)
   const loadMoreMessages = async () => {
     if (isLoadingMore || !hasMoreMessages || messages.length === 0) return;
-    
+
     setIsLoadingMore(true);
     const nextPage = currentPage + 1;
     const startRange = currentPage * messagesPerPage;
     const endRange = startRange + messagesPerPage - 1;
-    
+
     try {
       // Add a small delay to make the loading indicator visible
       // This improves UX by making the pagination more noticeable
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const { data, error } = await supabase
         .from("Messages")
         .select("*")
         .eq("channelId", channelId)
         .order("createdAt", { ascending: false })
         .range(startRange, endRange);
-        
+
       if (error) {
         console.error("Error loading more messages:", error);
       } else {
@@ -164,7 +165,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
           setMessages((prevMessages) => [...data.reverse(), ...prevMessages]);
           setCurrentPage(nextPage);
         }
-        
+
         // Check if we have more messages to load
         setHasMoreMessages(data.length === messagesPerPage);
       }
@@ -189,9 +190,9 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
         console.error("Error in user fetch:", err);
       }
     };
-    
+
     fetchUsers();
-    
+
     // Subscribe to real-time user updates
     const usersSubscription = subscribeToUsers({
       onInsert: (newUser) => {
@@ -204,9 +205,9 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
       },
       onDelete: (deletedUser) => {
         setUsers((prev) => prev.filter((user) => user.id !== deletedUser.id));
-      }
+      },
     });
-    
+
     return () => {
       supabase.removeChannel(usersSubscription);
     };
@@ -219,7 +220,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
       console.error("User not authenticated.");
       return;
     }
-    
+
     const timestamp = new Date().toISOString();
     try {
       const { error } = await supabase.from("Messages").insert([
@@ -231,7 +232,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
           updatedAt: timestamp,
         },
       ]);
-      
+
       if (error) {
         console.error("Error sending message:", error);
       } else {
@@ -254,24 +255,24 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     if (confirmed && deleteConfirmation) {
       try {
         // Get the message to delete before deleting it (for logging)
-        const messageToDelete = messages.find(msg => msg.id === deleteConfirmation);
-        
+        const messageToDelete = messages.find((msg) => msg.id === deleteConfirmation);
+
         // Log the deletion attempt
         console.log("Attempting to delete message:", deleteConfirmation, messageToDelete);
-        
+
         const { error } = await supabase
           .from("Messages")
           .delete()
           .eq("id", deleteConfirmation);
-          
+
         if (error) {
           console.error("Error deleting message:", error);
         } else {
           console.log("Message deleted successfully, updating UI immediately");
-          
+
           // Update the UI immediately without waiting for the subscription
-          setMessages(prevMessages => 
-            prevMessages.filter(msg => msg.id !== deleteConfirmation)
+          setMessages((prevMessages) =>
+            prevMessages.filter((msg) => msg.id !== deleteConfirmation)
           );
         }
       } catch (err) {
@@ -284,14 +285,14 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
   // Handle message editing.
   const updateMessage = async (messageId, newContent) => {
     if (!newContent.trim()) return;
-    
+
     const timestamp = new Date().toISOString();
     try {
       const { error } = await supabase
         .from("Messages")
         .update({ content: newContent.trim(), updatedAt: timestamp })
         .eq("id", messageId);
-        
+
       if (error) {
         console.error("Error updating message:", error);
       } else {
@@ -311,7 +312,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     yesterday.setDate(yesterday.getDate() - 1);
     const timeOptions = { hour: "numeric", minute: "numeric" };
     const time = date.toLocaleTimeString([], timeOptions);
-    
+
     if (date.toDateString() === today.toDateString()) {
       return `Today at ${time}`;
     } else if (date.toDateString() === yesterday.toDateString()) {
@@ -336,50 +337,60 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
     };
   };
 
-  // Group messages by date.
-  const groupedMessages = messages.reduce((groups, message) => {
-    const date = new Date(message.createdAt).toDateString();
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(message);
-    return groups;
-  }, {});
+  // Group messages by date for better organization
+  const groupedMessages = useMemo(() => {
+    return messages.reduce((groups, message) => {
+      const date = new Date(message.createdAt).toLocaleDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(message);
+      return groups;
+    }, {});
+  }, [messages]);
+
+  // Get user data from message
+  const getUserFromMessage = useCallback((message) => {
+    const user = users.find((u) => u.id === message.userId);
+    return {
+      id: message.userId,
+      name: user?.name || user?.email?.split("@")[0] || "Unknown User",
+      avatar: user?.avatar_url || getAvatarURL(message.userId),
+    };
+  }, [users]);
 
   return (
-    <div
-      className={`h-screen flex flex-col transition-colors duration-300 ${
-        darkMode
-          ? "bg-gradient-to-b from-[#0B1026] to-[#1A1B35] text-white"
-          : "bg-white text-gray-800"
-      }`}
-    >
-      {/* Chat Header */}
+    <div className={`flex flex-col h-full ${darkMode ? "bg-gray-900 text-white" : "bg-white text-gray-800"}`}>
+      {/* Channel Header */}
       <motion.div
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`py-4 px-6 flex justify-between items-center border-b transition-colors duration-300 ${
-          darkMode ? "border-gray-700" : "border-gray-300"
+        transition={{ duration: 0.2 }}
+        className={`flex items-center justify-between p-4 border-b ${
+          darkMode ? "border-gray-700" : "border-gray-200"
+        } sticky top-0 z-10 backdrop-blur-sm ${
+          darkMode ? "bg-gray-900/90" : "bg-white/90"
         }`}
       >
         <div className="flex items-center space-x-3">
-          <div
-            className={`w-10 h-10 rounded-md flex items-center justify-center text-amber-500 transition-all duration-200 ${
-              darkMode
-                ? "bg-gray-800 hover:bg-gray-700"
-                : "bg-gray-200 hover:bg-gray-100"
-            }`}
-          >
-            <ChevronDown size={20} />
+          <div className={`w-8 h-8 rounded-md flex items-center justify-center ${
+            darkMode ? "bg-gray-800" : "bg-gray-100"
+          }`}>
+            <Hash size={16} className="text-amber-500" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">{channelName}</h2>
-            <p className="text-sm text-gray-400">{messages.length} messages</p>
+            <h2 className="font-medium">{channelName}</h2>
+            <p className="text-xs text-gray-400">
+              {messages.length} {messages.length === 1 ? "message" : "messages"}
+            </p>
           </div>
         </div>
-        <div className="flex items-center space-x-4">
-          <button className="p-2 rounded-full transition-colors duration-200 hover:bg-gray-700">
-            <Info size={20} className="text-gray-400" />
-          </button>
-          <button className="p-2 rounded-full transition-colors duration-200 hover:bg-gray-700">
+        <div className="flex items-center">
+          <button
+            className={`p-2 rounded-md ${
+              darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
+            }`}
+          >
             <MoreVertical size={20} className="text-gray-400" />
           </button>
         </div>
@@ -389,7 +400,7 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
       <ChatBox
         ref={chatBoxRef}
         maxHeight="calc(100vh - 140px)"
-        className="flex-1"
+        className="flex-1 overflow-hidden"
         autoscroll={true}
         scrollToBottom={() => chatBoxRef.current?.scrollToBottom()}
         showScrollButton={showScrollButton}
@@ -417,11 +428,11 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
             </p>
           </div>
         ) : (
-          <div className="space-y-8">
+          <div className="space-y-6">
             {Object.entries(groupedMessages).map(([date, dateMessages]) => (
-              <div key={date} className="space-y-6">
+              <div key={date} className="space-y-4">
                 <div className="relative flex items-center py-2">
-                  <div className="flex-grow border-t border-dashed border-gray-500" />
+                  <div className="flex-grow border-t border-dashed border-gray-500 opacity-30" />
                   <span className="px-3 text-xs font-medium text-gray-400">
                     {new Date(date).toLocaleDateString([], {
                       month: "long",
@@ -429,98 +440,112 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
                       year: "numeric",
                     })}
                   </span>
-                  <div className="flex-grow border-t border-dashed border-gray-500" />
+                  <div className="flex-grow border-t border-dashed border-gray-500 opacity-30" />
                 </div>
-                {dateMessages.map((message, i) => {
-                  const userData = getUserData(message.userId);
-                  const isFirstInGroup =
-                    i === 0 || dateMessages[i - 1].userId !== message.userId;
+
+                {dateMessages.map((message, index) => {
+                  const user = getUserFromMessage(message);
+                  const isCurrentUser = message.userId === authUser?.id;
+                  const showAvatar = index === 0 || dateMessages[index - 1]?.userId !== message.userId;
+
                   return (
                     <motion.div
                       key={message.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className={`${!isFirstInGroup ? "pl-12 mt-1" : ""}`}
+                      transition={{ duration: 0.2 }}
+                      className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
                     >
-                      {isFirstInGroup && (
-                        <div className="flex items-center mb-3">
+                      <div className={`flex max-w-[85%] ${isCurrentUser ? "flex-row-reverse" : "flex-row"} items-end space-x-2 ${isCurrentUser ? "space-x-reverse" : ""}`}>
+                        {/* Avatar (only show for first message in a group) */}
+                        {showAvatar ? (
                           <img
-                            src={userData.avatar}
-                            alt={userData.name}
-                            className="w-10 h-10 rounded-full mr-3 shadow-md"
+                            src={user.avatar}
+                            alt={user.name}
+                            className="w-8 h-8 rounded-full flex-shrink-0"
                           />
-                          <div>
-                            <span className="font-semibold">{userData.name}</span>
-                            <span className="text-xs text-gray-400 ml-2">
-                              {userData.registration_number}
-                            </span>
-                            <span className="text-xs text-gray-400 ml-2">
-                              {formatTime(message.createdAt)}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      <div className="relative">
-                        {editingMessageId === message.id ? (
-                          <div className="p-4 rounded-lg bg-gray-800 shadow-2xl">
-                            <textarea
-                              value={editingMessageContent}
-                              onChange={(e) =>
-                                setEditingMessageContent(e.target.value)
-                              }
-                              className="w-full p-2 rounded bg-gray-900 text-white resize-none focus:outline-none focus:ring-2 focus:ring-amber-500"
-                              rows={3}
-                            />
-                            <div className="flex justify-end gap-2 mt-2">
-                              <button
-                                onClick={() =>
-                                  updateMessage(message.id, editingMessageContent)
-                                }
-                                className="px-4 py-2 bg-amber-500 hover:bg-amber-600 rounded text-white font-medium"
-                              >
-                                Save Changes
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setEditingMessageId(null);
-                                  setEditingMessageContent("");
-                                }}
-                                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white font-medium"
-                              >
-                                Cancel
-                              </button>
-                            </div>
-                          </div>
                         ) : (
-                          <div className="group">
-                            <p className="bg-gray-900/50 p-4 rounded-xl text-gray-200">
-                              {message.content}
-                            </p>
-                            {authUser && authUser.id === message.userId && (
-                              <div className="absolute -top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-                                <button
-                                  onClick={() => {
-                                    setEditingMessageId(message.id);
-                                    setEditingMessageContent(message.content);
-                                  }}
-                                  className="p-1 bg-gray-800 rounded-full hover:bg-gray-700 text-amber-400"
-                                  title="Edit Message"
-                                >
-                                  <Edit size={16} />
-                                </button>
-                                <button
-                                  onClick={() =>
-                                    confirmAndDeleteMessage(message.id)
-                                  }
-                                  className="p-1 bg-gray-800 rounded-full hover:bg-gray-700 text-red-400"
-                                  title="Delete Message"
-                                >
-                                  <Trash2 size={16} />
-                                </button>
+                          <div className="w-8 h-8 flex-shrink-0" />
+                        )}
+
+                        {/* Message content */}
+                        <div className="flex flex-col">
+                          {/* Username (only show for first message in a group) */}
+                          {showAvatar && !isCurrentUser && (
+                            <span className="text-xs text-gray-400 mb-1 ml-1">
+                              {user.name}
+                            </span>
+                          )}
+
+                          <div
+                            className={`relative group rounded-lg py-2 px-3 break-words ${
+                              isCurrentUser
+                                ? "bg-amber-500 text-white rounded-br-none"
+                                : darkMode
+                                ? "bg-gray-800 rounded-bl-none"
+                                : "bg-gray-200 text-gray-800 rounded-bl-none"
+                            }`}
+                          >
+                            {editingMessageId === message.id ? (
+                              <div className="min-w-[200px]">
+                                <input
+                                  type="text"
+                                  value={editingMessageContent}
+                                  onChange={(e) => setEditingMessageContent(e.target.value)}
+                                  className="w-full p-1 bg-transparent border-b border-white focus:outline-none"
+                                  autoFocus
+                                />
+                                <div className="flex justify-end mt-2 space-x-2">
+                                  <button
+                                    onClick={() => setEditingMessageId(null)}
+                                    className="text-xs opacity-80 hover:opacity-100"
+                                  >
+                                    Cancel
+                                  </button>
+                                  <button
+                                    onClick={() => updateMessage(message.id, editingMessageContent)}
+                                    className="text-xs font-medium opacity-80 hover:opacity-100"
+                                  >
+                                    Save
+                                  </button>
+                                </div>
                               </div>
+                            ) : (
+                              <>
+                                <p className="whitespace-pre-wrap">{message.content}</p>
+                                <span className="text-xs opacity-70 mt-1 inline-block">
+                                  {formatTime(message.createdAt)}
+                                  {message.updatedAt !== message.createdAt && " (edited)"}
+                                </span>
+
+                                {/* Message actions for current user's messages */}
+                                {isCurrentUser && (
+                                  <div className="absolute top-0 right-0 transform translate-x-1 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-1">
+                                    <button
+                                      onClick={() => {
+                                        setEditingMessageId(message.id);
+                                        setEditingMessageContent(message.content);
+                                      }}
+                                      className={`p-1 rounded-full ${
+                                        darkMode ? "bg-gray-800" : "bg-white"
+                                      } shadow-md text-amber-500 hover:text-amber-600`}
+                                    >
+                                      <Edit size={12} />
+                                    </button>
+                                    <button
+                                      onClick={() => confirmAndDeleteMessage(message.id)}
+                                      className={`p-1 rounded-full ${
+                                        darkMode ? "bg-gray-800" : "bg-white"
+                                      } shadow-md text-red-500 hover:text-red-600`}
+                                    >
+                                      <Trash2 size={12} />
+                                    </button>
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
-                        )}
+                        </div>
                       </div>
                     </motion.div>
                   );
@@ -531,69 +556,52 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
         )}
       </ChatBox>
 
-      {/* Message Input Form */}
-      <div className="p-4 border-t border-gray-700 bg-gray-900/80">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <button
-              onClick={() => setShowEmoji(!showEmoji)}
-              className="p-2 rounded-full hover:bg-gray-800 transition-colors"
-            >
-              <Smile size={20} className="text-gray-400" />
-            </button>
-            <AnimatePresence>
-              {showEmoji && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="absolute bottom-16 left-4 bg-gray-800 rounded-xl shadow-lg p-3 z-10"
-                >
-                  <div className="flex flex-wrap gap-2">
-                    {[
-                      "😊",
-                      "😂",
-                      "❤️",
-                      "👍",
-                      "🔥",
-                      "✨",
-                      "🎉",
-                      "🙌",
-                      "😎",
-                      "🤔",
-                    ].map((emoji, index) => (
-                      <button
-                        key={index}
-                        onClick={() => {
-                          setNewMessageContent((prev) => prev + emoji);
-                          setShowEmoji(false);
-                        }}
-                        className="text-xl p-1 hover:bg-gray-700 rounded transition-colors"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+      {/* Message Input */}
+      <div className={`p-3 border-t ${darkMode ? "border-gray-700" : "border-gray-200"}`}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            sendMessage();
+          }}
+          className="flex items-end space-x-2"
+        >
+          <div
+            className={`flex-1 p-3 rounded-lg ${
+              darkMode ? "bg-gray-800" : "bg-gray-100"
+            }`}
+          >
+            <textarea
+              id="message-input"
+              value={newMessageContent}
+              onChange={(e) => setNewMessageContent(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  sendMessage();
+                }
+              }}
+              placeholder={`Message #${channelName}`}
+              className="w-full bg-transparent resize-none focus:outline-none max-h-32"
+              rows={1}
+              style={{
+                height: "auto",
+                minHeight: "24px",
+                maxHeight: "120px",
+              }}
+            />
           </div>
-          <input
-            id="message-input"
-            type="text"
-            placeholder={`Message #${channelName}`}
-            value={newMessageContent}
-            onChange={(e) => setNewMessageContent(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-            className="flex-1 p-3 rounded-xl bg-gray-800 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-amber-500"
-          />
           <button
-            onClick={sendMessage}
-            className="p-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:opacity-90 transition-all"
+            type="submit"
+            disabled={!newMessageContent.trim()}
+            className={`p-3 rounded-lg ${
+              darkMode ? "bg-amber-500" : "bg-amber-500"
+            } text-white ${
+              !newMessageContent.trim() ? "opacity-50 cursor-not-allowed" : "hover:bg-amber-600"
+            }`}
           >
             <Send size={20} />
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Delete Confirmation Modal */}
@@ -603,31 +611,35 @@ const ChatApp = ({ channelId, channelName, darkMode, currentUser }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl p-6 w-full max-w-sm shadow-lg">
-              <h3 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">
-                Confirm Deletion
-              </h3>
-              <p className="text-sm mb-6 text-gray-600 dark:text-gray-400">
-                Are you sure you want to delete this message? This action cannot
-                be undone.
-              </p>
-              <div className="flex justify-end gap-4">
+            <motion.div
+              initial={{ scale: 0.9 }}
+              animate={{ scale: 1 }}
+              exit={{ scale: 0.9 }}
+              className={`rounded-lg p-6 max-w-sm w-full ${
+                darkMode ? "bg-gray-800" : "bg-white"
+              }`}
+            >
+              <h3 className="text-lg font-medium mb-4">Delete Message</h3>
+              <p className="mb-6">Are you sure you want to delete this message? This action cannot be undone.</p>
+              <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => handleDeleteResponse(false)}
-                  className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-gray-800 transition-colors"
+                  className={`px-4 py-2 rounded-md ${
+                    darkMode ? "bg-gray-700 hover:bg-gray-600" : "bg-gray-200 hover:bg-gray-300"
+                  }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={() => handleDeleteResponse(true)}
-                  className="px-4 py-2 rounded bg-red-500 hover:bg-red-600 text-white transition-colors"
+                  className="px-4 py-2 rounded-md bg-red-500 text-white hover:bg-red-600"
                 >
                   Delete
                 </button>
               </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
