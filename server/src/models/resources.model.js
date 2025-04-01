@@ -1,6 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../db/db.js";
-
+import Subject from "./subject.model.js";
 // Define Branch model
 const Branch = sequelize.define(
   "Branch",
@@ -74,7 +74,7 @@ const Year = sequelize.define(
 
 // Define StudyMaterial model
 const StudyMaterial = sequelize.define(
-  "StudyMaterial",
+  "study_materials",
   {
     material_id: {
       type: DataTypes.INTEGER,
@@ -92,6 +92,14 @@ const StudyMaterial = sequelize.define(
     material_url: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    subject_id: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: "subjects",
+        key: "id",
+      },
+      onDelete: "CASCADE",
     },
     branch_id: {
       type: DataTypes.INTEGER,
@@ -115,5 +123,8 @@ const StudyMaterial = sequelize.define(
     tableName: "study_materials",
   }
 );
+
+
+
 
 export { StudyMaterial, Year, Branch };

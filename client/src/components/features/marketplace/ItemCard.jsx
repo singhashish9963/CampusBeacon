@@ -51,6 +51,10 @@ function ItemCard({ item }) {
     return new Date(date).toLocaleDateString(undefined, options);
   };
 
+  // Allow admin to delete any item; otherwise only allow the owner to delete their item.
+  const canDelete =
+    user?.id === item.userId || (user?.roles && user.roles.includes("admin"));
+
   return (
     <motion.div
       layout
@@ -74,7 +78,7 @@ function ItemCard({ item }) {
 
           {/* Overlay Actions */}
           <div className="absolute top-2 right-2 flex space-x-1.5">
-            {user?.id === item.userId && (
+            {canDelete && (
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
@@ -105,11 +109,7 @@ function ItemCard({ item }) {
               }`}
               title={isLiked ? "Unlike" : "Like"}
             >
-              {isLiked ? (
-                <FaHeart size={14} />
-              ) : (
-                <FaRegHeart size={14} />
-              )}
+              {isLiked ? <FaHeart size={14} /> : <FaRegHeart size={14} />}
             </motion.button>
           </div>
 
@@ -158,7 +158,9 @@ function ItemCard({ item }) {
           <div className="space-y-2">
             <div className="flex items-center text-xs text-gray-400">
               <IoMdTime className="mr-1.5 flex-shrink-0" size={14} />
-              <span className="truncate">Posted {formatDate(item.createdAt)}</span>
+              <span className="truncate">
+                Posted {formatDate(item.createdAt)}
+              </span>
             </div>
 
             <motion.button
@@ -168,7 +170,9 @@ function ItemCard({ item }) {
               className="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-lg text-sm font-medium shadow-lg hover:shadow-yellow-500/20 transition-all duration-300"
             >
               <IoMdCall size={16} className="mr-1.5 flex-shrink-0" />
-              <span className="truncate">{showContact ? item.owner_contact : "Show Contact"}</span>
+              <span className="truncate">
+                {showContact ? item.owner_contact : "Show Contact"}
+              </span>
             </motion.button>
           </div>
         </div>

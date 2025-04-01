@@ -1,6 +1,4 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
 // Import your slices here
 import ridesReducer from "./slices/ridesSlice";
 import authReducer from "./slices/authSlice";
@@ -12,14 +10,9 @@ import notificationReducer from "./slices/notificationSlice";
 import lostAndFoundReducer from "./slices/lostAndFoundSlice";
 import chatbotReducer from "./slices/chatbotSlice";
 import hostelReducer from "./slices/hostelSlice";
+import resourceReducer from "./slices/resourceSlice";
 
-const persistConfig = {
-  key: "root",
-  storage,
-  whitelist: ["auth"], // only auth will be persisted
-};
-
-// Create the root reducer properly using combineReducers
+// Combine reducers without persistence.
 const rootReducer = combineReducers({
   rides: ridesReducer,
   auth: authReducer,
@@ -31,21 +24,11 @@ const rootReducer = combineReducers({
   lostAndFound: lostAndFoundReducer,
   chatbot: chatbotReducer,
   hostel: hostelReducer,
+  resource: resourceReducer,
 });
 
-// Create the persisted reducer
-const persistedReducer = persistReducer(persistConfig, rootReducer);
-
-// Configure the store with the persisted reducer
 const store = configureStore({
-  reducer: persistedReducer,
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ["persist/PERSIST", "persist/REHYDRATE"],
-      },
-    }),
+  reducer: rootReducer,
 });
 
-export const persistor = persistStore(store);
 export default store;

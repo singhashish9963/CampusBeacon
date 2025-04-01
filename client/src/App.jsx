@@ -66,11 +66,11 @@ function App() {
             <Route path="/facts" element={<MNNITFactsGenerator />} />
             <Route path="/explore" element={<CampusExplorer />} />
             <Route path="/time" element={<MNNITTimeCapsule />} />
-            <Route path="/rides" element={<RideShare />} />
             <Route path="/contact" element={<ContactsDisplay />} />
 
             {/* Protected Routes */}
             <Route element={<ProtectedRoute />}>
+              <Route path="/rides" element={<RideShare />} />
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/god/*" element={<AdminPanel />} />

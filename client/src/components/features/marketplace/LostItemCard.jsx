@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { IoMdCall, IoMdTime, IoMdPin, IoMdPricetag } from "react-icons/io";
+import { IoMdCall, IoMdTime, IoMdPin } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTrash, FaShare, FaExpand } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
@@ -45,7 +45,9 @@ function LostItemCard({ item }) {
     return new Date(date).toLocaleDateString(undefined, options);
   };
 
-  const isOwner = user?.id === item.userId;
+  // Allow admin to crud any card; otherwise only allow the owner to manage their card
+  const isOwner =
+    user?.id === item.userId || (user?.roles && user.roles.includes("admin"));
 
   return (
     <>
@@ -59,7 +61,7 @@ function LostItemCard({ item }) {
         onHoverEnd={() => setIsHovered(false)}
       >
         <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300">
-          {/* Image Section - Reduced height */}
+          {/* Image Section */}
           <div className="relative group">
             {item.image_url ? (
               <>
@@ -75,12 +77,14 @@ function LostItemCard({ item }) {
               </>
             ) : (
               <div className="w-full h-40 sm:h-48 bg-gradient-to-r from-gray-800 to-gray-700 flex items-center justify-center">
-                <p className="text-gray-500 text-sm font-medium">No image available</p>
+                <p className="text-gray-500 text-sm font-medium">
+                  No image available
+                </p>
               </div>
             )}
           </div>
 
-          {/* Content Section - Reduced padding and spacing */}
+          {/* Content Section */}
           <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
             <div className="flex justify-between items-start">
               <motion.h2
@@ -119,7 +123,10 @@ function LostItemCard({ item }) {
 
             <div className="space-y-2">
               <div className="flex items-center text-gray-400 text-sm">
-                <IoMdPin className="mr-1.5 text-yellow-500 flex-shrink-0" size={16} />
+                <IoMdPin
+                  className="mr-1.5 text-yellow-500 flex-shrink-0"
+                  size={16}
+                />
                 <span className="truncate">{item.location_found}</span>
               </div>
 
@@ -135,7 +142,9 @@ function LostItemCard({ item }) {
               <div className="flex items-center justify-between text-xs sm:text-sm text-gray-400">
                 <div className="flex items-center">
                   <IoMdTime className="mr-1 flex-shrink-0" size={14} />
-                  <span className="truncate">Posted: {formatDate(item.createdAt)}</span>
+                  <span className="truncate">
+                    Posted: {formatDate(item.createdAt)}
+                  </span>
                 </div>
                 {item.status && (
                   <span className="px-2 py-0.5 rounded-full bg-green-500/20 text-green-400 text-xs">
