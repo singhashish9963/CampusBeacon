@@ -12,6 +12,7 @@ import {
   HiLogin,
   HiMenu,
 } from "react-icons/hi";
+import { HiChatBubbleLeftRight, HiTruck } from "react-icons/hi2";
 import { handleLogout } from "../../../slices/authSlice";
 import { getAllHostels } from "../../../slices/hostelSlice";
 import { Building } from "lucide-react";
@@ -105,7 +106,9 @@ function NavBar() {
     ? [
         { name: "Home", path: "/", icon: HiHome },
         { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
-        { name: "Buy & Sell", path: "/marketplace", icon: HiShoppingBag },
+        { name: "Market", path: "/marketplace", icon: HiShoppingBag },
+        { name: "Rides", path: "/rides", icon: HiTruck },
+        { name: "Chat", path: "/chat", icon: HiChatBubbleLeftRight },
         { name: "Profile", path: "/profile", icon: HiUser },
       ]
     : [{ name: "Home", path: "/", icon: HiHome }];
@@ -119,12 +122,15 @@ function NavBar() {
     }
   };
 
+  // Load hostels only after successful authentication
   useEffect(() => {
-    dispatch(getAllHostels());
+    if (isAuthenticated && !loading) {
+      dispatch(getAllHostels());
+    }
     return () => {
       if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
     };
-  }, [dispatch]);
+  }, [dispatch, isAuthenticated, loading]);
 
   useEffect(() => {
     setIsMobileMenuOpen(false);
