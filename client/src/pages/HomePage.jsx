@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+// Removed useNavigate as it wasn't used directly here
 import { motion } from "framer-motion";
 import {
   Users,
@@ -10,19 +10,20 @@ import {
   Book,
   Car,
 } from "lucide-react";
-import { ButtonColourfull } from "../components/common/buttons";
+import { ButtonColourfull } from "../components/common/buttons"; 
 import {
   FeatureCard,
   QuickLinks,
   EventsSection,
   ImageSlider,
   StarryBackground,
-  ChatbotWidget,
-} from "../components/HomePage";
-import { NotificationIcon } from "../components/features/notifications";
+  ChatbotWidget
+
+} from "../components/HomePage"; 
+import { NotificationIcon } from "../components/features/notifications"; 
 import { useSelector } from "react-redux";
 
-// Debounce helper
+// Debounce helper 
 const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
@@ -36,20 +37,22 @@ const debounce = (func, wait) => {
 };
 
 const HomePage = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
   const [activeSection, setActiveSection] = useState("home");
 
-  const { isAuthenticated, user } = useSelector((state) => state.auth);
-  const navigate = useNavigate();
 
-  // Memoize the scroll handler
+  const { isAuthenticated } = useSelector((state) => state.auth);
+
+
+  // Memoize the scroll handler (remains the same)
   const handleScroll = useCallback(
     debounce(() => {
       const sections = document.querySelectorAll("section[id]");
-      const scrollPosition = window.scrollY + 100;
+      const scrollPosition = window.scrollY + 100; 
 
+      let found = false;
       for (const section of sections) {
+        if (!section) continue; 
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
         if (
@@ -57,32 +60,46 @@ const HomePage = () => {
           scrollPosition < sectionTop + sectionHeight
         ) {
           setActiveSection(section.id);
-          break; // Exit loop once found
+          found = true;
+          break;
         }
+      }
+
+      if (!found && window.scrollY < 200) {
+        setActiveSection("home");
       }
     }, 100),
     []
   );
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-    }
+
 
     window.addEventListener("scroll", handleScroll);
+
+    handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
   const scrollToSection = useCallback((sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
+      // Adjust scroll position slightly if needed due to fixed headers, etc.
+      const offset = 0; // Example: set to height of your fixed navbar if applicable
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = element.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth",
+      });
     }
-    setIsMenuOpen(false);
+
   }, []);
 
-  // Memoize feature cards data
+ 
   const featureCards = useMemo(
     () => [
       {
@@ -122,7 +139,7 @@ const HomePage = () => {
       },
       {
         icon: Globe,
-        title: "Community",
+        title: "Community Chat",
         description: "Connect with peers and join campus activities",
         href: "/chat",
         gradient: "from-cyan-500 via-blue-500 to-indigo-500",
@@ -130,7 +147,7 @@ const HomePage = () => {
       {
         icon: Car,
         title: "Ride Sharing",
-        description: "Share rides and save Price",
+        description: "Share rides and save money",
         href: "/rides",
         gradient: "from-amber-800 via-orange-700 to-orange-900",
       },
@@ -140,47 +157,52 @@ const HomePage = () => {
 
   return (
     <>
-      <div className="fixed inset-0">
+      {/* Background */}
+      <div className="fixed inset-0 -z-10">
+        {" "}
+        {/* Ensure background is behind */}
         <StarryBackground />
       </div>
+
+      {/* Main Content Area */}
       <div className="relative z-10 min-h-screen pt-16">
         {/* Top Navigation with Notification Icon */}
         <div className="fixed top-4 right-4 z-50 flex items-center space-x-4">
-          <NotificationIcon />
-          {/* Other navigation/profile elements can go here */}
+          {isAuthenticated && <NotificationIcon />}{" "}
         </div>
 
         {/* Hero Section */}
         <section
           id="home"
-          className="min-h-screen flex items-center justify-center relative"
+          className="min-h-screen flex items-center justify-center relative py-16" // Added padding
         >
           <div className="text-center z-10 px-4">
             <motion.h1
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-5xl md:text-7xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
+              transition={{ duration: 0.6 }}
+              className="text-5xl md:text-7xl font-bold mb-6 sm:mb-8 bg-clip-text text-transparent bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500"
             >
               Welcome to CampusBeacon
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="font-mono text-xl md:text-2xl text-gray-300 max-w-2xl mx-auto mb-12"
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="font-mono text-lg sm:text-xl md:text-2xl text-gray-300 max-w-xl sm:max-w-2xl mx-auto mb-10 sm:mb-12" // Adjusted max-width
             >
-              Your digital companion for campus life
+              Your digital companion for navigating campus life seamlessly.
             </motion.p>
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.4 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
               <ButtonColourfull
                 text="Explore Features"
                 type="button"
-                buttonsize="px-8 py-3"
-                textsize="text-lg"
+                buttonsize="px-6 py-2.5 sm:px-8 sm:py-3" // Responsive padding
+                textsize="text-base sm:text-lg" // Responsive text size
                 onClick={() => scrollToSection("features")}
               />
             </motion.div>
@@ -188,23 +210,32 @@ const HomePage = () => {
         </section>
 
         {/* Features Section */}
-        <section id="features" className="min-h-screen relative z-10 py-20">
+        <section id="features" className="relative z-10 py-20 sm:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-20"
+              viewport={{ once: true, amount: 0.3 }} // Trigger slightly earlier
+              className="text-center mb-16 sm:mb-20"
             >
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
                 Features
               </h2>
-              <p className="text-xl text-gray-400 font-mono">
-                Everything you need for a connected campus life
+              <p className="text-lg sm:text-xl text-gray-400 font-mono max-w-3xl mx-auto">
+                Everything you need for a connected and efficient campus
+                experience.
               </p>
             </motion.div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
-              {featureCards.map((card, index) => (
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
+              variants={{
+                visible: { transition: { staggerChildren: 0.1 } },
+              }}
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8" // Adjusted gap
+            >
+              {featureCards.map((card) => (
                 <FeatureCard
                   key={card.href}
                   icon={card.icon}
@@ -214,74 +245,67 @@ const HomePage = () => {
                   gradient={card.gradient}
                 />
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
 
         {/* Quick Links Section */}
-        <section id="quicklinks" className="relative z-10 py-20">
+        <section id="quicklinks" className="relative z-10 py-20 sm:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-20"
+              viewport={{ once: true, amount: 0.3 }}
+              className="text-center mb-16 sm:mb-20"
             >
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
                 Quick Links
               </h2>
-              <p className="text-xl text-gray-400 font-mono">
-                Essential resources at your fingertips
+              <p className="text-lg sm:text-xl text-gray-400 font-mono max-w-3xl mx-auto">
+                Essential resources and information at your fingertips.
               </p>
             </motion.div>
-            <QuickLinks />
+            <QuickLinks /> 
           </div>
         </section>
 
         {/* Clubs Section */}
-        <section id="clubs" className="min-h-screen relative z-10 py-20">
+        <section
+          id="clubs"
+          className="relative z-10 py-20 sm:py-24 overflow-hidden"
+        >
+          {" "}
+          {/* Added overflow-hidden */}
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-20"
+              viewport={{ once: true, amount: 0.3 }}
+              className="text-center mb-16 sm:mb-20"
             >
-              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-8">
+              <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-4 sm:mb-6">
                 Clubs and Activities
               </h2>
-              <p className="text-xl text-gray-400 font-mono">
-                Find your passion, join the community
+              <p className="text-lg sm:text-xl text-gray-400 font-mono max-w-3xl mx-auto">
+                Find your passion, build connections, and join the vibrant
+                campus community.
               </p>
             </motion.div>
-            <ImageSlider />
+            <ImageSlider /> 
           </div>
         </section>
 
         {/* Events Section */}
-        <section id="events">
+        <section id="events" className="relative z-10">
+          {" "}
+
           <EventsSection />
         </section>
-
-        {/* Chatbot Widget */}
         <div className="fixed bottom-6 right-6 z-50">
           <ChatbotWidget />
         </div>
 
-        {/* Scroll to top button */}
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-          className="fixed bottom-6 left-6 z-50 p-3 rounded-full bg-purple-500/20 border border-purple-500/50 text-white hover:bg-purple-500/30 transition-colors"
-        >
-          <motion.div
-            animate={{ y: [0, -4, 0] }}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-          >
-            ↑
-          </motion.div>
-        </motion.button>
+
       </div>
     </>
   );

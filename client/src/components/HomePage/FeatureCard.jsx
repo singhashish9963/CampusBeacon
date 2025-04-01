@@ -4,23 +4,23 @@ import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 
-// Memoize animation variants
+// Memoize animation variants (remain the same)
 const iconAnimation = {
   rest: { rotate: 0 },
   hover: {
     rotate: [0, -10, 10, -10, 0],
-    transition: { duration: 0.5 },
+    transition: { duration: 0.5, ease: "easeInOut" }, // Added ease
   },
 };
 
 const arrowAnimation = {
   rest: { x: 0 },
-  hover: { x: 5 },
+  hover: { x: 4 }, // Slightly reduced movement
 };
 
 const cardAnimation = {
-  initial: { opacity: 0, y: 20 },
-  inView: { opacity: 1, y: 0 },
+  initial: { opacity: 0, y: 30 }, // Increased initial y offset slightly
+  inView: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }, // Added transition details
 };
 
 const FeatureCard = React.memo(
@@ -41,32 +41,48 @@ const FeatureCard = React.memo(
       [navigate, href]
     );
 
-    // Memoize gradient styles
+    // Memoize gradient styles (remain the same)
     const gradientStyles = useMemo(
       () => ({
-        background: `linear-gradient(to right, ${gradient
-          .split(" ")
-          .map((c) => c.replace(/(from-|via-|to-)/, ""))
-          .join(", ")})`,
+        background: `linear-gradient(to right, var(--gradient-from), var(--gradient-via), var(--gradient-to))`,
+        "--gradient-from":
+          gradient.match(/from-([a-z]+-\d+)/)?.[0] || "transparent", // Extract CSS vars (more robust if using theme)
+        "--gradient-via":
+          gradient.match(/via-([a-z]+-\d+)/)?.[0] || "transparent", // Or just keep inline style if simpler
+        "--gradient-to":
+          gradient.match(/to-([a-z]+-\d+)/)?.[0] || "transparent",
       }),
       [gradient]
     );
 
-    // Memoize class strings
+    // Memoize class strings - NOW WITH RESPONSIVE CLASSES
     const cardClasses = useMemo(
       () => ({
-        wrapper: "group relative cursor-pointer",
-        gradient: `rounded-xl bg-gradient-to-r ${gradient} opacity-30 group-hover:opacity-75 blur group-hover:blur-md transition duration-500`,
-        container: "relative p-5 bg-gray-900/90 backdrop-blur-md rounded-xl",
-        content: "flex flex-col items-center text-center space-y-6",
-        iconWrapper: `relative p-4 rounded-2xl bg-gradient-to-r ${gradient} transform group-hover:scale-110 transition-transform duration-300 before:absolute before:inset-0 before:blur-sm before:opacity-50`,
-        icon: "h-12 w-12 text-white relative z-10",
-        title: `text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${gradient} transform group-hover:scale-105 transition duration-300`,
+        wrapper: "group relative cursor-pointer overflow-hidden rounded-xl", // Added overflow-hidden and rounding here too
+        // --- Responsive Blur/Opacity ---
+        gradientBgEffect: `absolute inset-0 rounded-xl bg-gradient-to-r ${gradient} opacity-10 group-hover:opacity-30 blur-md group-hover:blur-lg transition duration-500 ease-out`, // Adjusted effect
+        // --- Responsive Padding ---
+        container:
+          "relative p-4 sm:p-5 bg-gray-900/80 backdrop-blur-md rounded-xl border border-white/10 h-full flex flex-col", // Added h-full and flex
+        // --- Responsive Spacing ---
+        content:
+          "flex flex-col items-center text-center space-y-4 sm:space-y-5 flex-grow", // Added flex-grow
+        // --- Responsive Icon Wrapper & Size ---
+        iconWrapper: `relative p-3 sm:p-4 rounded-2xl bg-gradient-to-r ${gradient} transform group-hover:scale-105 transition-transform duration-300 ease-out shadow-lg`, // Added shadow, adjusted scale
+        icon: "h-10 w-10 sm:h-12 sm:w-12 text-white relative z-10", // Responsive icon size
+        // --- Responsive Title Size ---
+        title: `text-lg sm:text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r ${gradient} transition duration-300 group-hover:brightness-110`, // Adjusted effect
+        // --- Responsive Description Size ---
         description:
-          "text-base p-4 md:text-lg text-gray-400 font-mono leading-relaxed",
+          "text-sm sm:text-base text-gray-400 font-mono leading-relaxed flex-grow", // Added flex-grow to push learn more down
+        // --- Responsive "Learn More" ---
+        learnMoreWrapper: "mt-auto pt-4", // Push to bottom
         learnMore:
-          "flex items-center gap-2 text-gray-400 group-hover:text-white transition-colors duration-300",
-        border: `absolute inset-0 rounded-xl border border-gray-700/50 group-hover:border-transparent opacity-0 group-hover:opacity-20 bg-gradient-to-r ${gradient} transition duration-300`,
+          "flex items-center justify-center gap-1.5 text-gray-400 group-hover:text-white transition-colors duration-300",
+        learnMoreText: "text-xs sm:text-sm font-medium",
+        learnMoreIcon: "w-3 h-3 sm:w-4 sm:h-4", // Responsive icon size
+        // --- Removed border effect for simplicity, focusing on background ---
+        // border: `absolute inset-0 rounded-xl border border-gray-700/50 group-hover:border-transparent opacity-0 group-hover:opacity-20 bg-gradient-to-r ${gradient} transition duration-300`,
       }),
       [gradient]
     );
@@ -75,16 +91,19 @@ const FeatureCard = React.memo(
       <motion.div
         initial="initial"
         whileInView="inView"
-        viewport={{ once: true }}
+        viewport={{ once: true, amount: 0.2 }} // Trigger slightly earlier
         variants={cardAnimation}
         className={cardClasses.wrapper}
         onClick={handleClick}
-        style={{ willChange: "transform, opacity" }}
+        style={{ willChange: "transform, opacity" }} // Optimize animation performance
       >
-        <div className={cardClasses.gradient} style={gradientStyles} />
+        {/* Background blur/gradient effect */}
+        <div className={cardClasses.gradientBgEffect} />
 
+        {/* Main Content Container */}
         <div className={cardClasses.container}>
           <div className={cardClasses.content}>
+            {/* Icon */}
             <motion.div
               initial="rest"
               whileHover="hover"
@@ -95,10 +114,15 @@ const FeatureCard = React.memo(
               <Icon className={cardClasses.icon} />
             </motion.div>
 
+            {/* Title */}
             <h3 className={cardClasses.title}>{title}</h3>
 
+            {/* Description */}
             <p className={cardClasses.description}>{description}</p>
+          </div>
 
+          {/* Learn More - Pushed to bottom */}
+          <div className={cardClasses.learnMoreWrapper}>
             <motion.div
               initial="rest"
               whileHover="hover"
@@ -106,12 +130,10 @@ const FeatureCard = React.memo(
               className={cardClasses.learnMore}
               style={{ willChange: "transform" }}
             >
-              <span className="text-sm font-medium">Learn More</span>
-              <ArrowRight className="w-4 h-4" />
+              <span className={cardClasses.learnMoreText}>Learn More</span>
+              <ArrowRight className={cardClasses.learnMoreIcon} />
             </motion.div>
           </div>
-
-          <div className={cardClasses.border} style={gradientStyles} />
         </div>
       </motion.div>
     );
