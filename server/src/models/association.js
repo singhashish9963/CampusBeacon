@@ -2,7 +2,10 @@ import sequelize from "../db/db.js";
 import User from "./user.model.js";
 import BuyAndSell from "./buyandsell.model.js";
 import LostAndFound from "./lostandfound.model.js";
-
+import { Club } from "./clubs.model.js";
+import { Event } from "./events.model.js";
+import { Coordinator } from "./coordinators.model.js";
+import { EventCoordinator } from "./eventcoordinator.model.js";
 import { Subject } from "./subject.model.js";
 
 import {
@@ -121,6 +124,21 @@ StudyMaterial.belongsTo(Subject, { foreignKey: "subject_id" });
     as: "createdChannels",
   });
 };
+
+Club.hasMany(Event, { foreignKey: "club_id" });
+Event.belongsTo(Club, { foreignKey: "club_id" });
+
+Club.hasMany(Coordinator, { foreignKey: "club_id" });
+Coordinator.belongsTo(Club, { foreignKey: "club_id" });
+
+Event.belongsToMany(Coordinator, {
+  through: EventCoordinator,
+  foreignKey: "event_id",
+});
+Coordinator.belongsToMany(Event, {
+  through: EventCoordinator,
+  foreignKey: "coordinator_id",
+});
 
 export {
   User,
