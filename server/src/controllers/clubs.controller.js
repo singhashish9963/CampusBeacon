@@ -4,7 +4,7 @@ import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
 } from "../utils/cloudinary.js";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/apiError.js";
 
 export const createClub = asyncHandler(async (req, res) => {
   const { name, description, social_media_links } = req.body;
