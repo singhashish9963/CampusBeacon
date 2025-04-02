@@ -18,7 +18,9 @@ import ridesRoutes from "./src/routes/ride.routes.js";
 import resourcesRoutes from "./src/routes/resources.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
 import chatBotRoutes from "./src/routes/chatBot.routes.js";
-
+import clubRoutes from "./src/routes/club.routes.js"
+import coordinatorRoutes from "./src/routes/coordinator.routes.js"
+import eventRoutes from "./src/routes/events.routes.js"
 dotenv.config({ path: "./.env" });
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -95,6 +97,9 @@ app.use("/api/eateries", eateriesRoutes);
 app.use("/api/resources", resourcesRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/chatbot", chatBotRoutes);
+app.use("/api/club",clubRoutes);
+app.use("/api/coordinator",coordinatorRoutes);
+app.use("/api/events",eventRoutes)
 
 import { connectDb } from "./src/db/db.js";
 
