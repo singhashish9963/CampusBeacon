@@ -368,30 +368,42 @@ export const createComplaint = asyncHandler(async (req, res) => {
     student_name,
     student_email,
     official_id,
+    official_ids, // support multiple officials if provided
     complaint_type,
     complaint_description,
     due_date,
   } = req.body;
+
+  // Use official_ids if provided, else fall back to official_id
+  const selectedOfficialId =
+    official_ids && Array.isArray(official_ids) && official_ids.length > 0
+      ? official_ids[0]
+      : official_id;
+
+  // Validate required fields
   if (
     !hostel_id ||
     !student_name ||
     !student_email ||
-    !official_id ||
+    !selectedOfficialId ||
     !complaint_type ||
     !complaint_description ||
     !due_date
   ) {
     throw new ApiError("All fields are required", 400);
   }
+
   const hostel = await Hostel.findByPk(hostel_id);
   if (!hostel) throw new ApiError("Hostel not found", 404);
-  const official = await Official.findByPk(official_id);
+
+  const official = await Official.findByPk(selectedOfficialId);
   if (!official) throw new ApiError("Official not found", 404);
+
   const complaint = await Complaint.create({
     hostel_id,
     student_name,
     student_email,
-    official_id,
+    official_id: selectedOfficialId,
     official_name: official.name,
     official_email: official.email,
     complaint_type,
@@ -405,6 +417,7 @@ export const createComplaint = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, complaint, "Complaint submitted successfully!"));
 });
+
 
 export const getAllComplaints = asyncHandler(async (req, res, next) => {
   const complaints = await Complaint.findAll();

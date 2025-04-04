@@ -209,7 +209,10 @@ export const editOfficial = createAsyncThunk(
   "hostel/editOfficial",
   async ({ officialId, ...officialData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/hostels/officials/${officialId}`, officialData);
+      const response = await api.put(
+        `/hostels/officials/${officialId}`,
+        officialData
+      );
       if (response.data.success) {
         return response.data.data;
       }
@@ -372,7 +375,9 @@ export const deleteNotification = createAsyncThunk(
   "hostel/deleteNotification",
   async (notificationId, { rejectWithValue }) => {
     try {
-      const response = await api.delete(`/hostels/notifications/${notificationId}`);
+      const response = await api.delete(
+        `/hostels/notifications/${notificationId}`
+      );
       if (response.data.success) {
         return notificationId;
       }
@@ -466,15 +471,12 @@ const hostelSlice = createSlice({
         if (!state.menus[hostelId]) {
           state.menus[hostelId] = [];
         }
-        // Check if menu for this day already exists
         const existingIndex = state.menus[hostelId].findIndex(
           (menu) => menu.day === action.payload.day
         );
         if (existingIndex !== -1) {
-          // Update existing menu
           state.menus[hostelId][existingIndex] = action.payload;
         } else {
-          // Add new menu
           state.menus[hostelId].push(action.payload);
         }
       })
@@ -497,7 +499,6 @@ const hostelSlice = createSlice({
         state.loading = false;
         state.errors.menu = action.payload;
       })
-      // New case for updateMenu
       .addCase(updateMenu.pending, (state) => {
         state.loading = true;
         state.errors.menu = null;
@@ -599,8 +600,7 @@ const hostelSlice = createSlice({
           const hostelId = action.payload[0].hostel_id;
           state.officials[hostelId] = action.payload;
         } else {
-          // Handle empty array case
-          const hostelId = action.meta.arg; // The hostelId from the original argument
+          const hostelId = action.meta.arg;
           state.officials[hostelId] = [];
         }
       })
@@ -614,11 +614,10 @@ const hostelSlice = createSlice({
       })
       .addCase(deleteOfficial.fulfilled, (state, action) => {
         state.loading = false;
-        // Find which hostel contains this official ID
         const officialId = action.payload;
-        Object.keys(state.officials).forEach(hostelId => {
+        Object.keys(state.officials).forEach((hostelId) => {
           state.officials[hostelId] = state.officials[hostelId].filter(
-            o => o.official_id !== officialId
+            (o) => o.official_id !== officialId
           );
         });
       })
@@ -653,8 +652,7 @@ const hostelSlice = createSlice({
           const hostelId = action.payload[0].hostel_id;
           state.complaints[hostelId] = action.payload;
         } else {
-          // Handle empty array case
-          const hostelId = action.meta.arg; // The hostelId from the original argument
+          const hostelId = action.meta.arg;
           state.complaints[hostelId] = [];
         }
       })
@@ -671,7 +669,7 @@ const hostelSlice = createSlice({
         const hostelId = action.payload.hostel_id;
         if (state.complaints[hostelId]) {
           const index = state.complaints[hostelId].findIndex(
-            (c) => c.id === action.payload.id
+            (c) => c.complaint_id === action.payload.complaint_id
           );
           if (index !== -1) {
             state.complaints[hostelId][index] = action.payload;
@@ -689,10 +687,9 @@ const hostelSlice = createSlice({
       .addCase(deleteComplaint.fulfilled, (state, action) => {
         state.loading = false;
         const complaintId = action.payload;
-        // Find which hostel contains this complaint ID
-        Object.keys(state.complaints).forEach(hostelId => {
+        Object.keys(state.complaints).forEach((hostelId) => {
           state.complaints[hostelId] = state.complaints[hostelId].filter(
-            c => c.id !== complaintId
+            (c) => c.complaint_id !== complaintId
           );
         });
       })
@@ -727,8 +724,7 @@ const hostelSlice = createSlice({
           const hostelId = action.payload[0].hostel_id;
           state.notifications[hostelId] = action.payload;
         } else {
-          // Handle empty array case
-          const hostelId = action.meta.arg; // The hostelId from the original argument
+          const hostelId = action.meta.arg;
           state.notifications[hostelId] = [];
         }
       })
@@ -743,10 +739,9 @@ const hostelSlice = createSlice({
       .addCase(deleteNotification.fulfilled, (state, action) => {
         state.loading = false;
         const notificationId = action.payload;
-        // Find which hostel contains this notification ID
-        Object.keys(state.notifications).forEach(hostelId => {
+        Object.keys(state.notifications).forEach((hostelId) => {
           state.notifications[hostelId] = state.notifications[hostelId].filter(
-            notification => notification.id !== notificationId
+            (notification) => notification.notification_id !== notificationId
           );
         });
       })
