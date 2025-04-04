@@ -41,6 +41,7 @@ import RideShare from "./pages/services/RideShare";
 import ChatTestPage from "./pages/chat/ChatTestPage";
 import AdminPanel from "./pages/admin/AdminPanel";
 import MNNITClubPage from "./pages/clubs/ClubPage";
+import EventPage from "./pages/clubs/EventPage";
 
 
 function App() {
@@ -100,6 +101,7 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />{" "}
             <Route path="/verify-email" element={<EmailVerification />} />{" "}
             <Route path="/clubs" element={<MNNITClubPage />} />{" "}
+            <Route path="/events/:id" element={<EventPage />} />{" "}
             {/* Routes only for non-authenticated users (using PublicRoute) */}
             <Route
               path="/login"
