@@ -8,8 +8,11 @@ import {
   Newspaper,
   Map,
   Lightbulb,
+
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { last } from "lodash";
+import { HiAcademicCap } from "react-icons/hi";
 
 const QuickLinks = () => {
   const links = [
@@ -62,6 +65,13 @@ const QuickLinks = () => {
       description: "Journey through MNNIT's history",
       href: "/time",
       gradient: "from-blue-400 via-indigo-500 to-purple-500",
+    },
+    {
+      icon: HiAcademicCap, 
+      label: "Clubs",
+      description: "Explore college clubs and campus communities",
+      href: "/clubs",
+      gradient: "from-blue-500 via-purple-600 to-pink-500",
     },
   ];
 
