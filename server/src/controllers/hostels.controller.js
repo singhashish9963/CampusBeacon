@@ -116,14 +116,22 @@ export const createMenu = asyncHandler(async (req, res, next) => {
 
 export const getMenuByHostel = asyncHandler(async (req, res) => {
   const { hostel_id } = req.params;
-  const menus = await Menu.findAll({ where: { hostel_id } });
-  if (!menus.length) {
-    throw new ApiError("No menu found for this hostel", 404);
+
+  // 1. Check if the parent Hostel exists
+  const hostel = await Hostel.findByPk(hostel_id);
+  if (!hostel) {
+    throw new ApiError("Hostel not found", 404);
   }
+
+  // 2. Fetch related menus (will return [] if none exist)
+  const menus = await Menu.findAll({ where: { hostel_id } });
+
+  // 3. Return 200 OK with the result (empty array or array of menus)
   res
     .status(200)
     .json(new ApiResponse(200, menus, "Menu fetched successfully"));
 });
+
 
 export const getMenuById = asyncHandler(async (req, res) => {
   const { menu_id } = req.params;
@@ -259,10 +267,17 @@ export const getOfficialById = asyncHandler(async (req, res, next) => {
 
 export const getOfficialsByHostel = asyncHandler(async (req, res, next) => {
   const { hostel_id } = req.params;
-  const officials = await Official.findAll({ where: { hostel_id } });
-  if (!officials.length) {
-    throw new ApiError("No officials found for this hostel", 404);
+
+  // 1. Check if the parent Hostel exists
+  const hostel = await Hostel.findByPk(hostel_id);
+  if (!hostel) {
+    throw new ApiError("Hostel not found", 404);
   }
+
+  // 2. Fetch related officials (will return [] if none exist)
+  const officials = await Official.findAll({ where: { hostel_id } });
+
+  // 3. Return 200 OK with the result (empty array or array of officials)
   res
     .status(200)
     .json(new ApiResponse(200, officials, "Officials retrieved successfully"));
@@ -368,30 +383,42 @@ export const createComplaint = asyncHandler(async (req, res) => {
     student_name,
     student_email,
     official_id,
+    official_ids, // support multiple officials if provided
     complaint_type,
     complaint_description,
     due_date,
   } = req.body;
+
+  // Use official_ids if provided, else fall back to official_id
+  const selectedOfficialId =
+    official_ids && Array.isArray(official_ids) && official_ids.length > 0
+      ? official_ids[0]
+      : official_id;
+
+  // Validate required fields
   if (
     !hostel_id ||
     !student_name ||
     !student_email ||
-    !official_id ||
+    !selectedOfficialId ||
     !complaint_type ||
     !complaint_description ||
     !due_date
   ) {
     throw new ApiError("All fields are required", 400);
   }
+
   const hostel = await Hostel.findByPk(hostel_id);
   if (!hostel) throw new ApiError("Hostel not found", 404);
-  const official = await Official.findByPk(official_id);
+
+  const official = await Official.findByPk(selectedOfficialId);
   if (!official) throw new ApiError("Official not found", 404);
+
   const complaint = await Complaint.create({
     hostel_id,
     student_name,
     student_email,
-    official_id,
+    official_id: selectedOfficialId,
     official_name: official.name,
     official_email: official.email,
     complaint_type,
@@ -405,6 +432,7 @@ export const createComplaint = asyncHandler(async (req, res) => {
     .status(201)
     .json(new ApiResponse(201, complaint, "Complaint submitted successfully!"));
 });
+
 
 export const getAllComplaints = asyncHandler(async (req, res, next) => {
   const complaints = await Complaint.findAll();
@@ -434,13 +462,24 @@ export const getComplaintById = asyncHandler(async (req, res, next) => {
 
 export const getComplaintsByHostel = asyncHandler(async (req, res, next) => {
   const { hostel_id } = req.params;
+
+  // 1. Check if the parent Hostel exists
+  const hostel = await Hostel.findByPk(hostel_id);
+  if (!hostel) {
+    throw new ApiError("Hostel not found", 404);
+  }
+
+  // 2. Fetch related complaints (will return [] if none exist)
   const complaints = await Complaint.findAll({ where: { hostel_id } });
+
+  // 3. Return 200 OK with the result (empty array or array of complaints)
   res
     .status(200)
     .json(
       new ApiResponse(200, complaints, "Complaints retrieved successfully")
     );
 });
+
 
 export const updateComplaint = asyncHandler(async (req, res) => {
   const { complaint_id } = req.params;
@@ -500,8 +539,7 @@ export const deleteComplaint = asyncHandler(async (req, res) => {
 =============================
 */
 
-import { uploadImageToCloudinary } from "../utils/cloudinary.js";
-
+import { uploadImageToCloudinary,deleteImageFromCloudinary } from "../utils/cloudinary.js";
 export const createNotification = asyncHandler(async (req, res) => {
   const { hostel_id, message } = req.body;
   if (!hostel_id || !message) {
@@ -540,11 +578,20 @@ export const getNotifications = asyncHandler(async (req, res) => {
 
 export const getHostelNotifications = asyncHandler(async (req, res) => {
   const { hostel_id } = req.params;
+
+  // 1. Check if the parent Hostel exists
   const hostel = await Hostel.findByPk(hostel_id);
-  if (!hostel) throw new ApiError("Hostel not found", 404);
+  if (!hostel) {
+    throw new ApiError("Hostel not found", 404);
+  }
+
+  // 2. Fetch related notifications (will return [] if none exist)
   const notifications = await HostelNotification.findAll({
     where: { hostel_id },
+    order: [["createdAt", "DESC"]], // Optional: Order by creation time, newest first
   });
+
+  // 3. Return 200 OK with the result (empty array or array of notifications)
   res
     .status(200)
     .json(
@@ -583,6 +630,14 @@ export const updateNotification = asyncHandler(async (req, res) => {
 
 export const deleteNotification = asyncHandler(async (req, res) => {
   const { notification_id } = req.params;
+  const notification = await HostelNotification.findByPk(notification_id);
+  if (!notification) throw new ApiError("Notification not found", 404);
+
+  // Delete the file from Cloudinary if it exists
+  if (notification.file_url) {
+    await deleteImageFromCloudinary(notification.file_url);
+  }
+
   const deleted = await HostelNotification.destroy({
     where: { notification_id },
   });

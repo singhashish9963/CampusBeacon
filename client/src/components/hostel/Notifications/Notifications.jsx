@@ -13,12 +13,15 @@ const Notifications = ({ hostelId }) => {
   );
   const { roles } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+
   const [isCreating, setIsCreating] = useState(false);
   const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({
     message: "",
     type: "info",
   });
+  // New state for file attachment
+  const [fileAttachment, setFileAttachment] = useState(null);
 
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
@@ -39,16 +42,20 @@ const Notifications = ({ hostelId }) => {
     }
 
     try {
-      await dispatch(
-        createNotification({
-          hostel_id: hostelId,
-          ...formData,
-        })
-      ).unwrap();
+      // Prepare payload. If an attachment exists, include it with key "file".
+      const payload = {
+        hostel_id: hostelId,
+        ...formData,
+      };
+      if (fileAttachment) {
+        payload.file = fileAttachment;
+      }
+      await dispatch(createNotification(payload)).unwrap();
       setFormData({
         message: "",
         type: "info",
       });
+      setFileAttachment(null);
       setIsCreating(false);
     } catch (error) {
       setFormError(error.message || "Error creating notification");
@@ -59,7 +66,7 @@ const Notifications = ({ hostelId }) => {
   const handleDeleteNotification = async (notificationId) => {
     if (!notificationId) return;
     try {
-      await dispatch(deleteNotification({ hostelId, notificationId })).unwrap();
+      await dispatch(deleteNotification({ notificationId })).unwrap();
     } catch (error) {
       console.error("Error deleting notification:", error);
     }
@@ -70,6 +77,7 @@ const Notifications = ({ hostelId }) => {
       message: "",
       type: "info",
     });
+    setFileAttachment(null);
     setIsCreating(false);
   };
 
@@ -138,7 +146,7 @@ const Notifications = ({ hostelId }) => {
             <textarea
               value={formData.message}
               onChange={(e) =>
-                setFormData({ ...formData, message: e.target.value.trim() })
+                setFormData({ ...formData, message: e.target.value })
               }
               className="w-full px-4 py-2 bg-black/50 border border-white/10 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 h-32 resize-none"
               required
@@ -162,6 +170,16 @@ const Notifications = ({ hostelId }) => {
               <option value="warning">Warning</option>
               <option value="error">Error</option>
             </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Attachment (Optional)
+            </label>
+            <input
+              type="file"
+              onChange={(e) => setFileAttachment(e.target.files[0])}
+              className="text-white"
+            />
           </div>
           <div className="flex justify-end space-x-3">
             <button
@@ -202,6 +220,16 @@ const Notifications = ({ hostelId }) => {
                 <p className="text-sm text-gray-400 mt-2">
                   {new Date(notif.timestamp).toLocaleTimeString()}
                 </p>
+              )}
+              {notif.file_url && (
+                <a
+                  href={notif.file_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-gray-300 underline mt-1 block"
+                >
+                  View Attachment
+                </a>
               )}
             </div>
             {(isAdmin || isHostelPresident) && (

@@ -1,6 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { Wrench, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import {
+  Wrench,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  UserCheck,
+} from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   createComplaint,
@@ -14,15 +20,23 @@ const Complaints = ({ hostelId }) => {
   const [formError, setFormError] = useState("");
   const [actionError, setActionError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // New states for official selection dialog
+  const [showOfficialDialog, setShowOfficialDialog] = useState(false);
+  const [selectedOfficials, setSelectedOfficials] = useState([]); // array of official_id
+
   const dispatch = useDispatch();
   const { complaints, loading, error } = useSelector((state) => state.hostel);
   const { user, roles } = useSelector((state) => state.auth);
+  // Get hostel officials from the hostel state; default to empty array if not loaded
+  const hostelOfficials = useSelector(
+    (state) => state.hostel.officials[hostelId] || []
+  );
 
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
 
   // Memoize filtered complaints for the current hostel
-  const hostelComplaints = useMemo(() => {
+  const filteredComplaints = useMemo(() => {
     if (!Array.isArray(complaints[hostelId])) return [];
     return complaints[hostelId].sort((a, b) => {
       // Sort by status (pending first) and then by date
@@ -58,6 +72,13 @@ const Complaints = ({ hostelId }) => {
       return false;
     }
 
+    if (selectedOfficials.length === 0) {
+      setFormError(
+        "Please select at least one official to send the complaint to"
+      );
+      return false;
+    }
+
     return true;
   };
 
@@ -75,11 +96,14 @@ const Complaints = ({ hostelId }) => {
         complaint_description: complaintDescription.trim(),
         student_name: user.name,
         student_email: user.email,
+        // Send the selected official IDs (could be an array if multiple selection is allowed)
+        official_ids: selectedOfficials,
         due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
       };
       await dispatch(createComplaint(complaintData)).unwrap();
       setSelectedComplaintType("");
       setComplaintDescription("");
+      setSelectedOfficials([]);
       setFormError("");
     } catch (error) {
       setFormError(
@@ -127,6 +151,22 @@ const Complaints = ({ hostelId }) => {
       );
       console.error("Failed to delete complaint:", error);
     }
+  };
+
+  // Allows a user to update selected officials from the dialog
+  const toggleOfficial = (officialId) => {
+    if (selectedOfficials.includes(officialId)) {
+      setSelectedOfficials(selectedOfficials.filter((id) => id !== officialId));
+    } else {
+      setSelectedOfficials([...selectedOfficials, officialId]);
+    }
+  };
+
+  // Only allow complaint editing/deletion if the current user created it OR if admin/hostel_president.
+  const canModifyComplaint = (complaint) => {
+    return (
+      isAdmin || isHostelPresident || complaint.student_email === user.email
+    );
   };
 
   if (error) {
@@ -215,6 +255,17 @@ const Complaints = ({ hostelId }) => {
           required
           disabled={isSubmitting}
         />
+        <div className="mb-4">
+          <button
+            onClick={() => setShowOfficialDialog(true)}
+            disabled={isSubmitting}
+            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+          >
+            {selectedOfficials.length > 0
+              ? `Selected Officials: ${selectedOfficials.join(", ")}`
+              : "Select Official(s)"}
+          </button>
+        </div>
         {formError && (
           <div className="mb-4 p-4 bg-red-500/20 border border-red-500/50 rounded-lg">
             <div className="flex items-center text-red-400">
@@ -234,20 +285,76 @@ const Complaints = ({ hostelId }) => {
         </button>
       </div>
 
+      {/* Officials Dialog for Complaint */}
+      {showOfficialDialog && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 flex items-center justify-center bg-black/50 z-50"
+        >
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="bg-gray-900 p-6 rounded-lg w-full max-w-md relative"
+          >
+            <button
+              onClick={() => setShowOfficialDialog(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              <XCircle className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl font-bold text-white mb-4">
+              Select Official(s)
+            </h3>
+            {hostelOfficials.length === 0 ? (
+              <p className="text-gray-400">No officials available.</p>
+            ) : (
+              <div className="space-y-2 max-h-60 overflow-y-auto">
+                {hostelOfficials.map((official) => (
+                  <div key={official.official_id} className="flex items-center">
+                    <input
+                      type="checkbox"
+                      id={`official-${official.official_id}`}
+                      checked={selectedOfficials.includes(official.official_id)}
+                      onChange={() => toggleOfficial(official.official_id)}
+                      className="mr-2"
+                    />
+                    <label
+                      htmlFor={`official-${official.official_id}`}
+                      className="text-white"
+                    >
+                      {official.name} - {official.designation}
+                    </label>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setShowOfficialDialog(false)}
+                className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg"
+              >
+                Done
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+
       {/* Complaints List */}
       <div className="space-y-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-white">
             Recent Complaints
           </h3>
-          {hostelComplaints.length > 0 && (
+          {filteredComplaints.length > 0 && (
             <div className="text-sm text-gray-400">
-              {hostelComplaints.filter((c) => c.status === "pending").length}{" "}
+              {filteredComplaints.filter((c) => c.status === "pending").length}{" "}
               pending
             </div>
           )}
         </div>
-        {hostelComplaints.map((complaint) => (
+        {filteredComplaints.map((complaint) => (
           <motion.div
             key={complaint.complaint_id}
             initial={{ opacity: 0, y: 10 }}
@@ -291,7 +398,7 @@ const Complaints = ({ hostelId }) => {
                   )}
                 </div>
               </div>
-              {(isAdmin || isHostelPresident) && (
+              {canModifyComplaint(complaint) && (
                 <div className="flex space-x-2">
                   {complaint.status === "pending" && (
                     <button
@@ -304,23 +411,21 @@ const Complaints = ({ hostelId }) => {
                       <CheckCircle className="w-5 h-5" />
                     </button>
                   )}
-                  {isAdmin && (
-                    <button
-                      onClick={() =>
-                        handleDeleteComplaint(complaint.complaint_id)
-                      }
-                      className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-500/10"
-                      title="Delete Complaint"
-                    >
-                      <XCircle className="w-5 h-5" />
-                    </button>
-                  )}
+                  <button
+                    onClick={() =>
+                      handleDeleteComplaint(complaint.complaint_id)
+                    }
+                    className="text-red-500 hover:text-red-600 transition-colors p-2 rounded-lg hover:bg-red-500/10"
+                    title="Delete Complaint"
+                  >
+                    <XCircle className="w-5 h-5" />
+                  </button>
                 </div>
               )}
             </div>
           </motion.div>
         ))}
-        {hostelComplaints.length === 0 && (
+        {filteredComplaints.length === 0 && (
           <div className="text-center py-8">
             <p className="text-gray-400">No complaints filed yet</p>
           </div>

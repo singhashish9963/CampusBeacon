@@ -14,42 +14,76 @@ import Complaints from "../../components/hostel/Complaints/Complaints";
 import Officials from "../../components/hostel/Officials/Officials";
 
 const HostelPage = () => {
-  const { hostelId } = useParams();
+  const { hostelId } = useParams(); // Get the current hostel ID from the URL
   const dispatch = useDispatch();
-  const { currentHostel, loading } = useSelector((state) => state.hostel);
-  const [error, setError] = useState(null);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const fetchHostelData = useCallback(async () => {
-    if (!hostelId) return;
+  // Get relevant data and global loading state from Redux
+  // Note: `reduxLoading` will be true if ANY hostel thunk is pending.
+  const { currentHostel, loading: reduxLoading } = useSelector(
+    (state) => state.hostel
+  );
 
-    try {
-      setError(null);
-      await Promise.all([
-        dispatch(getHostelById(hostelId)).unwrap(),
-        dispatch(getMenuByHostel(hostelId)).unwrap(),
-        dispatch(getOfficialsByHostel(hostelId)).unwrap(),
-        dispatch(getComplaintsByHostel(hostelId)).unwrap(),
-        dispatch(getHostelNotifications(hostelId)).unwrap(),
-      ]);
-    } catch (error) {
-      setError(error.message || "Error fetching hostel data");
-      console.error("Error fetching hostel data:", error);
-    } finally {
-      setIsInitialLoad(false);
-    }
-  }, [hostelId, dispatch]);
+  // Local state for page-specific loading and error handling
+  const [isFetchingPageData, setIsFetchingPageData] = useState(false);
+  const [pageError, setPageError] = useState(null);
 
+  // Define the data fetching function using useCallback
+  // It now accepts the ID to fetch as an argument
+  const fetchHostelData = useCallback(
+    async (id) => {
+      if (!id) {
+        console.warn("fetchHostelData called with invalid ID:", id);
+        setPageError("Invalid Hostel ID."); // Set an error if ID is missing
+        return;
+      }
+
+      console.log(`Attempting to fetch data for hostel ID: ${id}`);
+      setIsFetchingPageData(true); // Start page-specific loading indicator
+      setPageError(null); // Clear previous errors for this page
+
+      try {
+        // Dispatch all data fetching thunks concurrently for the given ID
+        await Promise.all([
+          dispatch(getHostelById(id)).unwrap(),
+          dispatch(getMenuByHostel(id)).unwrap(),
+          dispatch(getOfficialsByHostel(id)).unwrap(),
+          dispatch(getComplaintsByHostel(id)).unwrap(),
+          dispatch(getHostelNotifications(id)).unwrap(),
+        ]);
+        console.log(`Successfully fetched all data for hostel ID: ${id}`);
+      } catch (error) {
+        // Catch errors from any of the promises
+        const errorMessage =
+          error?.message || `Failed to fetch data for hostel ${id}`;
+        setPageError(errorMessage); // Set page-specific error message
+        console.error(`Error fetching hostel data for ID ${id}:`, error);
+      } finally {
+        setIsFetchingPageData(false); // Stop page-specific loading indicator
+      }
+    },
+    [dispatch] // dispatch is stable, useCallback dependency is fine
+  );
+
+  // Effect to trigger data fetching whenever the hostelId from the URL changes
   useEffect(() => {
-    if (isInitialLoad) {
-      fetchHostelData();
+    if (hostelId) {
+      // Only fetch if the ID is present
+      fetchHostelData(hostelId);
+    } else {
+      // If hostelId is not present in the URL, set an error
+      setPageError("No Hostel ID specified in the URL.");
     }
-  }, [fetchHostelData, isInitialLoad]);
+    // This effect should re-run ONLY when hostelId changes.
+    // fetchHostelData is memoized by useCallback and dispatch is stable.
+  }, [hostelId, fetchHostelData]);
 
-  if (loading && isInitialLoad) {
+  // --- Loading State Rendering ---
+  // Show loading UI if the page-specific fetch is in progress
+  if (isFetchingPageData) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 py-8">
         <div className="container mx-auto px-4">
+          {/* Re-use the existing pulse animation for loading */}
           <div className="animate-pulse">
             <div className="h-8 bg-purple-500/20 rounded w-1/3 mb-8"></div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -76,21 +110,26 @@ const HostelPage = () => {
     );
   }
 
-  if (error) {
+  // --- Error State Rendering ---
+  // Show error UI if a page-specific error occurred during fetch
+  if (pageError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 py-8">
         <div className="container mx-auto px-4">
           <div className="bg-red-500/20 border border-red-500 rounded-xl p-6 text-white">
-            <h2 className="text-xl font-bold mb-2">Error</h2>
-            <p>{error}</p>
+            <h2 className="text-xl font-bold mb-2">
+              Error Loading Hostel Data
+            </h2>
+            <p>{pageError}</p>
             <button
-              onClick={() => {
-                setIsInitialLoad(true);
-                setError(null);
-              }}
-              className="mt-4 px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition-colors"
+              // Retry button calls fetchHostelData with the current hostelId
+              onClick={() => fetchHostelData(hostelId)}
+              disabled={isFetchingPageData} // Disable while fetching
+              className={`mt-4 px-4 py-2 bg-red-500 rounded-lg hover:bg-red-600 transition-colors ${
+                isFetchingPageData ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
-              Retry
+              {isFetchingPageData ? "Retrying..." : "Retry"}
             </button>
           </div>
         </div>
@@ -98,20 +137,46 @@ const HostelPage = () => {
     );
   }
 
+  // --- Data Not Ready State ---
+  // Optional: Add a check if the data fetch finished but the specific hostel data isn't in Redux yet,
+  // or doesn't match the current hostelId. This prevents rendering with stale data.
+  // Ensure currentHostel.id is compared correctly (e.g., string vs number)
+  const parsedHostelId = parseInt(hostelId, 10); // Convert URL param string to number
+  if (!currentHostel || currentHostel.id !== parsedHostelId) {
+    // This state might be hit briefly after fetch completes but before Redux updates,
+    // or if the getHostelById thunk failed silently or returned unexpected data.
+    // You could show a minimal loading message or potentially the error UI again.
+    // For simplicity, we can show a basic message or rely on child components handling missing data.
+    // If the page loaded without error BUT the currentHostel doesn't match, it implies
+    // something went wrong with the fetch or state update for getHostelById.
+    // Consider showing the error UI again in this edge case.
+    // return (
+    //    <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 py-8 text-white text-center">
+    //      Hostel data not available or mismatch detected. Please try again.
+    //    </div>
+    // );
+    // Or, let the components below handle potentially missing data from Redux,
+    // assuming the fetch succeeded overall (no pageError was set).
+  }
+
+  // --- Success State Rendering ---
+  // If no loading and no error, render the main content
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-950 via-black to-purple-900 py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold text-white mb-8">
-          {currentHostel?.hostel_name}
+          {/* Safely access hostel name, provide fallback */}
+          {currentHostel?.hostel_name || `Hostel ${hostelId}`}
         </h1>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left side: Mess Menu, Notifications & Complaint */}
+          {/* Left side: Pass the current hostelId to child components */}
+          {/* These components will select their specific data from Redux using this ID */}
           <div className="lg:col-span-2 space-y-8">
             <MessMenu hostelId={hostelId} />
             <Notifications hostelId={hostelId} />
             <Complaints hostelId={hostelId} />
           </div>
-          {/* Right side: Officials */}
+          {/* Right side: Pass the current hostelId */}
           <div className="space-y-8">
             <Officials hostelId={hostelId} />
           </div>
