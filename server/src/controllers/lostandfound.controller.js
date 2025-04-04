@@ -52,7 +52,10 @@ export const updateLostItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item not found", 404);
   }
 
-  if (req.user && item.userId !== req.user.id) {
+  if (
+    (!req.user || item.userId !== req.user.id) &&
+    (!req.user || req.user.role !== "admin")
+  ) {
     throw new ApiError("User is not authorized to update this item", 403);
   }
 
@@ -98,7 +101,10 @@ export const deleteLostItem = asyncHandler(async (req, res) => {
     throw new ApiError("Item not found", 404);
   }
 
-  if (req.user && item.userId !== req.user.id) {
+  if (
+    (!req.user || item.userId !== req.user.id) &&
+    (!req.user || req.user.role !== "admin")
+  ) {
     throw new ApiError("User is not authorized to delete this item", 403);
   }
 
