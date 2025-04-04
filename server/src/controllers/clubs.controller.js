@@ -89,16 +89,28 @@ export const updateClub = asyncHandler(async (req, res) => {
   }
 
   if (newImageUrls.length > 0) {
-    // Delete old images if requested
     if (req.body.deleteExistingImages === "true") {
+      if (Array.isArray(club.images) && club.images.length > 0) {
+        const deletePromises = club.images.map((imageUrl) =>
+          deleteImageFromCloudinary(imageUrl)
+        );
+        await Promise.all(deletePromises);
+      }
+
+      club.images = newImageUrls;
+    } else {
+      const existing = Array.isArray(club.images) ? club.images : [];
+      club.images = [...existing, ...newImageUrls];
+    }
+  } else if (req.body.deleteExistingImages === "true") {
+    if (Array.isArray(club.images) && club.images.length > 0) {
       const deletePromises = club.images.map((imageUrl) =>
         deleteImageFromCloudinary(imageUrl)
       );
       await Promise.all(deletePromises);
-      club.images = newImageUrls;
-    } else {
-      club.images = [...club.images, ...newImageUrls];
     }
+
+    club.images = [];
   }
 
   await club.save();
