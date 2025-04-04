@@ -93,7 +93,6 @@ export const getMenuByHostel = createAsyncThunk(
   }
 );
 
-// New action for updating entire menu
 export const updateMenu = createAsyncThunk(
   "hostel/updateMenu",
   async ({ menuId, data }, { rejectWithValue }) => {
@@ -354,6 +353,25 @@ export const createNotification = createAsyncThunk(
   }
 );
 
+export const deleteNotification = createAsyncThunk(
+  "hostel/deleteNotification",
+  async ({ notificationId }, { rejectWithValue }) => {
+    try {
+      const response = await api.delete(
+        `/hostels/notifications/${notificationId}`
+      );
+      if (response.data.success) {
+        return notificationId;
+      }
+      return rejectWithValue(response.data.message);
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Error deleting notification"
+      );
+    }
+  }
+);
+
 export const getHostelNotifications = createAsyncThunk(
   "hostel/getHostelNotifications",
   async (hostelId, { rejectWithValue }) => {
@@ -366,25 +384,6 @@ export const getHostelNotifications = createAsyncThunk(
     } catch (err) {
       return rejectWithValue(
         err.response?.data?.message || "Error fetching notifications"
-      );
-    }
-  }
-);
-
-export const deleteNotification = createAsyncThunk(
-  "hostel/deleteNotification",
-  async (notificationId, { rejectWithValue }) => {
-    try {
-      const response = await api.delete(
-        `/hostels/notifications/${notificationId}`
-      );
-      if (response.data.success) {
-        return notificationId;
-      }
-      return rejectWithValue(response.data.message);
-    } catch (err) {
-      return rejectWithValue(
-        err.response?.data?.message || "Error deleting notification"
       );
     }
   }

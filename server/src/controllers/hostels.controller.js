@@ -513,8 +513,7 @@ export const deleteComplaint = asyncHandler(async (req, res) => {
 =============================
 */
 
-import { uploadImageToCloudinary } from "../utils/cloudinary.js";
-
+import { uploadImageToCloudinary,deleteImageFromCloudinary } from "../utils/cloudinary.js";
 export const createNotification = asyncHandler(async (req, res) => {
   const { hostel_id, message } = req.body;
   if (!hostel_id || !message) {
@@ -596,6 +595,14 @@ export const updateNotification = asyncHandler(async (req, res) => {
 
 export const deleteNotification = asyncHandler(async (req, res) => {
   const { notification_id } = req.params;
+  const notification = await HostelNotification.findByPk(notification_id);
+  if (!notification) throw new ApiError("Notification not found", 404);
+
+  // Delete the file from Cloudinary if it exists
+  if (notification.file_url) {
+    await deleteImageFromCloudinary(notification.file_url);
+  }
+
   const deleted = await HostelNotification.destroy({
     where: { notification_id },
   });
