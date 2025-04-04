@@ -40,6 +40,7 @@ import MNNITTimeCapsule from "./pages/utility/MNNITTimeCapsule";
 import RideShare from "./pages/services/RideShare";
 import ChatTestPage from "./pages/chat/ChatTestPage";
 import AdminPanel from "./pages/admin/AdminPanel";
+import MNNITClubPage from "./pages/clubs/ClubPage";
 
 
 function App() {
@@ -78,8 +79,8 @@ function App() {
           theme="dark"
           limit={3}
           transition={Slide}
-          toastClassName="bg-gray-800 text-white" // Example styling
-          progressClassName="bg-purple-500" // Example styling
+          toastClassName="bg-gray-800 text-white" 
+          progressClassName="bg-purple-500" 
         />
         <main className="flex-grow">
           <Routes>
@@ -98,6 +99,7 @@ function App() {
             <Route path="/contact" element={<ContactsDisplay />} />
             <Route path="/reset-password" element={<ResetPassword />} />{" "}
             <Route path="/verify-email" element={<EmailVerification />} />{" "}
+            <Route path="/clubs" element={<MNNITClubPage />} />{" "}
             {/* Routes only for non-authenticated users (using PublicRoute) */}
             <Route
               path="/login"

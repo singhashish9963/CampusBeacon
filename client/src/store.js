@@ -12,6 +12,11 @@ import chatbotReducer from "./slices/chatbotSlice";
 import hostelReducer from "./slices/hostelSlice";
 import resourceReducer from "./slices/resourceSlice";
 
+// Newly added slices
+import clubReducer from "./slices/clubSlice";
+import eventReducer from "./slices/eventSlice";
+import coordinatorReducer from "./slices/coordinatorSlice";
+
 // Combine reducers without persistence.
 const rootReducer = combineReducers({
   rides: ridesReducer,
@@ -25,6 +30,10 @@ const rootReducer = combineReducers({
   chatbot: chatbotReducer,
   hostel: hostelReducer,
   resource: resourceReducer,
+  // New reducers
+  clubs: clubReducer,
+  events: eventReducer,
+  coordinators: coordinatorReducer,
 });
 
 const store = configureStore({

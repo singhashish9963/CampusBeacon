@@ -30,6 +30,20 @@ export const createCoordinator = asyncHandler(async (req, res) => {
     imageUrls = await Promise.all(uploadPromises);
   }
 
+  if (social_media_links) {
+    try {
+      const parsedLinks = JSON.parse(social_media_links);
+      if (!Array.isArray(parsedLinks)) {
+        throw new Error();
+      }
+    } catch {
+      throw new ApiError(
+        400,
+        "Invalid social_media_links format. Must be a JSON array."
+      );
+    }
+  }
+
   const coordinator = await Coordinator.create({
     name,
     designation,
@@ -127,7 +141,18 @@ export const updateCoordinator = asyncHandler(async (req, res) => {
   coordinator.club_id = club_id || coordinator.club_id;
 
   if (social_media_links) {
-    coordinator.social_media_links = JSON.parse(social_media_links);
+    try {
+      const parsedLinks = JSON.parse(social_media_links);
+      if (!Array.isArray(parsedLinks)) {
+        throw new Error();
+      }
+      coordinator.social_media_links = parsedLinks;
+    } catch {
+      throw new ApiError(
+        400,
+        "Invalid social_media_links format. Must be a JSON array."
+      );
+    }
   }
 
   if (newImageUrls.length > 0) {

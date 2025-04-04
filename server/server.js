@@ -18,9 +18,9 @@ import ridesRoutes from "./src/routes/ride.routes.js";
 import resourcesRoutes from "./src/routes/resources.routes.js";
 import notificationRoutes from "./src/routes/notification.routes.js";
 import chatBotRoutes from "./src/routes/chatBot.routes.js";
-import clubRoutes from "./src/routes/club.routes.js"
-import coordinatorRoutes from "./src/routes/coordinator.routes.js"
-import eventRoutes from "./src/routes/events.routes.js"
+import clubRoutes from "./src/routes/club.routes.js";
+import coordinatorRoutes from "./src/routes/coordinator.routes.js";
+import eventRoutes from "./src/routes/events.routes.js";
 dotenv.config({ path: "./.env" });
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,7 +34,7 @@ const corsOptions = {
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization", "x-session-id"],
+  allowedHeaders: ["Content-Type", "Authorization", "x-session-id", ""],
   preflightContinue: false,
   optionsSuccessStatus: 204,
 };
@@ -64,22 +64,8 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 scheduleUnverifiedUserCleanup();
-
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "your-temporary-secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: process.env.NODE_ENV === "production",
-      httpOnly: true,
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
-    },
-    name: "sessionId",
-  })
-);
 
 // Test route
 app.get("/", (req, res) => {
@@ -97,9 +83,9 @@ app.use("/api/eateries", eateriesRoutes);
 app.use("/api/resources", resourcesRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/chatbot", chatBotRoutes);
-app.use("/api/club",clubRoutes);
-app.use("/api/coordinator",coordinatorRoutes);
-app.use("/api/events",eventRoutes)
+app.use("/api/club", clubRoutes);
+app.use("/api/coordinator", coordinatorRoutes);
+app.use("/api/events", eventRoutes);
 
 import { connectDb } from "./src/db/db.js";
 
