@@ -151,4 +151,8 @@ export {
   Message,
   Channel,
   ChannelMember,
+  Coordinator,
+  EventCoordinator,
+  Club,
+  Event,
 };
