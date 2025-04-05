@@ -43,6 +43,7 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import EventPage from "./pages/clubs/EventPage";
 import ClubDetailPage from "./pages/clubs/ClubDetailPage";
 import ClubListPage from "./pages/clubs/ClubListPage";
+import ScrollToTop from "./components/common/layout/ScrollToTop";
 
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
     <BrowserRouter>
       <div className="flex flex-col min-h-screen">
         <NavBar />
+        <ScrollToTop/>
         <ToastContainer
           position="top-right"
           autoClose={1000}

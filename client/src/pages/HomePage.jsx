@@ -1,5 +1,10 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
-// Removed useNavigate as it wasn't used directly here
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+  Suspense,
+} from "react";
 import { motion } from "framer-motion";
 import {
   Users,
@@ -10,20 +15,31 @@ import {
   Book,
   Car,
 } from "lucide-react";
-import { ButtonColourfull } from "../components/common/buttons"; 
-import {
-  FeatureCard,
-  QuickLinks,
-  EventsSection,
-  ImageSlider,
-  StarryBackground,
-  ChatbotWidget
-
-} from "../components/HomePage"; 
-import { NotificationIcon } from "../components/features/notifications"; 
+import { ButtonColourfull } from "../components/common/buttons";
+import { NotificationIcon } from "../components/features/notifications";
 import { useSelector } from "react-redux";
 
-// Debounce helper 
+// Lazy-loaded components with Suspense fallback wrappers
+const FeatureCard = React.lazy(() =>
+  import("../components/HomePage/FeatureCard")
+);
+const QuickLinks = React.lazy(() =>
+  import("../components/HomePage/QuickLinks")
+);
+const EventsSection = React.lazy(() =>
+  import("../components/HomePage/EventsSection")
+);
+const ImageSlider = React.lazy(() =>
+  import("../components/HomePage/ImageSlider")
+);
+const StarryBackground = React.lazy(() =>
+  import("../components/HomePage/StarsBg")
+);
+const ChatbotWidget = React.lazy(() =>
+  import("../components/HomePage/ChatbotWidget")
+);
+
+// Debounce helper to optimize scroll handling
 const debounce = (func, wait) => {
   let timeout;
   return function executedFunction(...args) {
@@ -37,22 +53,17 @@ const debounce = (func, wait) => {
 };
 
 const HomePage = () => {
-
   const [activeSection, setActiveSection] = useState("home");
-
-
   const { isAuthenticated } = useSelector((state) => state.auth);
 
-
-  // Memoize the scroll handler (remains the same)
+  // Scroll handler debounced to reduce re-renders
   const handleScroll = useCallback(
     debounce(() => {
       const sections = document.querySelectorAll("section[id]");
-      const scrollPosition = window.scrollY + 100; 
-
+      const scrollPosition = window.scrollY + 100;
       let found = false;
-      for (const section of sections) {
-        if (!section) continue; 
+      sections.forEach((section) => {
+        if (!section) return;
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
         if (
@@ -61,10 +72,8 @@ const HomePage = () => {
         ) {
           setActiveSection(section.id);
           found = true;
-          break;
         }
-      }
-
+      });
       if (!found && window.scrollY < 200) {
         setActiveSection("home");
       }
@@ -73,10 +82,7 @@ const HomePage = () => {
   );
 
   useEffect(() => {
-
-
     window.addEventListener("scroll", handleScroll);
-
     handleScroll();
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
@@ -84,22 +90,19 @@ const HomePage = () => {
   const scrollToSection = useCallback((sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      // Adjust scroll position slightly if needed due to fixed headers, etc.
-      const offset = 0; // Example: set to height of your fixed navbar if applicable
+      const offset = 0; // Adjust if you have fixed navbar height etc.
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = element.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
       const offsetPosition = elementPosition - offset;
-
       window.scrollTo({
         top: offsetPosition,
         behavior: "smooth",
       });
     }
-
   }, []);
 
- 
+  // Memoized feature cards data
   const featureCards = useMemo(
     () => [
       {
@@ -157,24 +160,24 @@ const HomePage = () => {
 
   return (
     <>
-      {/* Background */}
+      {/* Background Component */}
       <div className="fixed inset-0 -z-10">
-        {" "}
-        {/* Ensure background is behind */}
-        <StarryBackground />
+        <Suspense fallback={<div className="w-full h-full bg-black/50" />}>
+          <StarryBackground />
+        </Suspense>
       </div>
 
       {/* Main Content Area */}
       <div className="relative z-10 min-h-screen pt-16">
         {/* Top Navigation with Notification Icon */}
         <div className="fixed top-4 right-4 z-50 flex items-center space-x-4">
-          {isAuthenticated && <NotificationIcon />}{" "}
+          {isAuthenticated && <NotificationIcon />}
         </div>
 
         {/* Hero Section */}
         <section
           id="home"
-          className="min-h-screen flex items-center justify-center relative py-16" // Added padding
+          className="min-h-screen flex items-center justify-center relative py-16"
         >
           <div className="text-center z-10 px-4">
             <motion.h1
@@ -189,7 +192,7 @@ const HomePage = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="font-mono text-lg sm:text-xl md:text-2xl text-gray-300 max-w-xl sm:max-w-2xl mx-auto mb-10 sm:mb-12" // Adjusted max-width
+              className="font-mono text-lg sm:text-xl md:text-2xl text-gray-300 max-w-xl sm:max-w-2xl mx-auto mb-10 sm:mb-12"
             >
               Your digital companion for navigating campus life seamlessly.
             </motion.p>
@@ -201,8 +204,8 @@ const HomePage = () => {
               <ButtonColourfull
                 text="Explore Features"
                 type="button"
-                buttonsize="px-6 py-2.5 sm:px-8 sm:py-3" // Responsive padding
-                textsize="text-base sm:text-lg" // Responsive text size
+                buttonsize="px-6 py-2.5 sm:px-8 sm:py-3"
+                textsize="text-base sm:text-lg"
                 onClick={() => scrollToSection("features")}
               />
             </motion.div>
@@ -215,7 +218,7 @@ const HomePage = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }} // Trigger slightly earlier
+              viewport={{ once: true, amount: 0.3 }}
               className="text-center mb-16 sm:mb-20"
             >
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
@@ -230,20 +233,24 @@ const HomePage = () => {
               initial="hidden"
               whileInView="visible"
               viewport={{ once: true, amount: 0.2 }}
-              variants={{
-                visible: { transition: { staggerChildren: 0.1 } },
-              }}
-              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8" // Adjusted gap
+              variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+              className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8"
             >
               {featureCards.map((card) => (
-                <FeatureCard
+                <Suspense
                   key={card.href}
-                  icon={card.icon}
-                  title={card.title}
-                  description={card.description}
-                  href={card.href}
-                  gradient={card.gradient}
-                />
+                  fallback={
+                    <div className="h-48 w-full bg-gray-700 animate-pulse" />
+                  }
+                >
+                  <FeatureCard
+                    icon={card.icon}
+                    title={card.title}
+                    description={card.description}
+                    href={card.href}
+                    gradient={card.gradient}
+                  />
+                </Suspense>
               ))}
             </motion.div>
           </div>
@@ -265,7 +272,13 @@ const HomePage = () => {
                 Essential resources and information at your fingertips.
               </p>
             </motion.div>
-            <QuickLinks /> 
+            <Suspense
+              fallback={
+                <div className="h-32 w-full bg-gray-700 animate-pulse" />
+              }
+            >
+              <QuickLinks />
+            </Suspense>
           </div>
         </section>
 
@@ -274,8 +287,6 @@ const HomePage = () => {
           id="clubs"
           className="relative z-10 py-20 sm:py-24 overflow-hidden"
         >
-          {" "}
-          {/* Added overflow-hidden */}
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -291,21 +302,30 @@ const HomePage = () => {
                 campus community.
               </p>
             </motion.div>
-            <ImageSlider /> 
+            <Suspense
+              fallback={
+                <div className="h-64 w-full bg-gray-700 animate-pulse" />
+              }
+            >
+              <ImageSlider />
+            </Suspense>
           </div>
         </section>
 
         {/* Events Section */}
         <section id="events" className="relative z-10">
-          {" "}
-
-          <EventsSection />
+          <Suspense
+            fallback={<div className="h-64 w-full bg-gray-700 animate-pulse" />}
+          >
+            <EventsSection />
+          </Suspense>
         </section>
+        {/* Chatbot Widget */}
         <div className="fixed bottom-6 right-6 z-50">
-          <ChatbotWidget />
+          <Suspense fallback={null}>
+            <ChatbotWidget />
+          </Suspense>
         </div>
-
-
       </div>
     </>
   );
