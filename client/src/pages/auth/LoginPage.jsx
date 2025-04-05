@@ -12,7 +12,8 @@ import {
 import { ButtonColourfull } from "../../components/common/buttons";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import CustomEmailInput from "./customEmailInput";
+import PasswordInput from "./password";
 const LoginSignup = () => {
   const dispatch = useDispatch();
   const {
@@ -128,21 +129,16 @@ const LoginSignup = () => {
   };
 
   const AuthForm = ({ type }) => (
-    <form onSubmit={(e) => handleFormSubmit(e, type)} className="space-y-6" autoComplete="off">
-      <input
-        type="email"
-        name="email"
-        placeholder="Enter your email"
-        className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500 transition-all"
-        required
-        autoComplete="new-email"
-      />
+    <form
+      onSubmit={(e) => handleFormSubmit(e, type)}
+      className="space-y-6"
+      autoComplete="off"
+    >
+      <CustomEmailInput name="email" required autoComplete="new-email" />
       {type !== "forgot" && (
-        <input
-          type="password"
+        <PasswordInput
           name="password"
           placeholder="Enter password"
-          className="w-full p-4 bg-white/5 rounded-lg text-white border border-white/10 focus:outline-none focus:border-purple-500 transition-all"
           required
           autoComplete="new-password"
         />
