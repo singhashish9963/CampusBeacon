@@ -70,9 +70,8 @@ export const createEatery = asyncHandler(async (req, res) => {
 export const updateEatery = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, location, description, phoneNumber, openingTime, closingTime } =
-    req.body; // Removed rating as it shouldn't be updated directly here
+    req.body;
 
-  // Validate time formats
   if (openingTime && !isValidTimeFormat(openingTime)) {
     throw new ApiError(400, "Invalid opening time format. Use HH:MM.");
   }
@@ -85,15 +84,13 @@ export const updateEatery = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Eatery not found");
   }
 
-  const oldImageUrl = eatery.menuImageUrl; // Store the existing image URL
-  let newMenuImageUrl = eatery.menuImageUrl; // Initialize with current URL
+  const oldImageUrl = eatery.menuImageUrl;
+  let newMenuImageUrl = eatery.menuImageUrl;
 
-  // If a new file is uploaded, process it
   if (req.file) {
     try {
-      newMenuImageUrl = await uploadImageToCloudinary(req.file.path); // Upload new image
+      newMenuImageUrl = await uploadImageToCloudinary(req.file.path);
 
-      // If upload is successful AND there was an old image, delete the old one
       if (newMenuImageUrl && oldImageUrl) {
         try {
           await deleteImageFromCloudinary(oldImageUrl);
@@ -103,7 +100,6 @@ export const updateEatery = asyncHandler(async (req, res) => {
             `Failed to delete old image ${oldImageUrl} during update for eatery ${id}:`,
             deleteError
           );
-          // Decide if you want to proceed or throw an error - usually proceed
         }
       }
     } catch (uploadError) {
@@ -111,23 +107,18 @@ export const updateEatery = asyncHandler(async (req, res) => {
         `Cloudinary upload failed during update for eatery ${id}:`,
         uploadError
       );
-      // Handle upload error - perhaps throw an ApiError or just don't update the image URL
-      // For now, we'll proceed without updating the image URL if upload fails
-      newMenuImageUrl = oldImageUrl; // Revert to old URL if upload fails
-      // Optional: throw new ApiError(500, "Failed to upload new menu image.");
+      newMenuImageUrl = oldImageUrl;
     }
   }
 
-  // Update eatery fields
   eatery.name = name?.trim() || eatery.name;
   eatery.location = location?.trim() || eatery.location;
-  eatery.description = description ?? eatery.description; // Use ?? to allow empty string ""
+  eatery.description = description ?? eatery.description;
   eatery.phoneNumber = phoneNumber ?? eatery.phoneNumber;
   eatery.openingTime = openingTime ?? eatery.openingTime;
   eatery.closingTime = closingTime ?? eatery.closingTime;
-  eatery.menuImageUrl = newMenuImageUrl; // Assign the potentially new URL
+  eatery.menuImageUrl = newMenuImageUrl;
 
-  // Save changes to the database
   try {
     await eatery.save();
   } catch (dbError) {
@@ -152,15 +143,13 @@ export const deleteEatery = asyncHandler(async (req, res) => {
 
   const eatery = await Eateries.findByPk(id);
   if (!eatery) {
-    throw new ApiError(404, "Eatery not found"); // Consistent ApiError constructor
+    throw new ApiError(404, "Eatery not found");
   }
 
-  const imageUrlToDelete = eatery.menuImageUrl; // Store URL before potentially deleting eatery
+  const imageUrlToDelete = eatery.menuImageUrl;
 
-  // First, attempt to delete from the database
   await eatery.destroy();
 
-  // If database deletion was successful, attempt to delete image from Cloudinary
   if (imageUrlToDelete) {
     try {
       await deleteImageFromCloudinary(imageUrlToDelete);
@@ -168,7 +157,6 @@ export const deleteEatery = asyncHandler(async (req, res) => {
         `Deleted associated image from Cloudinary: ${imageUrlToDelete}`
       );
     } catch (cloudinaryError) {
-      // Log the error, but don't fail the request since the DB entry is gone
       console.error(
         `Failed to delete image ${imageUrlToDelete} from Cloudinary after deleting eatery ${id}:`,
         cloudinaryError
@@ -176,12 +164,9 @@ export const deleteEatery = asyncHandler(async (req, res) => {
     }
   }
 
-  return (
-    res
-      .status(200)
-      // Send 200 for successful deletion, 204 might also be appropriate (No Content)
-      .json(new ApiResponse(200, { id }, "Eatery deleted successfully"))
-  ); // Return deleted ID
+  return res
+    .status(200)
+    .json(new ApiResponse(200, { id }, "Eatery deleted successfully"));
 });
 
 export const getEatery = asyncHandler(async (req, res) => {
