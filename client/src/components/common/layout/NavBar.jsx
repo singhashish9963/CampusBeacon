@@ -1,4 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  lazy,
+  Suspense,
+} from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,57 +18,178 @@ import {
   HiLogout,
   HiLogin,
   HiMenu,
-  HiAcademicCap, 
-  HiClipboardList, 
+  HiAcademicCap,
+  HiClipboardList,
 } from "react-icons/hi";
 import { HiChatBubbleLeftRight, HiTruck } from "react-icons/hi2";
 import { X } from "lucide-react";
+import { Building } from "lucide-react";
 import { handleLogout } from "../../../slices/authSlice";
 import { getAllHostels } from "../../../slices/hostelSlice";
-import { Building } from "lucide-react";
 import "react-toastify/dist/ReactToastify.css";
 
 
+const DefaultMobileMenu = ({
+  isAuthenticated,
+  mainLinks,
+  academicsOptions,
+  hostels,
+  onClose,
+  onLogout,
+}) => (
+  <motion.div
+    initial={{ opacity: 0, x: "100%" }}
+    animate={{ opacity: 1, x: 0 }}
+    exit={{ opacity: 0, x: "100%" }}
+    transition={{ type: "spring", stiffness: 300, damping: 35 }}
+    className="fixed inset-0 z-40 sm:hidden"
+  >
+    <div
+      className="absolute inset-0 bg-black/80 backdrop-blur-lg"
+      onClick={onClose}
+    />
+    <div className="absolute right-0 top-0 h-full w-4/5 max-w-sm bg-gray-900/95 shadow-2xl">
+      <div className="flex flex-col h-full py-16 px-4 overflow-y-auto">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+        >
+          <X className="w-6 h-6" />
+        </button>
+
+        {isAuthenticated && (
+          <Link
+            to="/profile"
+            className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors mb-4"
+          >
+            <HiUser className="w-6 h-6" />
+            <span>Profile</span>
+          </Link>
+        )}
+
+        {mainLinks.map((link) => (
+          <Link
+            key={link.name}
+            to={link.path}
+            className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+          >
+            <link.icon className="w-5 h-5" />
+            <span>{link.name}</span>
+          </Link>
+        ))}
+
+        {isAuthenticated && (
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Academics
+            </div>
+            {academicsOptions.map((option) => (
+              <Link
+                key={option.name}
+                to={option.path}
+                className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <option.icon className="w-5 h-5" />
+                <span>{option.name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {isAuthenticated && hostels.length > 0 && (
+          <div className="mt-4 border-t border-white/10 pt-4">
+            <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Hostels
+            </div>
+            {hostels.map((hostel) => (
+              <Link
+                key={hostel.hostel_id}
+                to={`/hostels/${hostel.hostel_id}`}
+                className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
+              >
+                <HiOfficeBuilding className="w-5 h-5" />
+                <span>{hostel.hostel_name}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-auto pt-6 border-t border-white/10">
+          {isAuthenticated ? (
+            <button
+              onClick={onLogout}
+              className="flex items-center space-x-4 w-full px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
+            >
+              <HiLogout className="w-5 h-5" />
+              <span>Logout</span>
+            </button>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center space-x-4 w-full px-4 py-3 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-colors"
+            >
+              <HiLogin className="w-5 h-5" />
+              <span>Login</span>
+            </Link>
+          )}
+        </div>
+      </div>
+    </div>
+  </motion.div>
+);
 
 function NavBar() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const { hostels } = useSelector((state) => state.hostel);
+
+  // Optimized selectors - only select what's needed
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
+  const loading = useSelector((state) => state.auth.loading);
+  const hostels = useSelector((state) => state.hostel.hostels);
+
+  // State management
+  const [isInitialRender, setIsInitialRender] = useState(true);
   const [showHostelMenu, setShowHostelMenu] = useState(false);
-  const [showAcademicsMenu, setShowAcademicsMenu] = useState(false); // State for new dropdown
-
-  // Get authentication state using authSlice from Redux
-  const { isAuthenticated, loading, user, roles } = useSelector(
-    (state) => state.auth
-  );
-
+  const [showAcademicsMenu, setShowAcademicsMenu] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Refs for timeouts and tracking
   const showTimeoutRef = useRef(null);
-  const academicsTimeoutRef = useRef(null); // Timeout for academics dropdown
-  const hostelTimeoutRef = useRef(null); // Timeout for hostel dropdown
+  const menuTimeoutRef = useRef(null);
+  const activeMenuRef = useRef(null);
+  const hostelsLoadedRef = useRef(false);
 
-  // --- Navigation Links ---
+  // --- Memoized Values ---
 
-  // Main links shown when authenticated
-  const mainLinks = isAuthenticated
-    ? [
-        { name: "Home", path: "/", icon: HiHome },
-        { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
-        { name: "Market", path: "/marketplace", icon: HiShoppingBag },
-        { name: "Rides", path: "/rides", icon: HiTruck },
-        { name: "Chat", path: "/chat", icon: HiChatBubbleLeftRight },
-        // { name: "Profile", path: "/profile", icon: HiUser }, // Profile moved to user dropdown/button
-      ]
-    : [{ name: "Home", path: "/", icon: HiHome }]; // Only Home when logged out
+  // Main links with useMemo to avoid recreating on every render
+  const mainLinks = useMemo(
+    () =>
+      isAuthenticated
+        ? [
+            { name: "Home", path: "/", icon: HiHome },
+            { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
+            { name: "Market", path: "/marketplace", icon: HiShoppingBag },
+            { name: "Rides", path: "/rides", icon: HiTruck },
+            { name: "Chat", path: "/chat", icon: HiChatBubbleLeftRight },
+          ]
+        : [{ name: "Home", path: "/", icon: HiHome }],
+    [isAuthenticated]
+  );
 
-  // Define Academics dropdown options
-  const academicsOptions = [
-    { name: "Attendance Tracker", path: "/attendance", icon: HiClipboardList },
-    // { name: "Grades", path: "/grades", icon: /* Add Icon */ }, // Future item
-    // { name: "Course Resources", path: "/resources", icon: /* Add Icon */ }, // Future item
-  ];
+  // Academics options with useMemo
+  const academicsOptions = useMemo(
+    () => [
+      {
+        name: "Attendance Tracker",
+        path: "/attendance",
+        icon: HiClipboardList,
+      },
+      // Add more options here if needed
+    ],
+    []
+  );
 
   // --- Handlers ---
 
@@ -69,38 +197,58 @@ function NavBar() {
     try {
       await dispatch(handleLogout()).unwrap();
       navigate("/login");
-      setIsVisible(false); // Hide navbar on logout
+      setIsVisible(false);
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
-  // Function to handle mouse enter for dropdowns
-  const handleMouseEnter = (setMenuState, timeoutRef) => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setMenuState(true);
+  // Unified handler for menu hovers
+  const handleMenuEnter = (menuType) => {
+    if (menuTimeoutRef.current) clearTimeout(menuTimeoutRef.current);
+    activeMenuRef.current = menuType;
+
+    if (menuType === "academics") setShowAcademicsMenu(true);
+    if (menuType === "hostels") setShowHostelMenu(true);
   };
 
-  // Function to handle mouse leave for dropdowns
-  const handleMouseLeave = (setMenuState, timeoutRef) => {
-    timeoutRef.current = setTimeout(() => {
-      setMenuState(false);
-    }, 200); // Shorter delay might feel better
+  const handleMenuLeave = (menuType) => {
+    menuTimeoutRef.current = setTimeout(() => {
+      if (activeMenuRef.current === menuType) {
+        activeMenuRef.current = null;
+        if (menuType === "academics") setShowAcademicsMenu(false);
+        if (menuType === "hostels") setShowHostelMenu(false);
+      }
+    }, 150);
   };
 
   // --- Effects ---
 
-  // Load hostels only after successful authentication
+  // Mark initial render as complete
   useEffect(() => {
-    if (isAuthenticated && !loading) {
-      dispatch(getAllHostels());
+    const timer = setTimeout(() => {
+      setIsInitialRender(false);
+    }, 10);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Load hostels with deferred timing
+  useEffect(() => {
+    let hostelTimer;
+
+    if (isAuthenticated && !loading && !hostelsLoadedRef.current) {
+      // Defer loading of hostels to not block initial render
+      hostelTimer = setTimeout(() => {
+        dispatch(getAllHostels());
+        hostelsLoadedRef.current = true;
+      }, 100); // Small delay to prioritize UI rendering
     }
-    // Cleanup all timeouts on unmount
+
     return () => {
+      if (hostelTimer) clearTimeout(hostelTimer);
       if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
-      if (academicsTimeoutRef.current)
-        clearTimeout(academicsTimeoutRef.current);
-      if (hostelTimeoutRef.current) clearTimeout(hostelTimeoutRef.current);
+      if (menuTimeoutRef.current) clearTimeout(menuTimeoutRef.current);
     };
   }, [dispatch, isAuthenticated, loading]);
 
@@ -109,7 +257,21 @@ function NavBar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // --- Render ---
+  // --- Optimized Render ---
+
+  // Show minimal UI during initial load/auth check
+  if (isInitialRender && loading) {
+    return (
+      <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50">
+        <div className="rounded-2xl bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-purple-500/10 h-16 flex items-center px-4">
+          <div className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent">
+            CampusBeacon
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Desktop Trigger Area */}
@@ -120,8 +282,6 @@ function NavBar() {
 
       {/* Mobile Menu Button */}
       <div className="fixed top-4 right-4 z-[70] sm:hidden">
-        {" "}
-        {/* Highest z-index */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
@@ -132,118 +292,26 @@ function NavBar() {
         </motion.button>
       </div>
 
-      {/* --- Mobile Navigation --- */}
+      {/* Mobile Navigation - Lazy Loaded */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, x: "100%" }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: "100%" }}
-            transition={{ type: "spring", stiffness: 300, damping: 35 }}
-            className="fixed inset-0 z-40 sm:hidden" // Lower z-index than button
+          <Suspense
+            fallback={<div className="fixed inset-0 z-40 bg-black/50" />}
           >
-            <div
-              className="absolute inset-0 bg-black/80 backdrop-blur-lg"
-              onClick={() => setIsMobileMenuOpen(false)} // Close on overlay click
+            {/* Or use the inline version */}
+            <DefaultMobileMenu
+              isAuthenticated={isAuthenticated}
+              mainLinks={mainLinks}
+              academicsOptions={academicsOptions}
+              hostels={hostels}
+              onClose={() => setIsMobileMenuOpen(false)}
+              onLogout={handleLogoutClick}
             />
-            <div className="absolute right-0 top-0 h-full w-4/5 max-w-sm bg-gray-900/95 shadow-2xl">
-              <div className="flex flex-col h-full py-16 px-4 overflow-y-auto">
-                {/* Close button inside menu */}
-                <button
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-
-                {/* Profile Link */}
-                {isAuthenticated && (
-                  <Link
-                    to="/profile"
-                    className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors mb-4"
-                  >
-                    <HiUser className="w-6 h-6" />
-                    <span>Profile</span>
-                  </Link>
-                )}
-
-                {/* Main Links */}
-                {mainLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    to={link.path}
-                    className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
-                  >
-                    <link.icon className="w-5 h-5" />
-                    <span>{link.name}</span>
-                  </Link>
-                ))}
-
-                {/* Academics Section (Mobile) */}
-                {isAuthenticated && (
-                  <div className="mt-4 border-t border-white/10 pt-4">
-                    <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Academics
-                    </div>
-                    {academicsOptions.map((option) => (
-                      <Link
-                        key={option.name}
-                        to={option.path}
-                        className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
-                      >
-                        <option.icon className="w-5 h-5" />
-                        <span>{option.name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {/* Hostels Section (Mobile) */}
-                {isAuthenticated && hostels.length > 0 && (
-                  <div className="mt-4 border-t border-white/10 pt-4">
-                    <div className="px-4 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Hostels
-                    </div>
-                    {hostels.map((hostel) => (
-                      <Link
-                        key={hostel.hostel_id}
-                        to={`/hostels/${hostel.hostel_id}`}
-                        className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
-                      >
-                        <HiOfficeBuilding className="w-5 h-5" />
-                        <span>{hostel.hostel_name}</span>
-                      </Link>
-                    ))}
-                  </div>
-                )}
-
-                {/* Auth Actions (Bottom) */}
-                <div className="mt-auto pt-6 border-t border-white/10">
-                  {isAuthenticated ? (
-                    <button
-                      onClick={handleLogoutClick}
-                      className="flex items-center space-x-4 w-full px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
-                    >
-                      <HiLogout className="w-5 h-5" />
-                      <span>Logout</span>
-                    </button>
-                  ) : (
-                    <Link
-                      to="/login"
-                      className="flex items-center space-x-4 w-full px-4 py-3 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-colors"
-                    >
-                      <HiLogin className="w-5 h-5" />
-                      <span>Login</span>
-                    </Link>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
+          </Suspense>
         )}
       </AnimatePresence>
 
-      {/* --- Desktop Navigation --- */}
+      {/* Desktop Navigation */}
       <AnimatePresence>
         {isVisible && (
           <motion.nav
@@ -251,22 +319,17 @@ function NavBar() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -100, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50 hidden sm:block" // z-index 50
+            className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50 hidden sm:block"
             onMouseLeave={() => {
-              // Clear any existing timeout first
               if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
-              // Set timeout to hide the navbar
               showTimeoutRef.current = setTimeout(() => {
-                // Only hide if no submenus are actively hovered
-                if (!showHostelMenu && !showAcademicsMenu) {
+                if (!activeMenuRef.current) {
                   setIsVisible(false);
                 }
-              }, 300); // Longer delay to allow moving to dropdowns
+              }, 300);
             }}
             onMouseEnter={() => {
-              // Clear timeout when mouse re-enters the navbar itself
               if (showTimeoutRef.current) clearTimeout(showTimeoutRef.current);
-              setIsVisible(true); // Ensure it stays visible
             }}
           >
             <div className="relative rounded-2xl overflow-visible bg-black/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-purple-500/10">
@@ -295,22 +358,12 @@ function NavBar() {
                       </Link>
                     ))}
 
-                    {/* Academics Dropdown */}
+                    {/* Academics Dropdown - Optimized */}
                     {isAuthenticated && (
                       <div
                         className="relative"
-                        onMouseEnter={() =>
-                          handleMouseEnter(
-                            setShowAcademicsMenu,
-                            academicsTimeoutRef
-                          )
-                        }
-                        onMouseLeave={() =>
-                          handleMouseLeave(
-                            setShowAcademicsMenu,
-                            academicsTimeoutRef
-                          )
-                        }
+                        onMouseEnter={() => handleMenuEnter("academics")}
+                        onMouseLeave={() => handleMenuLeave("academics")}
                       >
                         <button className="flex items-center space-x-1 md:space-x-2 text-gray-300 hover:text-white transition-colors relative group">
                           <HiAcademicCap className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
@@ -349,16 +402,12 @@ function NavBar() {
                       </div>
                     )}
 
-                    {/* Hostels Dropdown */}
+                    {/* Hostels Dropdown - Optimized */}
                     {isAuthenticated && hostels.length > 0 && (
                       <div
                         className="relative"
-                        onMouseEnter={() =>
-                          handleMouseEnter(setShowHostelMenu, hostelTimeoutRef)
-                        }
-                        onMouseLeave={() =>
-                          handleMouseLeave(setShowHostelMenu, hostelTimeoutRef)
-                        }
+                        onMouseEnter={() => handleMenuEnter("hostels")}
+                        onMouseLeave={() => handleMenuLeave("hostels")}
                       >
                         <button className="flex items-center space-x-1 md:space-x-2 text-gray-300 hover:text-white transition-colors relative group">
                           <Building className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
