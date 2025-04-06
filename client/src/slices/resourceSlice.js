@@ -3,8 +3,7 @@ import axios from "axios";
 
 // Configure axios instance
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api/resources",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
@@ -20,7 +19,7 @@ export const fetchBranches = createAsyncThunk(
   "resources/fetchBranches",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/branches");
+      const response = await api.get("/resources/branches");
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -35,7 +34,7 @@ export const createBranch = createAsyncThunk(
   "resources/createBranch",
   async (branchData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/branches", branchData);
+      const response = await api.post("/resources/branches", branchData);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -50,7 +49,7 @@ export const updateBranch = createAsyncThunk(
   "resources/updateBranch",
   async ({ id, branchData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/branches/${id}`, branchData);
+      const response = await api.put(`/resources/branches/${id}`, branchData);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -65,7 +64,7 @@ export const deleteBranch = createAsyncThunk(
   "resources/deleteBranch",
   async (id, { rejectWithValue }) => {
     try {
-      await api.delete(`/branches/${id}`);
+      await api.delete(`/resources/branches/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(
@@ -84,7 +83,7 @@ export const fetchYears = createAsyncThunk(
   "resources/fetchYears",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/years");
+      const response = await api.get("/resources/years");
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -99,7 +98,7 @@ export const createYear = createAsyncThunk(
   "resources/createYear",
   async (yearData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/years", yearData);
+      const response = await api.post("/resources/years", yearData);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -114,7 +113,7 @@ export const updateYear = createAsyncThunk(
   "resources/updateYear",
   async ({ id, yearData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/years/${id}`, yearData);
+      const response = await api.put(`/resources/years/${id}`, yearData);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -129,7 +128,7 @@ export const deleteYear = createAsyncThunk(
   "resources/deleteYear",
   async (id, { rejectWithValue }) => {
     try {
-      await api.delete(`/years/${id}`);
+      await api.delete(`/resources/years/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(
@@ -148,7 +147,7 @@ export const fetchSubjects = createAsyncThunk(
   "resources/fetchSubjects",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/subjects");
+      const response = await api.get("/resources/subjects");
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -163,7 +162,7 @@ export const createSubject = createAsyncThunk(
   "resources/createSubject",
   async (subjectData, { rejectWithValue }) => {
     try {
-      const response = await api.post("/subjects", subjectData);
+      const response = await api.post("/resources/subjects", subjectData);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -178,7 +177,7 @@ export const updateSubject = createAsyncThunk(
   "resources/updateSubject",
   async ({ id, subjectData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/subjects/${id}`, subjectData);
+      const response = await api.put(`/resources/subjects/${id}`, subjectData);
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -193,7 +192,7 @@ export const deleteSubject = createAsyncThunk(
   "resources/deleteSubject",
   async (id, { rejectWithValue }) => {
     try {
-      await api.delete(`/subjects/${id}`);
+      await api.delete(`/resources/subjects/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(
@@ -215,7 +214,7 @@ export const fetchStudyMaterials = createAsyncThunk(
   "resources/fetchStudyMaterials",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await api.get("/study-materials");
+      const response = await api.get("/resources/study-materials");
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -230,7 +229,7 @@ export const createStudyMaterial = createAsyncThunk(
   async (formData, { rejectWithValue }) => {
     try {
       // formData should be FormData including file field
-      const response = await api.post("/study-materials", formData, {
+      const response = await api.post("/resources/study-materials", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data.data;
@@ -246,9 +245,13 @@ export const updateStudyMaterial = createAsyncThunk(
   "resources/updateStudyMaterial",
   async ({ id, formData }, { rejectWithValue }) => {
     try {
-      const response = await api.put(`/study-materials/${id}`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const response = await api.put(
+        `/resources/study-materials/${id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
       return response.data.data;
     } catch (error) {
       return rejectWithValue(
@@ -262,7 +265,7 @@ export const deleteStudyMaterial = createAsyncThunk(
   "resources/deleteStudyMaterial",
   async (id, { rejectWithValue }) => {
     try {
-      await api.delete(`/study-materials/${id}`);
+      await api.delete(`/resources/study-materials/${id}`);
       return id;
     } catch (error) {
       return rejectWithValue(
