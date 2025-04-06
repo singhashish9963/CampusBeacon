@@ -18,6 +18,7 @@ import {
 import { ButtonColourfull } from "../components/common/buttons";
 import { NotificationIcon } from "../components/features/notifications";
 import { useSelector } from "react-redux";
+import { HiAcademicCap } from "react-icons/hi";
 
 // Lazy-loaded components with Suspense fallback wrappers
 const FeatureCard = React.lazy(() =>
@@ -153,6 +154,13 @@ const HomePage = () => {
         description: "Share rides and save money",
         href: "/rides",
         gradient: "from-amber-800 via-orange-700 to-orange-900",
+      },
+      {
+        icon: HiAcademicCap,
+        title: "Attendance Tracker",
+        description: "Track your personal attendance here",
+        gradient: "from-teal-500 via-emerald-500 to-green-500",
+        href: "/attendance",
       },
     ],
     []

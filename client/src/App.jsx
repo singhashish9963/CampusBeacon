@@ -44,6 +44,7 @@ import EventPage from "./pages/clubs/EventPage";
 import ClubDetailPage from "./pages/clubs/ClubDetailPage";
 import ClubListPage from "./pages/clubs/ClubListPage";
 import ScrollToTop from "./components/common/layout/ScrollToTop";
+import AttendancePage from "./pages/attendance/AttendancePage";
 
 
 function App() {
@@ -106,6 +107,8 @@ function App() {
             <Route path="/clubs" element={<ClubListPage />} />{" "}
             <Route path="/clubs/:clubId" element={<ClubDetailPage />} />{" "}
             <Route path="/events/:id" element={<EventPage />} />{" "}
+            <Route path="/attendance" element={<AttendancePage />} />{" "}
+
             {/* Routes only for non-authenticated users (using PublicRoute) */}
             <Route
               path="/login"
