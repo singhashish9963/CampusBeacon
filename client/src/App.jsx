@@ -70,7 +70,7 @@ function App() {
     <BrowserRouter>
       <div className="flex flex-col min-h-screen">
         <NavBar />
-        <ScrollToTop/>
+        <ScrollToTop />
         <ToastContainer
           position="top-right"
           autoClose={1000}
@@ -84,8 +84,8 @@ function App() {
           theme="dark"
           limit={3}
           transition={Slide}
-          toastClassName="bg-gray-800 text-white" 
-          progressClassName="bg-purple-500" 
+          toastClassName="bg-gray-800 text-white"
+          progressClassName="bg-purple-500"
         />
         <main className="flex-grow">
           <Routes>
@@ -107,8 +107,6 @@ function App() {
             <Route path="/clubs" element={<ClubListPage />} />{" "}
             <Route path="/clubs/:clubId" element={<ClubDetailPage />} />{" "}
             <Route path="/events/:id" element={<EventPage />} />{" "}
-            <Route path="/attendance" element={<AttendancePage />} />{" "}
-
             {/* Routes only for non-authenticated users (using PublicRoute) */}
             <Route
               path="/login"
@@ -125,6 +123,7 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/marketplace" element={<Marketplace />} />
               <Route path="/god/*" element={<AdminPanel />} />{" "}
+              <Route path="/attendance" element={<AttendancePage />} />{" "}
               {/* Assuming admin needs auth */}
               <Route path="/chat" element={<ChatTestPage />} />
               <Route path="/lost-found" element={<LostAndFound />} />
