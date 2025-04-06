@@ -6,8 +6,7 @@ import { Club } from "./clubs.model.js";
 import { Event } from "./events.model.js";
 import { Coordinator } from "./coordinators.model.js";
 import { EventCoordinator } from "./eventcoordinator.model.js";
-import { Subject } from "./subject.model.js";
-
+import { Subject } from "./subject.model.js"; // You already had this
 import {
   Menu,
   Hostel,
@@ -20,6 +19,8 @@ import Rides from "./ride.model.js";
 import RideParticipant from "./rideParticipant.model.js";
 import { Role, UserRole } from "./role.model.js";
 import { Message, Channel, ChannelMember } from "./chat.model.js";
+import UserSubject from "./user_subject.model.js";
+import AttendanceRecord from "./attendance_record.model.js";
 
 export const initializeAssociations = () => {
   // User - Roles associations (many-to-many)
@@ -40,8 +41,7 @@ export const initializeAssociations = () => {
     onDelete: "CASCADE",
     onUpdate: "CASCADE",
   });
-  BuyAndSell.belongsTo(User, { foreignKey: "userId", as: "users" });
-
+  BuyAndSell.belongsTo(User, { foreignKey: "userId", as: "users" }); // Note: 'users' might be confusing alias, maybe 'seller' or 'owner'?
 
   // Hostel - Menu associations
   Hostel.hasMany(Menu, { foreignKey: "hostel_id", onDelete: "CASCADE" });
@@ -63,17 +63,17 @@ export const initializeAssociations = () => {
   Hostel.hasMany(HostelNotification, { foreignKey: "hostel_id" });
   HostelNotification.belongsTo(Hostel, { foreignKey: "hostel_id" });
 
-  // Resources associations
-Branch.hasMany(Year, { foreignKey: "branch_id" });
-Year.belongsTo(Branch, { foreignKey: "branch_id" });
+  // Resources associations (Study Material)
+  Branch.hasMany(Year, { foreignKey: "branch_id" });
+  Year.belongsTo(Branch, { foreignKey: "branch_id" });
 
-Branch.hasMany(StudyMaterial, { foreignKey: "branch_id" });
-Year.hasMany(StudyMaterial, { foreignKey: "year_id" });
-Subject.hasMany(StudyMaterial, { foreignKey: "subject_id" });
+  Branch.hasMany(StudyMaterial, { foreignKey: "branch_id" });
+  Year.hasMany(StudyMaterial, { foreignKey: "year_id" });
+  Subject.hasMany(StudyMaterial, { foreignKey: "subject_id" }); // A Subject can be part of many StudyMaterials
 
-StudyMaterial.belongsTo(Branch, { foreignKey: "branch_id" });
-StudyMaterial.belongsTo(Year, { foreignKey: "year_id" });
-StudyMaterial.belongsTo(Subject, { foreignKey: "subject_id" });
+  StudyMaterial.belongsTo(Branch, { foreignKey: "branch_id" });
+  StudyMaterial.belongsTo(Year, { foreignKey: "year_id" });
+  StudyMaterial.belongsTo(Subject, { foreignKey: "subject_id" }); // A StudyMaterial belongs to one Subject
 
   // User - Rides associations
   User.hasMany(Rides, {
@@ -123,22 +123,73 @@ StudyMaterial.belongsTo(Subject, { foreignKey: "subject_id" });
     foreignKey: "createdBy",
     as: "createdChannels",
   });
+
+  // Clubs/Events/Coordinators associations
+  Club.hasMany(Event, { foreignKey: "club_id" });
+  Event.belongsTo(Club, { foreignKey: "club_id" });
+
+  Club.hasMany(Coordinator, { foreignKey: "club_id" });
+  Coordinator.belongsTo(Club, { foreignKey: "club_id" });
+
+  Event.belongsToMany(Coordinator, {
+    through: EventCoordinator,
+    foreignKey: "event_id",
+  });
+  Coordinator.belongsToMany(Event, {
+    through: EventCoordinator,
+    foreignKey: "coordinator_id",
+  });
+
+  // ================================================
+  // START: Attendance Tracker Associations
+  // ================================================
+
+  // --- User <-> Subject (Many-to-Many Enrollment) ---
+  User.belongsToMany(Subject, {
+    through: UserSubject,
+    foreignKey: "userId",
+    otherKey: "subjectId",
+    as: "enrolledSubjects", // User.getEnrolledSubjects()
+  });
+  Subject.belongsToMany(User, {
+    through: UserSubject,
+    foreignKey: "subjectId",
+    otherKey: "userId",
+    as: "enrolledUsers", // Subject.getEnrolledUsers()
+  });
+
+  // Optional: Direct associations with the join table
+  User.hasMany(UserSubject, { foreignKey: "userId", as: "enrollments" });
+  UserSubject.belongsTo(User, { foreignKey: "userId" });
+  Subject.hasMany(UserSubject, { foreignKey: "subjectId", as: "enrollments" });
+  UserSubject.belongsTo(Subject, { foreignKey: "subjectId" });
+
+  // --- User <-> AttendanceRecord (One-to-Many) ---
+  User.hasMany(AttendanceRecord, {
+    foreignKey: "userId",
+    as: "attendanceRecords", // User.getAttendanceRecords()
+    onDelete: "CASCADE",
+  });
+  AttendanceRecord.belongsTo(User, {
+    foreignKey: "userId",
+    as: "student", // AttendanceRecord.getStudent()
+  });
+
+  // --- Subject <-> AttendanceRecord (One-to-Many) ---
+  Subject.hasMany(AttendanceRecord, {
+    foreignKey: "subjectId",
+    as: "attendanceRecords", // Subject.getAttendanceRecords()
+    onDelete: "CASCADE",
+  });
+  AttendanceRecord.belongsTo(Subject, {
+    foreignKey: "subjectId",
+    as: "subject", // AttendanceRecord.getSubject()
+  });
+
+  // ================================================
+  // END: Attendance Tracker Associations
+  // ================================================
 };
-
-Club.hasMany(Event, { foreignKey: "club_id" });
-Event.belongsTo(Club, { foreignKey: "club_id" });
-
-Club.hasMany(Coordinator, { foreignKey: "club_id" });
-Coordinator.belongsTo(Club, { foreignKey: "club_id" });
-
-Event.belongsToMany(Coordinator, {
-  through: EventCoordinator,
-  foreignKey: "event_id",
-});
-Coordinator.belongsToMany(Event, {
-  through: EventCoordinator,
-  foreignKey: "coordinator_id",
-});
 
 export {
   User,
@@ -146,6 +197,7 @@ export {
   BuyAndSell,
   Subject,
   Rides,
+  RideParticipant,
   Role,
   UserRole,
   Message,
@@ -155,4 +207,14 @@ export {
   EventCoordinator,
   Club,
   Event,
+  Hostel, 
+  Menu,
+  Official,
+  Complaint,
+  HostelNotification,
+  Branch,
+  Year,
+  StudyMaterial,
+  UserSubject,
+  AttendanceRecord,
 };

@@ -1,5 +1,4 @@
 import { configureStore, combineReducers } from "@reduxjs/toolkit";
-// Import your slices here
 import ridesReducer from "./slices/ridesSlice";
 import authReducer from "./slices/authSlice";
 import profileReducer from "./slices/profileSlice";
@@ -11,8 +10,8 @@ import lostAndFoundReducer from "./slices/lostAndFoundSlice";
 import chatbotReducer from "./slices/chatbotSlice";
 import hostelReducer from "./slices/hostelSlice";
 import resourceReducer from "./slices/resourceSlice";
-
-// Newly added slices
+import attendanceReducer from "./slices/attendanceSlice"
+import enrollmentReducer from "./slices/enrollmentSlice"
 import clubReducer from "./slices/clubSlice";
 import eventReducer from "./slices/eventSlice";
 import coordinatorReducer from "./slices/coordinatorSlice";
@@ -30,10 +29,11 @@ const rootReducer = combineReducers({
   chatbot: chatbotReducer,
   hostel: hostelReducer,
   resource: resourceReducer,
-  // New reducers
   clubs: clubReducer,
   events: eventReducer,
   coordinators: coordinatorReducer,
+  enrollment:enrollmentReducer,
+  attendance:attendanceReducer,
 });
 
 const store = configureStore({
