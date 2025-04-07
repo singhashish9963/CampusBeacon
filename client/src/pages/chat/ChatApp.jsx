@@ -24,7 +24,6 @@ import {
   Hash,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import ChatBox from "../../components/Chat/ChatBox";
 
 /**
  * Returns a random avatar URL using robohash.org.
