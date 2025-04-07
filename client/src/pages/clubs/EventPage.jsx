@@ -7,7 +7,8 @@ import {
   useScroll,
   useTransform,
 } from "framer-motion";
-import { fetchEventById } from "../../slices/eventSlice"; // Assuming correct path
+import { fetchEventById } from "../../slices/eventSlice"; // Adjust path if needed
+import supabase from "../../config/chatConfig/supabaseClient"; // <--- IMPORT SUPABASE CLIENT
 import {
   FiCalendar,
   FiMapPin,
@@ -23,6 +24,7 @@ import {
   FiBookmark,
   FiMoreHorizontal,
   FiVideo,
+  FiMessageSquare, // Icon for chat toggle
 } from "react-icons/fi";
 import {
   FaInstagram,
@@ -34,15 +36,18 @@ import {
 } from "react-icons/fa";
 import toast from "react-hot-toast";
 
-// Lazy-loaded components
-const ImageGallery = React.lazy(() =>
-  import("../../components/Club/ImageGallery")
-); // Adjust path if needed
-const CoordinatorList = React.lazy(() =>
-  import("../../components/Club/CoordinatorList")
-); // Adjust path if needed
+// --- Lazy-loaded Components ---
+const ImageGallery = React.lazy(
+  () => import("../../components/Club/ImageGallery") // Adjust path if needed
+);
+const CoordinatorList = React.lazy(
+  () => import("../../components/Club/CoordinatorList") // Adjust path if needed
+);
+const LazyChatApp = React.lazy(
+  () => import("../chat/ChatApp") // <--- ADJUST THIS PATH TO YOUR ChatApp.js
+);
 
-// Helper function to determine social media icons
+// --- Helper Functions ---
 const getSocialDetails = (url) => {
   if (!url)
     return { Icon: FaGlobe, colorClass: "text-blue-400 hover:text-blue-300" };
@@ -68,7 +73,7 @@ const getSocialDetails = (url) => {
   return { Icon: FaGlobe, colorClass: "text-teal-400 hover:text-teal-300" };
 };
 
-// Loading Component
+// --- Loading / Fallback Components ---
 const LoadingState = () => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B1026] via-[#121638] to-[#1A1B35]">
     <motion.div
@@ -86,11 +91,26 @@ const LoadingState = () => (
   </div>
 );
 
-// VideoSlider Component
+const CoordinatorLoadingFallback = () => (
+  <div className="h-40 rounded-2xl bg-gray-800/50 animate-pulse flex items-center justify-center">
+    <FiLoader className="text-gray-500 text-3xl animate-spin" />
+    <span className="ml-3 text-gray-400">Loading Coordinators...</span>
+  </div>
+);
+
+const ChatLoadingFallback = () => (
+  <div className="flex items-center justify-center h-64 bg-gray-800/50 rounded-lg border border-indigo-500/20">
+    <FiLoader className="animate-spin text-cyan-300 mr-3" size={24} />
+    <span className="text-gray-400 font-medium">Loading Event Chat...</span>
+  </div>
+);
+
+// --- Video Slider Component ---
 const VideoSlider = ({ videos = [], className = "" }) => {
   const [current, setCurrent] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
 
+  // Ensure videos is an array and filter out empty/invalid entries
   const validVideos = (Array.isArray(videos) ? videos : [])
     .map((v) => (typeof v === "string" ? v.trim() : null))
     .filter(Boolean);
@@ -98,7 +118,7 @@ const VideoSlider = ({ videos = [], className = "" }) => {
   const videoCount = validVideos.length;
 
   if (videoCount === 0) {
-    return null;
+    return null; // Or optionally return a placeholder message
   }
 
   const nextSlide = () => setCurrent((prev) => (prev + 1) % videoCount);
@@ -129,27 +149,29 @@ const VideoSlider = ({ videos = [], className = "" }) => {
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
     >
-      <AnimatePresence initial={false} mode="wait">
+      <AnimatePresence initial={false} custom={current} mode="wait">
         <motion.div
           className="relative w-full aspect-video"
-          key={validVideos[current]}
+          key={current} // Use current index as key
+          custom={current > (current - 1 + videoCount) % videoCount ? 1 : -1} // Direction logic
+          variants={variants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={transitionConfig}
         >
-          <motion.video
+          <video
             src={validVideos[current]}
             controls
             className="w-full h-full object-cover"
-            variants={variants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            custom={(current + 1) % videoCount > current ? 1 : -1}
-            transition={transitionConfig}
             playsInline // Important for mobile playback
+            key={validVideos[current]} // Add key to video element too for reliable replace
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
         </motion.div>
       </AnimatePresence>
 
+      {/* Navigation Buttons */}
       {videoCount > 1 && (
         <>
           <motion.button
@@ -175,6 +197,7 @@ const VideoSlider = ({ videos = [], className = "" }) => {
         </>
       )}
 
+      {/* Dots Indicator */}
       {videoCount > 1 && (
         <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <div className="flex items-center gap-1.5">
@@ -197,41 +220,186 @@ const VideoSlider = ({ videos = [], className = "" }) => {
   );
 };
 
-// Main Event Page Component
+// --- Main Event Page Component ---
 const EventPage = () => {
-  const { id } = useParams();
+  const { id: eventIdParam } = useParams();
   const dispatch = useDispatch();
-  const { currentEvent, loading, error } = useSelector((state) => state.events);
-  // Ensure auth state is correctly structured in your Redux store
+  const {
+    currentEvent,
+    loading: eventLoading,
+    error: eventError,
+  } = useSelector((state) => state.events);
+  const { user: authUser } = useSelector((state) => state.auth);
   const isAdmin = useSelector(
-    (state) => state.auth?.user?.isAdmin || state.auth?.isAdmin || false
+    (state) => state.auth?.user?.roles?.includes("admin") || false
   );
+
+  // UI Interaction States
   const [isInterested, setIsInterested] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
+  const [showChat, setShowChat] = useState(false);
 
-  // Scroll animation
+  // ** OPTION 2 STATES **
+  const [eventChatIntegerId, setEventChatIntegerId] = useState(null); // State for the integer channel ID
+  const [chatIdLoading, setChatIdLoading] = useState(true); // Loading state for the chat channel ID
+  const [chatIdError, setChatIdError] = useState(null); // Error state for chat channel ID fetch/create
+
+  // Scroll animation hooks
   const { scrollYProgress } = useScroll();
   const headerOpacity = useTransform(scrollYProgress, [0, 0.15], [1, 0]);
   const blurIntensity = useTransform(scrollYProgress, [0, 0.15], [0, 8]);
   const yPos = useTransform(scrollYProgress, [0, 0.15], [0, -60]);
 
+  // Fetch event data
   useEffect(() => {
-    if (id) {
-      // Clear previous event data before fetching new one (optional but good practice)
-      // dispatch(clearCurrentEvent()); // Assuming you have such an action
-      dispatch(fetchEventById(id));
+    if (eventIdParam) {
+      dispatch(fetchEventById(eventIdParam));
+      // Reset chat state when event ID changes
+      setEventChatIntegerId(null);
+      setChatIdLoading(true);
+      setChatIdError(null);
+      setShowChat(false); // Optionally close chat on navigation
     }
-    window.scrollTo(0, 0); // Scroll to top on mount
-  }, [dispatch, id]);
+    window.scrollTo(0, 0);
+  }, [dispatch, eventIdParam]);
 
-  // Loading State
-  // Show loading if loading is true AND currentEvent is null or its id doesn't match
-  if (loading && (!currentEvent || currentEvent.id !== parseInt(id))) {
+  // ** OPTION 2 EFFECT: Get or Create Event Channel ID **
+  useEffect(() => {
+    // Run only if: event data is loaded, matches the param, user is logged in, and chat ID isn't loaded/errored yet.
+    if (
+      currentEvent &&
+      currentEvent.id === parseInt(eventIdParam) &&
+      authUser && // Only need chat ID if user is logged in
+      !eventChatIntegerId &&
+      chatIdLoading &&
+      !chatIdError
+    ) {
+      const eventId = currentEvent.id;
+      // Define a consistent name convention for the event channel
+      const potentialChannelName = `Event: ${currentEvent.name} (ID: ${eventId})`;
+
+      const getOrCreateEventChannel = async () => {
+        console.log(
+          `Attempting to find/create channel for event ID: ${eventId}`
+        );
+        try {
+          // 1. Try to find the channel by event_id
+          let { data: existingChannel, error: findError } = await supabase
+            .from("Channels")
+            .select("id")
+            .eq("event_id", eventId) // <-- Lookup by event_id
+            .maybeSingle(); // Still expect 0 or 1
+
+          if (findError) {
+            console.error("Error finding channel by event_id:", findError);
+            setChatIdError("Database error checking for chat channel.");
+            toast.error("Failed to initialize event chat.");
+            return;
+          }
+
+          if (existingChannel) {
+            // 2a. Channel found
+            console.log(
+              `Found existing channel ID by event_id: ${existingChannel.id}`
+            );
+            setEventChatIntegerId(existingChannel.id);
+          } else {
+            // 2b. Channel not found - create it
+            console.log(
+              "Channel not found by event_id, creating new channel..."
+            );
+            const potentialChannelName = `Event: ${currentEvent.name} (ID: ${eventId})`; // Still useful for display name
+            const { data: newChannel, error: createError } = await supabase
+              .from("Channels")
+              .insert({
+                name: potentialChannelName,
+                event_id: eventId, // <-- INSERT the event_id
+                // Add other fields as needed
+              })
+              .select("id")
+              .single();
+
+            if (createError) {
+              // Handle potential unique constraint violation if race condition occurs
+              if (createError.code === "23505") {
+                // Unique violation code
+                console.warn(
+                  "Race condition likely: Channel possibly created by another request. Re-querying..."
+                );
+                // Re-query immediately
+                let { data: raceChannel, error: raceError } = await supabase
+                  .from("Channels")
+                  .select("id")
+                  .eq("event_id", eventId)
+                  .single(); // Use single() now, it *must* exist
+
+                if (raceError) {
+                  console.error(
+                    "Error re-querying after race condition:",
+                    raceError
+                  );
+                  setChatIdError("Chat initialization conflict.");
+                  toast.error("Chat initialization conflict. Please reload.");
+                } else if (raceChannel) {
+                  setEventChatIntegerId(raceChannel.id);
+                  console.log(
+                    `Found channel ID after race condition: ${raceChannel.id}`
+                  );
+                }
+              } else {
+                console.error("Error creating channel:", createError);
+                setChatIdError("Failed to create chat channel for this event.");
+                toast.error("Could not create event chat.");
+              }
+            } else if (newChannel) {
+              console.log(
+                `Successfully created new channel ID: ${newChannel.id}`
+              );
+              setEventChatIntegerId(newChannel.id);
+            } else {
+              console.error("Channel creation did not return an ID.");
+              setChatIdError("Channel creation failed unexpectedly.");
+              toast.error("Chat initialization failed.");
+            }
+          }
+        } catch (err) {
+          console.error("Unexpected error in getOrCreateEventChannel:", err);
+          setChatIdError("An unexpected error occurred.");
+          toast.error("Chat initialization error.");
+        } finally {
+          setChatIdLoading(false);
+        }
+      };
+
+      getOrCreateEventChannel();
+    } else if (!authUser && chatIdLoading) {
+      // If user is not logged in, finish loading state for chat ID immediately
+      setChatIdLoading(false);
+    }
+    // Dependency array
+  }, [
+    currentEvent,
+    eventIdParam,
+    authUser,
+    eventChatIntegerId,
+    chatIdLoading,
+    chatIdError,
+  ]);
+
+  // --- Combined Loading State ---
+  // Show main loading screen if event data is loading
+  if (
+    eventLoading ||
+    !currentEvent ||
+    currentEvent.id !== parseInt(eventIdParam)
+  ) {
     return <LoadingState />;
   }
+  // Note: Chat ID loading is handled within the chat section button/display
 
-  // Error State
-  if (error) {
+  // --- Error States ---
+  if (eventError) {
+    // Display event loading error
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B1026] to-[#1A1B35] p-6">
         <motion.div
@@ -243,10 +411,9 @@ const EventPage = () => {
           <h2 className="text-2xl font-bold text-red-300 mb-3">
             Oops! Something Went Wrong
           </h2>
-          {/* Display the actual error message */}
           <p className="text-red-200/80 mb-6">
-            {typeof error === "string"
-              ? error
+            {typeof eventError === "string"
+              ? eventError
               : "Could not load event details."}
           </p>
           <div className="flex gap-4 justify-center">
@@ -254,7 +421,7 @@ const EventPage = () => {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
-                if (id) dispatch(fetchEventById(id));
+                if (eventIdParam) dispatch(fetchEventById(eventIdParam));
               }}
               className="px-6 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white rounded-lg font-semibold transition-colors shadow-lg focus:outline-none focus:ring-2 focus:ring-red-500/50"
             >
@@ -275,9 +442,11 @@ const EventPage = () => {
     );
   }
 
-  // Event Data Not Found State
-  // This condition checks if loading is finished AND currentEvent is still null or doesn't match
-  if (!loading && (!currentEvent || currentEvent.id !== parseInt(id))) {
+  // --- Event Data Not Found State --- (Should be covered by loading/error check above, but kept for safety)
+  if (
+    !eventLoading &&
+    (!currentEvent || currentEvent.id !== parseInt(eventIdParam))
+  ) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0B1026] to-[#1A1B35] p-6 text-center">
         <motion.div
@@ -290,8 +459,8 @@ const EventPage = () => {
             Event Not Found
           </h1>
           <p className="text-gray-300 mb-8">
-            We couldn't find the event you're looking for (ID: {id}). It might
-            have been removed or the link is invalid.
+            We couldn't find the event you're looking for (ID: {eventIdParam}).
+            It might have been removed or the link is invalid.
           </p>
           <Link to="/events">
             <motion.button
@@ -307,24 +476,23 @@ const EventPage = () => {
     );
   }
 
-  // Destructure event details (only if currentEvent is valid)
+  // --- Destructure Valid Event Data --- (Safe now)
   const {
+    id: eventId,
     name = "Event Name Not Available",
     description = "No description provided.",
-    date, // Keep the raw date string
+    date,
     location = "Location not specified",
     images = [],
     videos = [],
     social_media_links: socialLinks = [],
-    // Ensure the backend sends coordinators under the key 'Coordinators' (capital C)
-    // This matches the include alias Sequelize usually generates
-    coordinators = [],
-    club_id, // Assuming club_id is needed for admin links or context
-    Club: eventClub, // Assuming backend sends associated club data like this
-    category = "Event", // Default category
-  } = currentEvent || {}; // Add default empty object fallback
+    coordinators: coordinators = [], // Use Capital C if that's how Sequelize includes it
+    club_id,
+    Club: eventClub,
+    category = "Event",
+  } = currentEvent;
 
-  // Format Date and Time
+  // --- Format Date/Time ---
   let formattedDate = "Date not specified";
   let formattedTime = "Time not specified";
   if (date) {
@@ -341,15 +509,13 @@ const EventPage = () => {
           minute: "2-digit",
           hour12: true,
         });
-      } else {
-        console.warn("Invalid date format received:", date);
       }
     } catch (error) {
-      console.error("Error parsing or formatting date:", error);
+      console.error("Error parsing date:", error);
     }
   }
 
-  // Share Functionality
+  // --- Event Handlers ---
   const handleShare = async () => {
     const shareData = {
       title: name,
@@ -373,7 +539,6 @@ const EventPage = () => {
     }
   };
 
-  // Interest Toggle
   const handleInterestToggle = () => {
     setIsInterested(!isInterested);
     toast.success(
@@ -384,9 +549,9 @@ const EventPage = () => {
         style: { borderRadius: "10px", background: "#333", color: "#fff" },
       }
     );
+    // TODO: Add actual API call to backend to save interest status
   };
 
-  // Bookmark Toggle
   const handleBookmarkToggle = () => {
     setBookmarked(!bookmarked);
     toast.success(bookmarked ? "Removed from bookmarks" : "Event bookmarked!", {
@@ -394,23 +559,17 @@ const EventPage = () => {
       position: "bottom-center",
       style: { borderRadius: "10px", background: "#333", color: "#fff" },
     });
+    // TODO: Add actual API call to backend to save bookmark status
   };
 
-  // Format Description
+  // --- Derived Data ---
   const descriptionParagraphs = description
     ? description.split("\n").filter((p) => p.trim().length > 0)
     : [];
 
-  // --- Fallback Coordinator Loading Component ---
-  const CoordinatorLoadingFallback = () => (
-    <div className="h-40 rounded-2xl bg-gray-800/50 animate-pulse flex items-center justify-center">
-      <FiLoader className="text-gray-500 text-3xl animate-spin" />
-      <span className="ml-3 text-gray-400">Loading Coordinators...</span>
-    </div>
-  );
-
+  // --- Render JSX ---
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#080E20] via-[#14152E] to-[#070A17] text-white overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#080E20] via-[#14152E] to-[#070A17] text-white overflow-x-hidden">
       {/* --- Hero Section --- */}
       <div className="relative h-[60vh] md:h-[70vh] overflow-hidden">
         {/* Background Layers */}
@@ -420,9 +579,10 @@ const EventPage = () => {
           <div className="absolute inset-0 z-0">
             <div className="absolute inset-0 bg-gradient-to-t from-[#080E20] via-[#080e20cc] to-[#080e2066] z-10"></div>
             <img
-              src={images[0]}
-              alt={name}
+              src={images[0]} // Use first image as background
+              alt={`${name} background`}
               className="w-full h-full object-cover object-center opacity-50"
+              loading="lazy" // Add lazy loading
             />
           </div>
         )}
@@ -443,7 +603,7 @@ const EventPage = () => {
             transition={{ delay: 0.2 }}
             className="inline-block px-4 py-1.5 rounded-full bg-indigo-600/80 backdrop-blur-md text-white mb-6 shadow-lg"
           >
-            <span className="text-sm font-semibold tracking-wide">
+            <span className="text-sm font-semibold tracking-wide uppercase">
               {category}
             </span>
           </motion.div>
@@ -469,7 +629,7 @@ const EventPage = () => {
               whileHover={{ scale: 1.05 }}
               className="flex items-center gap-2 bg-black/20 backdrop-blur-md px-4 py-2 rounded-full"
             >
-              <FiCalendar className="text-cyan-300" />{" "}
+              <FiCalendar className="text-cyan-300" />
               <span>{formattedDate}</span>
             </motion.div>
             <motion.div
@@ -486,7 +646,7 @@ const EventPage = () => {
             </motion.div>
           </motion.div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons (Interest, Bookmark, Share) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -502,8 +662,10 @@ const EventPage = () => {
                   ? "bg-pink-600 hover:bg-pink-700"
                   : "bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-md"
               }`}
+              disabled={!authUser} // Disable if not logged in
+              title={!authUser ? "Log in to mark interest" : ""}
             >
-              <FiHeart className={isInterested ? "fill-white" : ""} />{" "}
+              <FiHeart className={isInterested ? "fill-white" : ""} />
               <span>{isInterested ? "Interested" : "I'm Interested"}</span>
             </motion.button>
             <motion.button
@@ -516,6 +678,8 @@ const EventPage = () => {
                   : "bg-gray-800/80 hover:bg-gray-700/80 backdrop-blur-md"
               }`}
               aria-label={bookmarked ? "Remove bookmark" : "Bookmark event"}
+              disabled={!authUser} // Disable if not logged in
+              title={!authUser ? "Log in to bookmark" : ""}
             >
               <FiBookmark className={bookmarked ? "fill-white" : ""} />
             </motion.button>
@@ -532,14 +696,13 @@ const EventPage = () => {
         </motion.div>
 
         {/* Decorative Circles */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-indigo-700/20 blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-1/3 right-1/3 w-48 h-48 rounded-full bg-cyan-700/20 blur-3xl animate-pulse-slow animation-delay-1000"></div>
+        <div className="absolute top-1/4 left-1/4 w-64 h-64 rounded-full bg-indigo-700/20 blur-3xl animate-pulse-slow -z-10"></div>
+        <div className="absolute bottom-1/3 right-1/3 w-48 h-48 rounded-full bg-cyan-700/20 blur-3xl animate-pulse-slow animation-delay-1000 -z-10"></div>
       </div>
-
-      {/* --- Main Content --- */}
+      {/* --- Main Content Area --- */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20 -mt-16 md:-mt-24 relative z-30">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* --- Main Column --- */}
+          {/* --- Left/Main Column --- */}
           <div className="lg:col-span-2 space-y-8">
             {/* Description Section */}
             <motion.section
@@ -553,65 +716,187 @@ const EventPage = () => {
                 About the Event
               </h2>
               {descriptionParagraphs.length > 0 ? (
-                <div className="text-gray-300 text-base md:text-lg leading-relaxed space-y-4">
+                <div className="text-gray-300 text-base md:text-lg leading-relaxed space-y-4 prose prose-invert max-w-none prose-p:my-3 prose-headings:text-indigo-300">
                   {descriptionParagraphs.map((paragraph, idx) => (
                     <p key={idx}>{paragraph}</p>
                   ))}
                 </div>
               ) : (
                 <p className="text-gray-400 italic">
-                  No description available for this event.
+                  {" "}
+                  No description available for this event.{" "}
                 </p>
               )}
             </motion.section>
 
-            {/* Media Galleries Section */}
-            {/* Wrap gallery sections in a Suspense for lazy loading */}
+            {/* Media Galleries Section (Images & Videos) */}
             <Suspense
               fallback={
                 <div className="h-64 rounded-2xl bg-gray-800/50 animate-pulse flex items-center justify-center">
                   <FiLoader className="text-gray-500 text-3xl animate-spin" />
+                  <span className="ml-3 text-gray-400">Loading Media...</span>
                 </div>
               }
             >
               {/* Image Gallery */}
-              {images && images.length > 0 && (
+              {Array.isArray(images) && images.filter(Boolean).length > 0 && (
                 <motion.section
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: 0.1 }}
-                  className="mt-8"
                 >
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-300 to-blue-400 inline-block mb-6">
                     Event Gallery
                   </h2>
-                  <ImageGallery images={images} />
+                  <ImageGallery images={images.filter(Boolean)} />
                 </motion.section>
               )}
 
               {/* Video Gallery */}
-              {videos && videos.length > 0 && (
-                <motion.section
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: 0.2 }}
-                  className="mt-8"
-                >
-                  <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-pink-400 inline-block mb-6">
-                    Featured Videos
-                  </h2>
-                  <VideoSlider videos={videos} />
-                </motion.section>
-              )}
+              {Array.isArray(videos) &&
+                videos.filter((v) => typeof v === "string" && v.trim()).length >
+                  0 && (
+                  <motion.section
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
+                    className="mt-8"
+                  >
+                    <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-pink-400 inline-block mb-6">
+                      Featured Videos
+                    </h2>
+                    <VideoSlider
+                      videos={videos.filter(
+                        (v) => typeof v === "string" && v.trim()
+                      )}
+                    />
+                  </motion.section>
+                )}
             </Suspense>
-          </div>
 
-          {/* --- Sidebar --- */}
-          <div className="space-y-8 lg:sticky lg:top-4 lg:self-start">
+            {/* ========== EVENT CHAT SECTION (Option 2 Implementation) ========== */}
+            <motion.section
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="bg-gradient-to-br from-gray-900/80 to-indigo-900/20 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-indigo-500/20 shadow-xl"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-teal-300 to-cyan-400 inline-block">
+                  Event Discussion
+                </h2>
+                {/* --- Chat Toggle Button Logic --- */}
+                {
+                  authUser ? (
+                    chatIdLoading ? (
+                      // Loading state
+                      <button
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-700/60 text-gray-400 text-sm font-medium cursor-wait"
+                        disabled
+                      >
+                        <FiLoader className="animate-spin" size={16} />
+                        Chat Loading...
+                      </button>
+                    ) : chatIdError ? (
+                      // Error state
+                      <div
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-900/50 text-red-300 text-sm font-medium"
+                        title={chatIdError}
+                      >
+                        <FiAlertCircle size={16} />
+                        Chat Unavailable
+                      </div>
+                    ) : eventChatIntegerId ? (
+                      // Success: Show toggle button
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => setShowChat(!showChat)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600/50 hover:bg-indigo-600/80 text-white text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
+                        aria-expanded={showChat}
+                        aria-controls="event-chat-container"
+                      >
+                        <FiMessageSquare size={16} />
+                        {showChat ? "Hide Chat" : "Show Chat"}
+                      </motion.button>
+                    ) : (
+                      // Fallback if ID somehow null after loading without error
+                      <div className="text-gray-500 text-sm italic">
+                        Chat Init Failed
+                      </div>
+                    )
+                  ) : null /* Don't show button if user not logged in */
+                }
+              </div>
+
+              {/* Prompt for non-logged-in users */}
+              {!authUser && (
+                <div className="text-center text-gray-400 italic py-6 border-t border-gray-700/50 mt-4">
+                  Please{" "}
+                  <Link
+                    to="/login"
+                    className="text-cyan-400 hover:underline font-medium"
+                  >
+                    {" "}
+                    log in{" "}
+                  </Link>{" "}
+                  or{" "}
+                  <Link
+                    to="/signup"
+                    className="text-cyan-400 hover:underline font-medium"
+                  >
+                    {" "}
+                    sign up{" "}
+                  </Link>{" "}
+                  to join the discussion!
+                </div>
+              )}
+
+              {/* Chat Component Area (Animated & Conditional) */}
+              <AnimatePresence>
+                {/* Render only if: user logged in, chat shown, AND integer ID is available and no error */}
+                {authUser && showChat && eventChatIntegerId && !chatIdError && (
+                  <motion.div
+                    id="event-chat-container"
+                    initial={{ height: 0, opacity: 0, marginTop: 0 }}
+                    animate={{
+                      height: "auto",
+                      opacity: 1,
+                      marginTop: "1.5rem",
+                    }}
+                    exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                    transition={{ duration: 0.4, ease: "easeInOut" }}
+                    className="overflow-hidden" // Crucial for height animation
+                  >
+                    <Suspense fallback={<ChatLoadingFallback />}>
+                      {/* Container with defined height for ChatApp */}
+                      <div style={{ height: "60vh", minHeight: "400px" }}>
+                        <LazyChatApp
+                          // Use the INTEGER ID as the key and channelId prop
+                          key={eventChatIntegerId}
+                          channelId={eventChatIntegerId}
+                          // Construct channel name for display in ChatApp header
+                          channelName={`Event: ${name}`} // Keep name descriptive
+                          darkMode={true} // Assuming dark theme
+                          isAdmin={isAdmin} // Pass admin status
+                          // authUser is obtained internally by ChatApp via Redux
+                        />
+                      </div>
+                    </Suspense>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.section>
+            {/* ========== END EVENT CHAT SECTION ========== */}
+          </div>{" "}
+          {/* End Left/Main Column */}
+          {/* --- Right/Sidebar Column --- */}
+          <div className="space-y-8 lg:sticky lg:top-24 lg:self-start">
             {" "}
-            {/* Make sidebar sticky */}
+            {/* Adjust top offset if needed */}
             {/* Event Info Card */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -620,65 +905,72 @@ const EventPage = () => {
               transition={{ duration: 0.6 }}
               className="bg-gradient-to-br from-gray-900/90 to-indigo-900/20 backdrop-blur-md rounded-2xl p-6 border border-indigo-500/20 shadow-xl"
             >
-              <h3 className="text-xl font-semibold text-white mb-4">
+              <h3 className="text-xl font-semibold text-white mb-5 border-b border-indigo-800/50 pb-3">
                 Event Details
               </h3>
               <div className="space-y-4">
                 {/* Date */}
                 <div className="flex items-start gap-3">
-                  <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0">
+                  <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0 mt-0.5">
                     <FiCalendar className="text-cyan-300 text-lg" />
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm">Date</p>
+                    <p className="text-gray-400 text-sm font-medium">Date</p>
                     <p className="text-white font-medium">{formattedDate}</p>
                   </div>
                 </div>
                 {/* Time */}
                 <div className="flex items-start gap-3">
-                  <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0">
+                  <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0 mt-0.5">
                     <FiClock className="text-cyan-300 text-lg" />
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm">Time</p>
+                    <p className="text-gray-400 text-sm font-medium">Time</p>
                     <p className="text-white font-medium">{formattedTime}</p>
                   </div>
                 </div>
                 {/* Location */}
                 <div className="flex items-start gap-3">
-                  <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0">
+                  <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0 mt-0.5">
                     <FiMapPin className="text-cyan-300 text-lg" />
                   </div>
                   <div>
-                    <p className="text-gray-400 text-sm">Location</p>
+                    <p className="text-gray-400 text-sm font-medium">
+                      Location
+                    </p>
                     <p className="text-white font-medium">{location}</p>
                   </div>
                 </div>
                 {/* Coordinators Count */}
-                {/* Check if Coordinators is an array before accessing length */}
                 {Array.isArray(coordinators) && coordinators.length > 0 && (
                   <div className="flex items-start gap-3">
-                    <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0">
+                    <div className="bg-indigo-600/30 p-2.5 rounded-lg shrink-0 mt-0.5">
                       <FiUser className="text-cyan-300 text-lg" />
                     </div>
                     <div>
-                      <p className="text-gray-400 text-sm">Coordinators</p>
+                      <p className="text-gray-400 text-sm font-medium">
+                        Coordinators
+                      </p>
                       <p className="text-white font-medium">
-                        {coordinators.length} Available
+                        {coordinators.length} Contact
+                        {coordinators.length > 1 ? "s" : ""} Available
                       </p>
                     </div>
                   </div>
                 )}
               </div>
-              {/* Action Buttons */}
-              <div className="mt-6 space-y-3">
+              {/* Action Buttons (Register/Share) */}
+              <div className="mt-6 pt-5 border-t border-indigo-800/50 space-y-3">
+                {/* Placeholder for Registration Button - Implement actual logic later */}
                 <motion.button
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-xl text-white font-medium shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500/50"
-                  // onClick={() => {/* Add Registration Logic */}}
+                  className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-xl text-white font-semibold tracking-wide shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-60 disabled:cursor-not-allowed"
+                  // onClick={() => {/* TODO: Add Registration Logic/Link */}}
+                  disabled // Remove or enable based on registration status/logic
+                  title="Registration details not available"
                 >
-                  Register Now {/* Placeholder */}
+                  Registration Info {/* Placeholder Text */}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -691,39 +983,40 @@ const EventPage = () => {
               </div>
             </motion.div>
             {/* Social Media Links */}
-            {socialLinks && socialLinks.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.1 }}
-                className="bg-gradient-to-br from-gray-900/90 to-indigo-900/20 backdrop-blur-md rounded-2xl p-6 border border-indigo-500/20 shadow-xl"
-              >
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  Connect With Us
-                </h3>
-                <div className="flex flex-wrap gap-3">
-                  {socialLinks.map((link, index) => {
-                    const { Icon, colorClass } = getSocialDetails(link);
-                    return (
-                      <motion.a
-                        key={index}
-                        href={link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        className={`p-3 bg-gray-800 rounded-lg ${colorClass} transition-all hover:shadow-lg`}
-                        aria-label={`Visit our social media profile`}
-                      >
-                        <Icon size={22} />
-                      </motion.a>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-            {/* --- Coordinators List Section --- */}
+            {Array.isArray(socialLinks) &&
+              socialLinks.filter(Boolean).length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: 0.1 }}
+                  className="bg-gradient-to-br from-gray-900/90 to-indigo-900/20 backdrop-blur-md rounded-2xl p-6 border border-indigo-500/20 shadow-xl"
+                >
+                  <h3 className="text-xl font-semibold text-white mb-4">
+                    Connect With Us
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {socialLinks.filter(Boolean).map((link, index) => {
+                      const { Icon, colorClass } = getSocialDetails(link);
+                      return (
+                        <motion.a
+                          key={index}
+                          href={link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          whileHover={{ y: -3, scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`p-3 bg-gray-800/70 hover:bg-gray-700/90 rounded-lg ${colorClass} transition-all duration-200 ease-in-out shadow-md hover:shadow-lg`}
+                          aria-label={`Visit social media page`}
+                        >
+                          <Icon size={22} />
+                        </motion.a>
+                      );
+                    })}
+                  </div>
+                </motion.div>
+              )}
+            {/* Coordinators List Section */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -735,83 +1028,49 @@ const EventPage = () => {
                 Event Coordinators
               </h3>
               <Suspense fallback={<CoordinatorLoadingFallback />}>
-                {/* Check if Coordinators is an array and has items */}
                 {Array.isArray(coordinators) && coordinators.length > 0 ? (
                   <CoordinatorList
-                    coordinators={coordinators} // Pass the fetched data
-                    isAdmin={isAdmin} // Pass admin status (controls edit/delete visibility if enabled in CoordinatorList)
-                    showTitleSection={false} // Don't show the "Meet the Team" title
-                    simpleCard={true} // Use the simpler card layout for sidebar
-                    gridClass="grid-cols-1 gap-4" // Single column layout for sidebar
-                    // openModal={/* Optional: Pass function if edit/delete needed directly here */}
+                    coordinators={coordinators}
+                    isAdmin={isAdmin} // Pass admin status if needed inside CoordinatorList
+                    showTitleSection={false} // Hide internal title
+                    simpleCard={true} // Use compact card style
+                    gridClass="grid-cols-1 gap-4" // Ensure single column layout
                   />
                 ) : (
-                  // Display message if no coordinators are assigned
-                  <p className="text-gray-400 text-sm italic">
-                    No coordinators assigned to this event.
+                  <p className="text-gray-400 text-sm italic py-4 text-center">
+                    Coordinator information not available.
                   </p>
                 )}
               </Suspense>
             </motion.div>
-            {/* --- End Coordinators List Section --- */}
-            {/* Admin Actions */}
-            {isAdmin && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="bg-gradient-to-br from-gray-900/90 to-red-900/20 backdrop-blur-md rounded-2xl p-6 border border-red-500/20 shadow-xl"
-              >
-                <h3 className="text-xl font-semibold text-white mb-4">
-                  Admin Actions
-                </h3>
-                <div className="space-y-3">
-                  {/* Ensure the edit link uses the correct event ID */}
-                  <Link to={`/admin/events/edit/${id}`}>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 rounded-xl text-white font-medium shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-                    >
-                      Edit Event
-                    </motion.button>
-                  </Link>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    // onClick={handleDelete} // TODO: Implement delete confirmation
-                    className="w-full py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 rounded-xl text-white font-medium shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-red-500/50"
-                  >
-                    Delete Event {/* TODO: Add confirmation */}
-                  </motion.button>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        </div>
-
+           
+            
+          </div>{" "}
+          {/* End Right/Sidebar Column */}
+        </div>{" "}
+        {/* End Grid */}
         {/* --- Back Button --- */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5 }}
-          className="mt-12 text-center"
+          className="mt-16 text-center"
         >
           <Link to="/events">
             {" "}
-            {/* Link back to the main events list */}
+            {/* Adjust link if your events list is elsewhere */}
             <motion.button
-              whileHover={{ scale: 1.05 }}
+              whileHover={{ scale: 1.05, x: -5 }}
               whileTap={{ scale: 0.95 }}
               className="px-6 py-3 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-700 hover:to-gray-800 rounded-xl text-white font-medium flex items-center justify-center gap-2 mx-auto shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-gray-500/50"
             >
-              <FiArrowLeft /> <span>Back to Events</span>
+              <FiArrowLeft /> <span>Back to All Events</span>
             </motion.button>
           </Link>
         </motion.div>
-      </div>
-    </div>
+      </div>{" "}
+      {/* End Main Content Area (-mt container) */}
+    </div> // End Root Div
   );
 };
 

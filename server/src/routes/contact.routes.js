@@ -17,6 +17,6 @@ router.post("/contacts", upload.single("image"), createContacts);
 router.put("/contacts/:id", upload.single("image"), editContact);
 router.delete("/contacts/:id", deleteContact);
 router.get("/contacts/:id", getContact);
-router.get("/contacts", authMiddleware, getAllContacts);
+router.get("/contacts", getAllContacts);
 
 export default router;
