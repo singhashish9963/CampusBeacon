@@ -2,7 +2,6 @@ import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import session from "express-session";
 import { createServer } from "http";
 import scheduleUnverifiedUserCleanup from "./src/utils/killUnverifiedUser.js";
 import { initializeAssociations } from "./src/models/association.js";
@@ -75,7 +74,7 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 
 import { connectDb } from "./src/db/db.js";
-import scheduleServerPing from "./src/utils/pingServer.js";
+
 
 const startServer = async () => {
   try {
