@@ -6,6 +6,7 @@ import {
   uploadImageToCloudinary,
   deleteImageFromCloudinary,
 } from "../utils/cloudinary.js";
+import { Coordinator } from "../models/coordinators.model.js";
 import ApiError from "../utils/apiError.js";
 
 export const createEvent = asyncHandler(async (req, res) => {
@@ -115,7 +116,24 @@ export const getEventById = asyncHandler(async (req, res) => {
     include: [
       {
         model: Club,
-        attributes: ["id", "name"],
+        attributes: ["id", "name"], // Keep this include
+      },
+      {
+        model: Coordinator, // <<< --- ADD THIS INCLUDE
+        // Specify which coordinator attributes you need on the frontend
+        attributes: [
+          "id",
+          "name",
+          "designation",
+          "images", // Assuming images is an array of URLs
+          "contact",
+          "social_media_links",
+        ],
+        through: {
+          // Important: Exclude attributes from the join table (EventCoordinator)
+          // unless you specifically need them (e.g., createdAt timestamp of the association)
+          attributes: [],
+        },
       },
     ],
   });
@@ -124,9 +142,13 @@ export const getEventById = asyncHandler(async (req, res) => {
     throw new ApiError(404, "Event not found");
   }
 
+  // Sequelize will return the associated coordinators in an array, likely named `Coordinators`
+  // (pluralized model name) within the event object.
+  // console.log(JSON.stringify(event, null, 2)); // Optional: Log to verify structure
+
   return res.status(200).json({
     success: true,
-    event,
+    event, // The event object now includes the Coordinators array
   });
 });
 

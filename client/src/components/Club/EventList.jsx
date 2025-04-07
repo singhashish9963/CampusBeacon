@@ -344,38 +344,36 @@ const EventList = ({ isAdmin, openModal, clubId, handleEventClick }) => {
                           onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteEvent(event.id);
-                          }}
-                          className="p-1.5 bg-red-600/90 hover:bg-red-500 rounded-full text-white text-xs transform hover:scale-110 transition-transform shadow-lg"
-                          aria-label="Delete Event"
-                        >
-                          <FiTrash2 size={14} />
-                        </button>
-                      </div>
-                    )}
+                            }}
+                            className="p-1.5 bg-red-600/90 hover:bg-red-500 rounded-full text-white text-xs transform hover:scale-110 transition-transform shadow-lg"
+                            aria-label="Delete Event"
+                          >
+                            <FiTrash2 size={14} />
+                          </button>
+                          </div>
+                        )}
 
-                    {/* Event Image with Gradient Overlay */}
-                    <div className="h-48 w-full bg-gray-900/50 overflow-hidden relative">
-                      <img
-                        src={
-                          Array.isArray(event.images) && event.images.length > 0
+                        {/* Event Image with Gradient Overlay */}
+                        <div className="h-48 w-full bg-gray-900/50 overflow-hidden relative">
+                          <img
+                          src={
+                            Array.isArray(event.images) && event.images.length > 0
                             ? event.images[0]
-                            : `https://via.placeholder.com/400x240/805AD5/FFFFFF?text=${encodeURIComponent(
-                                event.name
+                            : `https://source.unsplash.com/400x240/?event,${encodeURIComponent(
+                              event.name
                               )}`
-                        }
-                        alt={`Image for ${event.name}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = `https://via.placeholder.com/400x240/805AD5/FFFFFF?text=${encodeURIComponent(
-                            event.name
-                          )}`;
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
-                    </div>
+                          }
+                          alt={`Image for ${event.name}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = `https://picsum.photos/400/240?random=${event.id}`;
+                          }}
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent"></div>
+                        </div>
 
-                    {/* Event Info */}
+                        {/* Event Info */}
                     <div className="p-5 flex-grow flex flex-col justify-between">
                       <div>
                         <h3 className="text-lg font-semibold text-white mb-1.5 truncate group-hover:text-purple-300 transition-colors">
