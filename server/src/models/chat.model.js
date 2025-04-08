@@ -1,4 +1,4 @@
-import { DataTypes } from "sequelize";
+import { DataTypes, INET, INTEGER } from "sequelize";
 import sequelize from "../db/db.js";
 
 const Message = sequelize.define("Message", {
@@ -59,6 +59,16 @@ const Channel = sequelize.define("Channel", {
     type: DataTypes.INTEGER,
     allowNull: true,
   },
+  event_id: {
+  type: INTEGER,
+  unique: true,
+  references: {
+    model: 'events', 
+    key: 'id'
+  },
+  onUpdate: 'CASCADE',
+  onDelete: 'CASCADE'
+},
   createdAt: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
