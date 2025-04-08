@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Check, Trash, Clock } from "lucide-react";
+// Import an icon for attachments
+import { Check, Trash, Clock, Paperclip } from "lucide-react";
 import { useDispatch } from "react-redux";
 import {
   markNotificationAsRead,
@@ -23,6 +24,7 @@ const NotificationItem = ({ notification }) => {
   };
 
   const formatTime = (dateString) => {
+    // ... (keep your existing formatTime function)
     const date = new Date(dateString);
     const now = new Date();
     const diffMs = now - date;
@@ -43,13 +45,16 @@ const NotificationItem = ({ notification }) => {
       className={`p-4 hover:bg-gray-800/20 transition-colors cursor-pointer ${
         notification.is_read ? "opacity-70" : ""
       }`}
+      // Only trigger mark as read on click if it's unread
       onClick={!notification.is_read ? handleMarkAsRead : undefined}
     >
       <div className="flex items-start space-x-3 mb-2">
+        {/* Unread Indicator */}
         {!notification.is_read && (
           <div className="mt-1.5 h-2 w-2 rounded-full bg-amber-500 flex-shrink-0"></div>
         )}
         <div className={`flex-1 ${notification.is_read ? "pl-4" : ""}`}>
+          {/* Message */}
           <p
             className={`text-sm ${
               notification.is_read ? "text-gray-400" : "text-gray-200"
@@ -57,8 +62,24 @@ const NotificationItem = ({ notification }) => {
           >
             {notification.message}
           </p>
+          {/* Attachment Link - ADDED */}
+          {notification.file_url && (
+            <a
+              href={notification.file_url}
+              target="_blank" // Open in new tab
+              rel="noopener noreferrer" // Security best practice
+              onClick={(e) => e.stopPropagation()} // Prevent parent onClick
+              // Optional: Add download attribute to suggest downloading
+              // download
+              className="mt-2 inline-flex items-center text-xs text-blue-400 hover:text-blue-300 hover:underline"
+            >
+              <Paperclip className="w-3 h-3 mr-1" />
+              View Attachment
+            </a>
+          )}
         </div>
       </div>
+      {/* Footer: Timestamp and Actions */}
       <div className="flex items-center justify-between pl-4 mt-2">
         <div className="flex items-center text-amber-500/70 text-xs">
           <Clock className="w-3 h-3 mr-1" />
@@ -93,6 +114,7 @@ NotificationItem.propTypes = {
     message: PropTypes.string.isRequired,
     is_read: PropTypes.bool.isRequired,
     createdAt: PropTypes.string.isRequired,
+    file_url: PropTypes.string, // Add file_url as an optional string prop
   }).isRequired,
 };
 

@@ -493,3 +493,45 @@ const sendVerificationEmailToUser = async (user) => {
   console.log(`Verification email sent to ${user.email}`);
   return token;
 };
+
+
+/*
+==============================
+       Get All Users (Admin Only)
+==============================
+*/
+export const getAllUsers = asyncHandler(async (req, res, next) => {
+ 
+  try {
+    const users = await User.findAll({
+      attributes: { exclude: ["password"] }, 
+      include: {
+        model: Role,
+        attributes: ["role_name"],
+        through: { attributes: [] }, 
+      },
+      order: [["id", "ASC"]], 
+    });
+
+    
+    const formattedUsers = users.map((user) => {
+      const userJSON = user.toJSON(); 
+      userJSON.roles = userJSON.Roles.map((role) => role.role_name); // Create simple roles array
+      delete userJSON.Roles; 
+      return userJSON;
+    });
+
+  
+    res.status(200).json(
+      new ApiResponse(
+        200,
+        { users: formattedUsers },
+        "All users retrieved successfully"
+      )
+    );
+  } catch (error) {
+ 
+    console.error("Error fetching all users:", error);
+    return next(new ApiError("Failed to retrieve users", 500));
+  }
+});

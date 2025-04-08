@@ -22,12 +22,10 @@ import {
   HiClipboardList,
 } from "react-icons/hi";
 import { HiChatBubbleLeftRight, HiTruck } from "react-icons/hi2";
-import { X } from "lucide-react";
-import { Building } from "lucide-react";
+import { X, Building } from "lucide-react";
 import { handleLogout } from "../../../slices/authSlice";
 import { getAllHostels } from "../../../slices/hostelSlice";
 import "react-toastify/dist/ReactToastify.css";
-
 
 const DefaultMobileMenu = ({
   isAuthenticated,
@@ -53,6 +51,7 @@ const DefaultMobileMenu = ({
         <button
           onClick={onClose}
           className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white"
+          aria-label="Close menu"
         >
           <X className="w-6 h-6" />
         </button>
@@ -60,6 +59,7 @@ const DefaultMobileMenu = ({
         {isAuthenticated && (
           <Link
             to="/profile"
+            onClick={onClose}
             className="flex items-center space-x-4 px-4 py-4 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors mb-4"
           >
             <HiUser className="w-6 h-6" />
@@ -71,6 +71,7 @@ const DefaultMobileMenu = ({
           <Link
             key={link.name}
             to={link.path}
+            onClick={onClose}
             className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
           >
             <link.icon className="w-5 h-5" />
@@ -87,6 +88,7 @@ const DefaultMobileMenu = ({
               <Link
                 key={option.name}
                 to={option.path}
+                onClick={onClose}
                 className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
               >
                 <option.icon className="w-5 h-5" />
@@ -105,6 +107,7 @@ const DefaultMobileMenu = ({
               <Link
                 key={hostel.hostel_id}
                 to={`/hostels/${hostel.hostel_id}`}
+                onClick={onClose}
                 className="flex items-center space-x-4 px-4 py-3 text-gray-300 hover:text-white hover:bg-white/10 rounded-xl transition-colors"
               >
                 <HiOfficeBuilding className="w-5 h-5" />
@@ -117,7 +120,10 @@ const DefaultMobileMenu = ({
         <div className="mt-auto pt-6 border-t border-white/10">
           {isAuthenticated ? (
             <button
-              onClick={onLogout}
+              onClick={() => {
+                onLogout();
+                onClose();
+              }}
               className="flex items-center space-x-4 w-full px-4 py-3 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
             >
               <HiLogout className="w-5 h-5" />
@@ -126,6 +132,7 @@ const DefaultMobileMenu = ({
           ) : (
             <Link
               to="/login"
+              onClick={onClose}
               className="flex items-center space-x-4 w-full px-4 py-3 text-purple-400 hover:text-purple-300 hover:bg-purple-500/10 rounded-xl transition-colors"
             >
               <HiLogin className="w-5 h-5" />
@@ -143,7 +150,7 @@ function NavBar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Optimized selectors - only select what's needed
+  // Optimized selectors
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const loading = useSelector((state) => state.auth.loading);
   const hostels = useSelector((state) => state.hostel.hostels);
@@ -155,15 +162,14 @@ function NavBar() {
   const [isVisible, setIsVisible] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Refs for timeouts and tracking
+  // Refs for controlled animations and optimizations
   const showTimeoutRef = useRef(null);
   const menuTimeoutRef = useRef(null);
   const activeMenuRef = useRef(null);
   const hostelsLoadedRef = useRef(false);
+  const lastScrollY = useRef(0);
 
-  // --- Memoized Values ---
-
-  // Main links with useMemo to avoid recreating on every render
+  // --- Main navigation links
   const mainLinks = useMemo(
     () =>
       isAuthenticated
@@ -178,7 +184,7 @@ function NavBar() {
     [isAuthenticated]
   );
 
-  // Academics options with useMemo
+  // Academics menu options
   const academicsOptions = useMemo(
     () => [
       {
@@ -186,13 +192,12 @@ function NavBar() {
         path: "/attendance",
         icon: HiClipboardList,
       },
-      // Add more options here if needed
+      // Add more academic options as needed
     ],
     []
   );
 
-  // --- Handlers ---
-
+  // --- Event handlers
   const handleLogoutClick = async () => {
     try {
       await dispatch(handleLogout()).unwrap();
@@ -203,7 +208,7 @@ function NavBar() {
     }
   };
 
-  // Unified handler for menu hovers
+  // Unified dropdown menu handlers
   const handleMenuEnter = (menuType) => {
     if (menuTimeoutRef.current) clearTimeout(menuTimeoutRef.current);
     activeMenuRef.current = menuType;
@@ -222,9 +227,18 @@ function NavBar() {
     }, 150);
   };
 
-  // --- Effects ---
+  // Auto-hide navbar on scroll down
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+    if (currentScrollY > lastScrollY.current + 20) {
+      setIsVisible(false);
+    } else if (currentScrollY < lastScrollY.current - 5) {
+      setIsVisible(true);
+    }
+    lastScrollY.current = currentScrollY;
+  };
 
-  // Mark initial render as complete
+  // --- Effects
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialRender(false);
@@ -233,16 +247,15 @@ function NavBar() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Load hostels with deferred timing
+  // Load hostels data
   useEffect(() => {
     let hostelTimer;
 
     if (isAuthenticated && !loading && !hostelsLoadedRef.current) {
-      // Defer loading of hostels to not block initial render
       hostelTimer = setTimeout(() => {
         dispatch(getAllHostels());
         hostelsLoadedRef.current = true;
-      }, 100); // Small delay to prioritize UI rendering
+      }, 100);
     }
 
     return () => {
@@ -257,9 +270,13 @@ function NavBar() {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // --- Optimized Render ---
+  // Add scroll listener
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
-  // Show minimal UI during initial load/auth check
+  // Initial loading state
   if (isInitialRender && loading) {
     return (
       <div className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl mx-auto z-50">
@@ -287,18 +304,28 @@ function NavBar() {
           whileTap={{ scale: 0.95 }}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           className="p-2 rounded-full bg-purple-500/20 backdrop-blur-sm border border-purple-500/30 shadow-lg"
+          aria-label="Menu"
         >
           <HiMenu className="w-6 h-6 text-white" />
         </motion.button>
       </div>
 
-      {/* Mobile Navigation - Lazy Loaded */}
+      {/* Mobile Logo */}
+      <div className="fixed top-4 left-4 z-[60] sm:hidden">
+        <Link
+          to="/"
+          className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
+        >
+          CampusBeacon
+        </Link>
+      </div>
+
+      {/* Mobile Navigation */}
       <AnimatePresence>
         {isMobileMenuOpen && (
           <Suspense
             fallback={<div className="fixed inset-0 z-40 bg-black/50" />}
           >
-            {/* Or use the inline version */}
             <DefaultMobileMenu
               isAuthenticated={isAuthenticated}
               mainLinks={mainLinks}
@@ -358,7 +385,7 @@ function NavBar() {
                       </Link>
                     ))}
 
-                    {/* Academics Dropdown - Optimized */}
+                    {/* Academics Dropdown */}
                     {isAuthenticated && (
                       <div
                         className="relative"
@@ -382,6 +409,7 @@ function NavBar() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 10 }}
+                              transition={{ duration: 0.2 }}
                               className="absolute left-0 top-full mt-2 w-60 bg-black/70 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 shadow-lg z-10"
                             >
                               {academicsOptions.map((option) => (
@@ -402,7 +430,7 @@ function NavBar() {
                       </div>
                     )}
 
-                    {/* Hostels Dropdown - Optimized */}
+                    {/* Hostels Dropdown */}
                     {isAuthenticated && hostels.length > 0 && (
                       <div
                         className="relative"
@@ -426,7 +454,8 @@ function NavBar() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: 10 }}
-                              className="absolute left-0 top-full mt-2 w-56 bg-black/70 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 shadow-lg z-10"
+                              transition={{ duration: 0.2 }}
+                              className="absolute left-0 top-full mt-2 w-56 bg-black/70 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 shadow-lg z-10 max-h-80 overflow-y-auto"
                             >
                               {hostels.map((hostel) => (
                                 <Link

@@ -8,9 +8,6 @@ import {
   extractCloudinaryPublicId,
 } from "../utils/cloudinary.js";
 
-/**
- * Retrieve all notifications for the authenticated user with pagination.
- */
 export const getUserNotifications = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { page = 1, limit = 20 } = req.query;
@@ -38,9 +35,6 @@ export const getUserNotifications = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * Retrieve a single notification by ID.
- */
 export const getNotification = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -60,10 +54,6 @@ export const getNotification = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Create a new notification.
- * If a file is provided via req.file, it will be uploaded to Cloudinary.
- */
 export const createNotification = asyncHandler(async (req, res) => {
   const { userId, message, type, entityType, entityId, actionUrl, metadata } =
     req.body;
@@ -102,9 +92,6 @@ export const createNotification = asyncHandler(async (req, res) => {
   });
 });
 
-/**
- * Update an existing notification.
- */
 export const updateNotification = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -148,9 +135,6 @@ export const updateNotification = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * Delete a notification.
- */
 export const deleteNotification = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -179,9 +163,6 @@ export const deleteNotification = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * Mark a single notification as read.
- */
 export const markNotificationAsRead = asyncHandler(async (req, res) => {
   const userId = req.user.id;
   const { id } = req.params;
@@ -213,41 +194,48 @@ export const markNotificationAsRead = asyncHandler(async (req, res) => {
   }
 });
 
-/**
- * Mark all notifications as read for the authenticated user.
- */
 export const markAllNotificationsAsRead = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+      console.error("[Backend MarkAll Error] User not authenticated for markAllNotificationsAsRead");
+      throw new ApiError("User not authenticated", 401);
+  }
   const userId = req.user.id;
+  console.log(`[Backend MarkAll] Attempting for userId: ${userId}`);
 
   try {
-    await Notification.update(
+    const [affectedCount] = await Notification.update(
       { is_read: true, read_at: new Date() },
-      { where: { userId, is_read: false } }
+      {
+        where: { userId, is_read: false },
+      }
     );
+
+    console.log(`[Backend MarkAll] Success for userId: ${userId}. Affected rows: ${affectedCount}`);
 
     res.status(200).json({
       success: true,
       message: "All notifications marked as read",
     });
+
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to mark all notifications as read",
-      error: error.message,
-    });
+    console.error(`[Backend MarkAll Error] Failed for userId: ${userId}`, error);
+    throw new ApiError(`Failed to mark all notifications as read: ${error.message}`, 500);
   }
 });
 
-/**
- * Retrieve the count of unread notifications for the authenticated user.
- */
 export const getUnreadNotificationCount = asyncHandler(async (req, res) => {
+  if (!req.user || !req.user.id) {
+    console.error("[Backend Error] User not found on request in getUnreadNotificationCount");
+    throw new ApiError("User not authenticated", 401);
+  }
   const userId = req.user.id;
+  console.log(`[Backend] Attempting getUnreadNotificationCount for userId: ${userId}`);
 
   try {
     const unreadCount = await Notification.count({
       where: { userId, is_read: false },
     });
+    console.log(`[Backend] Found unread count: ${unreadCount} for userId: ${userId}`);
 
     res.status(200).json({
       success: true,
@@ -255,24 +243,12 @@ export const getUnreadNotificationCount = asyncHandler(async (req, res) => {
       message: "Unread notifications count retrieved successfully",
     });
   } catch (error) {
-    return res.status(500).json({
-      success: false,
-      message: "Failed to get unread notifications count",
-      error: error.message,
-    });
+    console.error(`[Backend Error] Failed getUnreadNotificationCount for userId: ${userId}`, error);
+    throw new ApiError("Failed to get unread notifications count", 500);
   }
 });
 
-/**
- * Broadcast a notification to all users.
- * This endpoint should only be accessible to admins.
- * Supports file uploads.
- */
 export const broadcastNotification = asyncHandler(async (req, res) => {
-  // Ensure only admins can broadcast
-
-
-  // In this example, because we are using multer, text fields are available in req.body.
   console.log("Broadcast Notification - req.body:", req.body);
 
   const { message, type, entityType, entityId, actionUrl, metadata } = req.body;
@@ -281,7 +257,6 @@ export const broadcastNotification = asyncHandler(async (req, res) => {
   }
 
   let file_url = null;
-  // If a file was uploaded, req.file is populated.
   if (req.file) {
     try {
       const uploadedUrl = await uploadImageToCloudinary(req.file.path);
@@ -294,11 +269,9 @@ export const broadcastNotification = asyncHandler(async (req, res) => {
     }
   }
 
-  // Fetch all user IDs.
   const users = await User.findAll({ attributes: ["id"] });
   const userIds = users.map((user) => user.id);
 
-  // Create notifications for each user.
   const notifications = await Promise.all(
     userIds.map((userId) =>
       Notification.create({
@@ -320,4 +293,3 @@ export const broadcastNotification = asyncHandler(async (req, res) => {
     message: "Broadcast notification sent successfully to all users",
   });
 });
-

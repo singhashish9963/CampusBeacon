@@ -1,4 +1,10 @@
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -8,6 +14,8 @@ import {
   ArrowRight,
   Loader2,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
   Atom,
   Palette,
   Mic,
@@ -34,7 +42,8 @@ import {
 import { fetchClubs } from "../../slices/clubSlice";
 import { fetchEvents } from "../../slices/eventSlice";
 
-// --- Format date and time ---
+const SCROLL_AMOUNT = 300;
+
 const formatEventDateTime = (isoDate) => {
   if (!isoDate) return { date: "Date TBD", time: "Time TBD" };
   try {
@@ -58,7 +67,6 @@ const formatEventDateTime = (isoDate) => {
   }
 };
 
-// --- Collection of icons for random assignment ---
 const ICONS = [
   Atom,
   Palette,
@@ -84,7 +92,6 @@ const ICONS = [
   Layers,
 ];
 
-// --- Collection of gradients for random assignment ---
 const GRADIENTS = [
   "from-purple-500 via-pink-500 to-red-500",
   "from-blue-500 via-cyan-500 to-teal-500",
@@ -99,18 +106,12 @@ const GRADIENTS = [
   "from-red-500 via-rose-500 to-pink-500",
 ];
 
-// --- Get deterministic style based on event ID ---
-// Memoize styles using a cache to prevent recalculations
 const styleCache = new Map();
-
 const getEventStyle = (eventId, clubName = "", category = "") => {
   const cacheKey = `${eventId}-${clubName}-${category}`;
-
   if (styleCache.has(cacheKey)) {
     return styleCache.get(cacheKey);
   }
-
-  // Create a hash from the event ID string
   const hashCode = (str) => {
     let hash = 0;
     for (let i = 0; i < str?.length || 0; i++) {
@@ -120,18 +121,12 @@ const getEventStyle = (eventId, clubName = "", category = "") => {
     }
     return Math.abs(hash);
   };
-
   const idHash = hashCode(eventId?.toString() || Math.random().toString());
   const clubHash = hashCode(clubName || category || Math.random().toString());
-
-  // Select based on hashes
   const iconIndex = idHash % ICONS.length;
   const gradientIndex = clubHash % GRADIENTS.length;
-
-  // Handle special cases
   const lowerClubName = clubName?.toLowerCase() || "";
   const lowerCategory = category?.toLowerCase() || "";
-
   let result;
   if (lowerClubName.includes("coding") || lowerCategory === "tech") {
     result = { Icon: Laptop, gradient: GRADIENTS[2] };
@@ -140,14 +135,11 @@ const getEventStyle = (eventId, clubName = "", category = "") => {
   } else if (lowerClubName.includes("sports")) {
     result = { Icon: Dumbbell, gradient: GRADIENTS[3] };
   } else {
-    // Default to the deterministic selection
     result = {
       Icon: ICONS[iconIndex],
       gradient: GRADIENTS[gradientIndex],
     };
   }
-
-  // Cache the result
   styleCache.set(cacheKey, result);
   return result;
 };
@@ -156,8 +148,8 @@ const EventsSection = () => {
   const [activeClub, setActiveClub] = useState("ALL");
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const scrollContainerRef = useRef(null);
 
-  // --- Redux selectors ---
   const {
     clubs: fetchedClubData,
     loading: clubsLoading,
@@ -170,7 +162,6 @@ const EventsSection = () => {
     error: eventsError,
   } = useSelector((state) => state.events);
 
-  // --- Memoized club filter list ---
   const clubNamesForFilter = useMemo(() => {
     if (!fetchedClubData?.length) return ["ALL"];
     const names = fetchedClubData.map((club) => club.name) || [];
@@ -178,8 +169,7 @@ const EventsSection = () => {
     return ["ALL", ...uniqueNames.sort()];
   }, [fetchedClubData]);
 
-  // --- Memoized filtered events ---
-  const filteredEvents = useMemo(() => {
+  const filteredEventsByClub = useMemo(() => {
     if (!fetchedEventsData) return [];
     if (activeClub === "ALL") return fetchedEventsData;
 
@@ -189,19 +179,12 @@ const EventsSection = () => {
     });
   }, [fetchedEventsData, activeClub, fetchedClubData]);
 
-  // --- Fetch clubs data ---
   useEffect(() => {
     if (!fetchedClubData || fetchedClubData.length === 0) {
       dispatch(fetchClubs());
     }
   }, [dispatch, fetchedClubData]);
 
-  // --- Debounce club filter changes ---
-  const debouncedSetActiveClub = useCallback((clubName) => {
-    setActiveClub(clubName);
-  }, []);
-
-  // --- Fetch events data based on filter ---
   useEffect(() => {
     let clubIdToFetch = null;
     if (activeClub !== "ALL" && fetchedClubData?.length > 0) {
@@ -209,25 +192,29 @@ const EventsSection = () => {
         (club) => club.name === activeClub
       );
       clubIdToFetch = selectedClub?.id;
+      if (clubIdToFetch) {
+        dispatch(fetchEvents(clubIdToFetch));
+      } else if (!fetchedEventsData || fetchedEventsData.length === 0) {
+        dispatch(fetchEvents());
+      }
+    } else if (
+      !fetchedEventsData ||
+      fetchedEventsData.length === 0 ||
+      activeClub === "ALL"
+    ) {
+      dispatch(fetchEvents());
     }
-    dispatch(fetchEvents(clubIdToFetch));
   }, [dispatch, activeClub, fetchedClubData]);
 
-  // --- Efficient event card renderer ---
   const renderEventCard = useCallback(
     (event) => {
-      // Find the club name using club_id
       const club = fetchedClubData?.find((c) => c.id === event.club_id);
       const clubName = club?.name;
-
-      // Get dynamic styles
       const { Icon, gradient } = getEventStyle(
         event.id,
         clubName,
         event.category
       );
-
-      // Format date/time
       const { date: eventDate, time: eventTime } = formatEventDateTime(
         event.date
       );
@@ -235,21 +222,15 @@ const EventsSection = () => {
       return (
         <div
           key={event.id}
-          className="relative overflow-hidden rounded-2xl min-h-[400px] flex flex-col transition-all duration-300 ease-in-out group"
+          className="relative overflow-hidden rounded-2xl min-h-[400px] flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out group w-full sm:w-80 md:w-96"
         >
-          {/* Card Background */}
           <div className="absolute inset-0 bg-gradient-to-b from-gray-900/90 to-black/90 backdrop-blur-lg border border-white/10 group-hover:border-white/20 transition-all duration-300 rounded-2xl" />
-
-          {/* Gradient Accent - reduced opacity and simplified animation */}
           <div
             className={`absolute inset-0 opacity-0 group-hover:opacity-10 bg-gradient-to-br ${gradient} transition-opacity duration-300 rounded-2xl`}
           />
-
-          {/* Reduced size of decorative accent */}
           <div
             className={`absolute -right-16 -top-16 w-32 h-32 rounded-full bg-gradient-to-br ${gradient} opacity-5 blur-xl group-hover:opacity-10 transition-opacity duration-300`}
           />
-
           <div className="p-6 relative z-10 flex flex-col flex-grow h-full">
             <div className="flex justify-between items-start mb-4">
               <div
@@ -263,11 +244,9 @@ const EventsSection = () => {
                 {clubName || "General"}
               </span>
             </div>
-
-            <h3 className="text-xl font-semibold text-white mb-3">
+            <h3 className="text-xl font-semibold text-white mb-3 line-clamp-2">
               {event.name || "Untitled Event"}
             </h3>
-
             <div className="space-y-2 mb-4 text-sm">
               <div className="flex items-center text-gray-400">
                 <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -279,21 +258,21 @@ const EventsSection = () => {
               </div>
               <div className="flex items-center text-gray-400">
                 <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span>{event.location || "Location TBD"}</span>
+                <span className="line-clamp-1">
+                  {event.location || "Location TBD"}
+                </span>
               </div>
             </div>
-
-            <div className="relative">
-              <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow">
+            <div className="relative flex-grow">
+              <p className="text-gray-400 text-sm mb-4 line-clamp-3">
                 {event.description || "No description available."}
               </p>
-              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black/90 to-transparent pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-black/90 via-black/90 to-transparent pointer-events-none" />
             </div>
-
             <div className="mt-auto pt-4">
               <button
                 onClick={() => navigate(`/events/${event.id}`)}
-                className={`flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-gradient-to-r ${gradient} text-white text-sm font-medium transition-all duration-300 shadow-md shadow-black/20`}
+                className={`flex items-center justify-center w-full px-4 py-2.5 rounded-lg bg-gradient-to-r ${gradient} text-white text-sm font-medium transition-all duration-300 shadow-md shadow-black/20 hover:brightness-110`}
               >
                 View Details
                 <ArrowRight className="w-4 h-4 ml-1.5" />
@@ -306,16 +285,27 @@ const EventsSection = () => {
     [fetchedClubData, navigate]
   );
 
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: -SCROLL_AMOUNT,
+        behavior: "smooth",
+      });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: SCROLL_AMOUNT,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
     <section className="py-20 relative overflow-hidden text-white">
-      {/* Simplified background elements */}
-      <div className="absolute inset-0 overflow-hidden -z-10">
-        <div className="absolute -left-20 top-20 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute right-0 bottom-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-6 relative inline-block">
             <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-pink-300 bg-clip-text text-transparent">
@@ -324,14 +314,12 @@ const EventsSection = () => {
             <span className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-violet-500 to-pink-500 rounded-full" />
           </h2>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto py-2">
-            Explore exciting events organized by various clubs across the
-            campus.
+            Explore exciting events organized by various clubs across the campus.
           </p>
         </div>
 
-        {/* Club Filter Buttons */}
-        <div className="mb-12 sticky top-0 z-20 py-3 backdrop-blur-md bg-black/30">
-          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 min-h-[44px] items-center">
+        <div className="mb-12 sticky top-0 z-20 py-3 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 backdrop-blur-md bg-black/60">
+          <div className="flex flex-wrap justify-center gap-3 sm:gap-4 min-h-[44px] items-center max-w-7xl mx-auto">
             {clubsLoading && (
               <div className="flex items-center justify-center text-gray-500">
                 <Loader2 className="w-5 h-5 mr-2 animate-spin" />
@@ -350,14 +338,14 @@ const EventsSection = () => {
               clubNamesForFilter.map((clubName) => (
                 <button
                   key={clubName}
-                  onClick={() => debouncedSetActiveClub(clubName)}
-                  className={`px-5 py-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ease-in-out
-                  ${
-                    activeClub === clubName
-                      ? "bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30"
-                      : "bg-gray-800/60 backdrop-blur-sm text-purple-300 hover:bg-gray-700/80 border border-white/10 hover:border-white/20"
-                  }
-                `}
+                  onClick={() => setActiveClub(clubName)}
+                  className={`px-5 py-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ease-in-out whitespace-nowrap
+                    ${
+                      activeClub === clubName
+                        ? "bg-gradient-to-r from-violet-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30"
+                        : "bg-gray-800/60 backdrop-blur-sm text-purple-300 hover:bg-gray-700/80 border border-white/10 hover:border-white/20"
+                    }
+                  `}
                 >
                   {clubName}
                 </button>
@@ -365,49 +353,87 @@ const EventsSection = () => {
           </div>
         </div>
 
-        {/* Event Cards Grid with simple transition */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 min-h-[300px]">
-          {/* Loading State */}
+        <div className="relative">
           {eventsLoading && (
-            <div className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center text-gray-500 py-20 space-y-3">
-              <div className="relative">
-                <Loader2 className="w-10 h-10 animate-spin text-purple-400" />
-              </div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 py-20 space-y-3 bg-black/30 backdrop-blur-sm z-10 rounded-2xl">
+              <Loader2 className="w-10 h-10 animate-spin text-purple-400" />
               <span>Loading Events...</span>
             </div>
           )}
 
-          {/* Error State */}
           {eventsError && !eventsLoading && (
-            <div className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center text-red-500 py-20 space-y-3">
+            <div className="flex flex-col items-center justify-center text-red-500 py-20 space-y-3 text-center">
               <AlertTriangle className="w-10 h-10" />
               <span>Failed to load events. Please try again later.</span>
-              <span className="text-xs text-red-400/70">
-                (
+              <span className="text-xs text-red-400/70 max-w-md">
+                (Error:{" "}
                 {typeof eventsError === "string" ? eventsError : "Server Error"}
                 )
               </span>
             </div>
           )}
 
-          {/* Display Events with smooth transitions */}
           {!eventsLoading &&
             !eventsError &&
-            filteredEvents.map(renderEventCard)}
+            filteredEventsByClub.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-20 text-gray-500 text-center">
+                <Calendar className="w-16 h-16 mb-4 text-gray-600/50" />
+                <p className="text-xl font-medium mb-2">No events found</p>
+                <p className="text-gray-500 max-w-md">
+                  {activeClub === "ALL"
+                    ? "There are no upcoming events scheduled at this time."
+                    : `No events currently scheduled for the "${activeClub}" club.`}
+                </p>
+              </div>
+            )}
 
-          {/* Empty State */}
-          {!eventsLoading && !eventsError && filteredEvents.length === 0 && (
-            <div className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center py-20 text-gray-500">
-              <Calendar className="w-16 h-16 mb-4 text-gray-600/50" />
-              <p className="text-xl font-medium mb-2">No events found</p>
-              <p className="text-gray-500 text-center max-w-md">
-                {activeClub === "ALL"
-                  ? "There are no upcoming events scheduled at this time."
-                  : `No events found for "${activeClub}" club.`}
-              </p>
-            </div>
-          )}
+          {!eventsLoading &&
+            !eventsError &&
+            filteredEventsByClub.length > 0 && (
+              <div className="relative">
+                <button
+                  onClick={scrollLeft}
+                  className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 hover:bg-black/70 backdrop-blur-sm p-2 rounded-full text-white transition-all duration-300 shadow-lg shadow-black/20 -ml-4 sm:-ml-2 lg:ml-0"
+                  aria-label="Scroll left"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+
+                <div
+                  ref={scrollContainerRef}
+                  className="flex overflow-x-auto gap-6 pb-6 pt-2 snap-x snap-mandatory hide-scrollbar"
+                  style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                >
+                  {filteredEventsByClub.map((event) => (
+                    <div key={event.id} className="snap-start">
+                      {renderEventCard(event)}
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={scrollRight}
+                  className="absolute right-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 hover:bg-black/70 backdrop-blur-sm p-2 rounded-full text-white transition-all duration-300 shadow-lg shadow-black/20 -mr-4 sm:-mr-2 lg:mr-0"
+                  aria-label="Scroll right"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-black/20 to-transparent pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-black/20 to-transparent pointer-events-none"></div>
+              </div>
+            )}
         </div>
+
+        <style jsx>{`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       </div>
     </section>
   );

@@ -146,6 +146,36 @@ export const handleLogout = createAsyncThunk(
     }
   }
 );
+export const fetchAllUsers = createAsyncThunk(
+  "auth/fetchAllUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      // Assuming your backend route is '/api/users/admin/all'
+      // Adjust the URL if it's different (e.g., '/api/users/list')
+      const response = await api.get("/users/admin/all");
+      if (response.data.success) {
+        // Extract the users array from the response structure
+        return response.data.data.users;
+      } else {
+        return rejectWithValue(
+          response.data.message || "Failed to fetch users"
+        );
+      }
+    } catch (error) {
+      // Handle specific errors like 403 Forbidden separately if needed
+      if (error.response?.status === 403) {
+        toast.error("Permission denied: Cannot fetch user list.");
+        return rejectWithValue("Admin access required to fetch users.");
+      }
+      toast.error("Failed to fetch user list.");
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to fetch users"
+      );
+    }
+  }
+);
 
 const authSlice = createSlice({
   name: "auth",
@@ -156,6 +186,9 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     lastChecked: null,
+    allUsers: [], // To store the list fetched by fetchAllUsers
+    loadingUsers: false, // Separate loading state for fetching all users
+    usersError: null,
   },
   reducers: {
     logout: (state) => {
@@ -223,7 +256,7 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(handleSignUp.fulfilled, (state, action) => {
+      .addCase(handleSignUp.fulfilled, (state, _action) => {
         state.loading = false;
         state.user = null;
         state.roles = [];
@@ -299,6 +332,20 @@ const authSlice = createSlice({
       .addCase(handleLogout.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchAllUsers.pending, (state) => {
+        state.loadingUsers = true; // Set specific loading state
+        state.usersError = null; // Clear specific error state
+      })
+      .addCase(fetchAllUsers.fulfilled, (state, action) => {
+        state.loadingUsers = false;
+        state.allUsers = action.payload; // Update the users list
+        state.usersError = null;
+      })
+      .addCase(fetchAllUsers.rejected, (state, action) => {
+        state.loadingUsers = false;
+        state.usersError = action.payload; // Set the specific error
+        state.allUsers = []; // Clear list on error? Optional.
       });
   },
 });

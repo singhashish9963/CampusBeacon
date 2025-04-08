@@ -12,8 +12,8 @@ import {
   loginUser,
   googleAuth,
   verifyEmail,
-  sendVerificationEmail,
   getUserById,
+  getAllUsers
 } from "../controllers/user.controller.js";
 
 const router = express.Router();
@@ -64,6 +64,8 @@ router.get("/current", authMiddleware, getCurrentUser);
 router.put("/update", authMiddleware, updateUser);
 router.post("/logout", authMiddleware, logoutUser);
 
+// --- Admin Only Route ---
+router.get('/admin/all', getAllUsers);
 
 
 export default router;

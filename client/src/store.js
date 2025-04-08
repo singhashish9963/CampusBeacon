@@ -23,7 +23,7 @@ const rootReducer = combineReducers({
   profile: profileReducer,
   eateries: eateriesReducer,
   contacts: contactsReducer,
-  notification: notificationReducer,
+  notifications: notificationReducer,
   buyAndSell: buyAndSellReducer,
   lostAndFound: lostAndFoundReducer,
   chatbot: chatbotReducer,
