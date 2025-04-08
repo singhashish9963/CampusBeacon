@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { motion } from "framer-motion";
 import {
-  Users,
+  Users, // Note: Users icon isn't used in featureCards, but kept import
   Globe,
   Search,
   Coffee,
@@ -61,37 +61,42 @@ const HomePage = () => {
   const handleScroll = useCallback(
     debounce(() => {
       const sections = document.querySelectorAll("section[id]");
-      const scrollPosition = window.scrollY + 100;
+      const scrollPosition = window.scrollY + 100; // Adjusted offset for better section detection
       let found = false;
       sections.forEach((section) => {
         if (!section) return;
         const sectionTop = section.offsetTop;
         const sectionHeight = section.clientHeight;
+        // Check if the section is roughly in the middle of the viewport
         if (
           scrollPosition >= sectionTop &&
           scrollPosition < sectionTop + sectionHeight
         ) {
-          setActiveSection(section.id);
+          // Prioritize setting active section only if it's different
+          if (activeSection !== section.id) {
+            setActiveSection(section.id);
+          }
           found = true;
         }
       });
-      if (!found && window.scrollY < 200) {
+      // Fallback to 'home' if near the top and no other section matched
+      if (!found && window.scrollY < 200 && activeSection !== "home") {
         setActiveSection("home");
       }
-    }, 100),
-    []
+    }, 150), // Slightly increased debounce wait time
+    [activeSection] // Added activeSection dependency to potentially avoid unnecessary updates if already set
   );
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
-    handleScroll();
+    handleScroll(); // Initial check
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
   const scrollToSection = useCallback((sectionId) => {
     const element = document.getElementById(sectionId);
     if (element) {
-      const offset = 0; // Adjust if you have fixed navbar height etc.
+      const offset = 0; // Adjust if you have a fixed navbar height
       const bodyRect = document.body.getBoundingClientRect().top;
       const elementRect = element.getBoundingClientRect().top;
       const elementPosition = elementRect - bodyRect;
@@ -100,6 +105,8 @@ const HomePage = () => {
         top: offsetPosition,
         behavior: "smooth",
       });
+      // Optionally update active section immediately for better UX
+      setActiveSection(sectionId);
     }
   }, []);
 
@@ -112,13 +119,6 @@ const HomePage = () => {
         description: "Discover amazing places to eat around campus",
         href: "/eatries",
         gradient: "from-amber-500 via-orange-500 to-red-500",
-      },
-      {
-        icon: Users,
-        title: "Hostel Management",
-        description: "Seamless hostel allocation and maintenance system",
-        href: "/hostel",
-        gradient: "from-blue-500 via-indigo-500 to-purple-500",
       },
       {
         icon: Search,
@@ -166,26 +166,41 @@ const HomePage = () => {
     []
   );
 
+  // Generic Suspense Fallback
+  const SuspenseFallback = ({ height = "h-48" }) => (
+    <div
+      className={`w-full ${height} bg-gray-800/50 rounded-lg animate-pulse`}
+    />
+  );
+
   return (
     <>
       {/* Background Component */}
       <div className="fixed inset-0 -z-10">
-        <Suspense fallback={<div className="w-full h-full bg-black/50" />}>
+        <Suspense fallback={<div className="w-full h-full bg-black/80" />}>
           <StarryBackground />
         </Suspense>
       </div>
 
       {/* Main Content Area */}
-      <div className="relative z-10 min-h-screen pt-16">
-        {/* Top Navigation with Notification Icon */}
-        <div className="fixed top-4 right-4 z-50 flex items-center space-x-4">
+      <div className="relative z-10 min-h-screen pt-16 text-white">
+        {" "}
+        {/* Ensure base text color */}
+        {/* Top Right Icons Container - Adjusted for Mobile */}
+        <div
+          className="fixed top-4 right-16 sm:right-4 z-50 flex items-center space-x-4"
+          // Explanation:
+          // - `right-16`: On small screens (default), position 4rem (16 * 0.25rem) from the right edge.
+          //   This leaves space on the far right, presumably for a hamburger menu.
+          // - `sm:right-4`: On 'sm' breakpoint and larger, revert to 1rem (4 * 0.25rem) from the right edge.
+          // - `z-50`: Ensures it stays above most other content. Adjust if needed based on your navbar's z-index.
+        >
           {isAuthenticated && <NotificationIcon />}
         </div>
-
         {/* Hero Section */}
         <section
           id="home"
-          className="min-h-screen flex items-center justify-center relative py-16"
+          className="min-h-screen flex items-center justify-center relative py-20 sm:py-16" // Added more padding top/bottom
         >
           <div className="text-center z-10 px-4">
             <motion.h1
@@ -218,15 +233,16 @@ const HomePage = () => {
               />
             </motion.div>
           </div>
+          {/* Optional: Add a subtle downward arrow or scroll indicator */}
         </section>
-
         {/* Features Section */}
         <section id="features" className="relative z-10 py-20 sm:py-24">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.2 }} // Reduced amount slightly
+              transition={{ duration: 0.5 }}
               className="text-center mb-16 sm:mb-20"
             >
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
@@ -240,37 +256,51 @@ const HomePage = () => {
             <motion.div
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: true, amount: 0.2 }}
-              variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
+              viewport={{ once: true, amount: 0.1 }} // Start animation sooner
+              variants={{
+                visible: { transition: { staggerChildren: 0.07 } }, // Faster stagger
+                hidden: {},
+              }}
               className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 sm:gap-8"
             >
               {featureCards.map((card) => (
                 <Suspense
                   key={card.href}
-                  fallback={
-                    <div className="h-48 w-full bg-gray-700 animate-pulse" />
-                  }
+                  fallback={<SuspenseFallback height="h-48" />}
                 >
-                  <FeatureCard
-                    icon={card.icon}
-                    title={card.title}
-                    description={card.description}
-                    href={card.href}
-                    gradient={card.gradient}
-                  />
+                  {/* FeatureCard itself needs motion.div for individual animation */}
+                  <motion.div
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0 },
+                    }}
+                  >
+                    <FeatureCard
+                      icon={card.icon}
+                      title={card.title}
+                      description={card.description}
+                      href={card.href}
+                      gradient={card.gradient}
+                    />
+                  </motion.div>
                 </Suspense>
               ))}
             </motion.div>
           </div>
         </section>
-
         {/* Quick Links Section */}
-        <section id="quicklinks" className="relative z-10 py-20 sm:py-24">
+        <section
+          id="quicklinks"
+          className="relative z-10 py-20 sm:py-24 bg-black/20 backdrop-blur-sm"
+        >
+          {" "}
+          {/* Added subtle background */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5 }}
               className="text-center mb-16 sm:mb-20"
             >
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6">
@@ -280,16 +310,11 @@ const HomePage = () => {
                 Essential resources and information at your fingertips.
               </p>
             </motion.div>
-            <Suspense
-              fallback={
-                <div className="h-32 w-full bg-gray-700 animate-pulse" />
-              }
-            >
+            <Suspense fallback={<SuspenseFallback height="h-32" />}>
               <QuickLinks />
             </Suspense>
           </div>
         </section>
-
         {/* Clubs Section */}
         <section
           id="clubs"
@@ -299,7 +324,8 @@ const HomePage = () => {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.5 }}
               className="text-center mb-16 sm:mb-20"
             >
               <h2 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent mb-4 sm:mb-6">
@@ -310,27 +336,29 @@ const HomePage = () => {
                 campus community.
               </p>
             </motion.div>
-            <Suspense
-              fallback={
-                <div className="h-64 w-full bg-gray-700 animate-pulse" />
-              }
-            >
+            <Suspense fallback={<SuspenseFallback height="h-64" />}>
               <ImageSlider />
             </Suspense>
           </div>
         </section>
-
         {/* Events Section */}
-        <section id="events" className="relative z-10">
-          <Suspense
-            fallback={<div className="h-64 w-full bg-gray-700 animate-pulse" />}
-          >
+        <section
+          id="events"
+          className="relative z-10 py-20 sm:py-24 bg-black/20 backdrop-blur-sm"
+        >
+          {" "}
+          {/* Added subtle background */}
+          <Suspense fallback={<SuspenseFallback height="h-96" />}>
+            {" "}
+            {/* Increased fallback height */}
             <EventsSection />
           </Suspense>
         </section>
         {/* Chatbot Widget */}
         <div className="fixed bottom-6 right-6 z-50">
           <Suspense fallback={null}>
+            {" "}
+            {/* No visual fallback needed for chatbot usually */}
             <ChatbotWidget />
           </Suspense>
         </div>
@@ -339,4 +367,5 @@ const HomePage = () => {
   );
 };
 
+// Use React.memo for performance optimization
 export default React.memo(HomePage);

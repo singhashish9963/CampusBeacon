@@ -1,191 +1,98 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useCallback } from "react";
 import PropTypes from "prop-types";
-import { X, Check, Bell, Trash } from "lucide-react";
+import { X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  markNotificationAsRead,
-  deleteNotification,
   markAllNotificationsAsRead,
+  getNotifications,
 } from "../../../slices/notificationSlice";
+import NotificationList from "./NotificationList"; // Import the list component
 
-const NotificationPanel = React.memo(({ isOpen, onClose }) => {
+// Use React.forwardRef to accept the ref from NotificationIcon
+const NotificationPanel = React.forwardRef(({ isOpen, onClose }, ref) => {
   const dispatch = useDispatch();
-  const notifications = useSelector(
-    (state) => state.notification.notifications
+
+  // Select necessary state for the panel itself (e.g., unread count for the button)
+  const { unreadCount = 0, loading } = useSelector(
+    (state) => state.notifications || {}
   );
 
-  const panelRef = useRef(null);
-
-  // Position the panel correctly when it opens
+  // Fetch notifications when the panel opens
   useEffect(() => {
-    if (isOpen && panelRef.current) {
-      // Get the notification icon position
-      const iconElement = document.querySelector(
-        'button[aria-label="Notifications"]'
-      );
-
-      if (iconElement) {
-        const iconRect = iconElement.getBoundingClientRect();
-        const panel = panelRef.current;
-
-        // Position the panel below the icon
-        panel.style.top = `${iconRect.bottom + 10}px`;
-        panel.style.right = `${window.innerWidth - iconRect.right}px`;
-      }
+    if (isOpen) {
+      // Fetch notifications, potentially with pagination later if needed
+      dispatch(getNotifications({ page: 1, limit: 20 })); // Example params
     }
-  }, [isOpen]);
-
-  // Prevent clicks inside the panel from closing it
-  useEffect(() => {
-    const handleClick = (e) => {
-      if (panelRef.current && panelRef.current.contains(e.target)) {
-        e.stopPropagation();
-      }
-    };
-
-    document.addEventListener("click", handleClick);
-    return () => document.removeEventListener("click", handleClick);
-  }, []);
-
-  const handleDelete = useCallback(
-    (id, e) => {
-      e.stopPropagation();
-      console.log(`NotificationPanel: Deleting notification ${id}`);
-      dispatch(deleteNotification(id));
-    },
-    [dispatch]
-  );
-
-  const handleMarkAsRead = useCallback(
-    (id, e) => {
-      e && e.stopPropagation();
-      console.log(`NotificationPanel: Marking notification ${id} as read`);
-      dispatch(markNotificationAsRead(id));
-    },
-    [dispatch]
-  );
+  }, [isOpen, dispatch]);
 
   const handleMarkAllAsRead = useCallback(
     (e) => {
-      e.stopPropagation();
-      console.log("NotificationPanel: Marking all notifications as read");
-      dispatch(markAllNotificationsAsRead());
+      e.stopPropagation(); // Prevent closing panel if clicking inside
+      if (unreadCount > 0 && !loading) {
+        // Prevent action if already loading
+        dispatch(markAllNotificationsAsRead());
+      }
     },
-    [dispatch]
+    [dispatch, unreadCount, loading]
   );
 
-  const getTimeAgo = (timeString) => {
-    const now = new Date();
-    const time = new Date(timeString);
-    const diffInMinutes = Math.floor((now - time) / (1000 * 60));
+  const handleClosePanel = useCallback(
+    (e) => {
+      e.stopPropagation();
+      onClose();
+    },
+    [onClose]
+  );
 
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} min ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)} hr ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)} day ago`;
-    }
+  // Prevent clicks inside the panel from propagating further
+  const handlePanelClick = (e) => {
+    e.stopPropagation();
   };
+
+  // Render null if not open for cleaner DOM and better performance
+  if (!isOpen) {
+    return null;
+  }
 
   return (
     <div
-      ref={panelRef}
-      className="fixed w-80 h-[70vh] max-h-[600px] bg-[#0B1026] border border-amber-500/30 rounded-xl shadow-lg z-50 overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
+      ref={ref} // Assign the forwarded ref here
+      className="absolute right-0 mt-2 w-[90vw] max-w-md sm:w-96 bg-gradient-to-b from-[#1A1B35] to-[#0B1026] rounded-lg shadow-2xl border border-amber-500/30 overflow-hidden z-50 flex flex-col"
+      style={{ maxHeight: "calc(100vh - 6rem)" }} // Dynamic max height relative to viewport
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="notification-panel-title"
+      onClick={handlePanelClick} // Prevent clicks inside from closing via outside click listener
     >
-      {/* Header */}
-      <div className="p-4 border-b border-amber-500/30 bg-gradient-to-r from-[#1A1B35] to-[#0B1026] flex justify-between items-center">
-        <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600">
-          Notifications
-        </h2>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          aria-label="Close"
-          className="text-gray-400 hover:text-amber-400 transition-colors"
+      {/* Panel Header */}
+      <div className="flex items-center justify-between p-3 sm:p-4 border-b border-amber-500/30 sticky top-0 bg-gradient-to-b from-[#1A1B35]/95 to-[#0B1026]/95 backdrop-blur-sm z-10 flex-shrink-0">
+        <h3
+          id="notification-panel-title"
+          className="text-base sm:text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600"
         >
-          <X className="w-6 h-6" />
-        </button>
-      </div>
-
-      {/* Content */}
-      <div className="p-4 overflow-y-auto h-[calc(100%-8rem)] scrollbar-thin scrollbar-thumb-amber-500/20 scrollbar-track-[#1A1B35]/30">
-        {notifications.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <Bell className="w-12 h-12 text-gray-600 mb-4" />
-            <p className="text-gray-400">No notifications yet</p>
-            <p className="text-gray-500 text-sm mt-2">
-              Stay tuned for updates!
-            </p>
-          </div>
-        ) : (
-          <ul className="space-y-3">
-            {notifications.map((notification) => (
-              <li
-                key={notification.id}
-                className={`bg-gray-800/30 border ${
-                  notification.is_read
-                    ? "border-gray-700/50"
-                    : "border-amber-500/40"
-                } rounded-xl p-4 relative overflow-hidden transition-all duration-300`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (!notification.is_read) {
-                    handleMarkAsRead(notification.id, e);
-                  }
-                }}
-              >
-                {!notification.is_read && (
-                  <div className="absolute top-3 right-3 h-2 w-2 rounded-full bg-amber-500"></div>
-                )}
-                <p
-                  className={`text-sm mb-2 ${
-                    notification.is_read ? "text-gray-400" : "text-gray-100"
-                  }`}
-                >
-                  {notification.message}
-                </p>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs text-amber-500/70">
-                    {getTimeAgo(notification.createdAt)}
-                  </span>
-                  <div className="flex space-x-2">
-                    {!notification.is_read && (
-                      <button
-                        className="text-blue-400 hover:text-blue-300 transition-colors"
-                        onClick={(e) => handleMarkAsRead(notification.id, e)}
-                      >
-                        <Check className="w-4 h-4" />
-                      </button>
-                    )}
-                    <button
-                      className="text-red-400 hover:text-red-300 transition-colors"
-                      onClick={(e) => handleDelete(notification.id, e)}
-                    >
-                      <Trash className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* Footer */}
-      {notifications.length > 0 && (
-        <div className="p-3 border-t border-amber-500/30 bg-gradient-to-r from-[#1A1B35] to-[#0B1026]">
+          Notifications
+        </h3>
+        <div className="flex items-center space-x-2">
           <button
-            className="w-full py-2 text-sm bg-gray-800/50 hover:bg-gray-700/50 text-amber-400 rounded-lg border border-amber-500/30 transition-colors"
             onClick={handleMarkAllAsRead}
+            disabled={unreadCount === 0 || loading}
+            className={`text-xs sm:text-sm text-amber-400 hover:text-amber-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150 px-2 py-1 rounded hover:bg-white/10`}
           >
-            Mark All as Read
+            Mark all read
+          </button>
+          <button
+            onClick={handleClosePanel}
+            className="p-1 text-gray-400 hover:text-white rounded-full hover:bg-white/10 transition-colors duration-150 focus:outline-none focus:ring-1 focus:ring-white/50"
+            aria-label="Close notifications panel"
+          >
+            <X size={18} />
           </button>
         </div>
-      )}
+      </div>
+
+      {/* Notification Content */}
+      {/* NotificationList handles its own loading/error states */}
+      <NotificationList />
     </div>
   );
 });
@@ -195,6 +102,7 @@ NotificationPanel.propTypes = {
   onClose: PropTypes.func.isRequired,
 };
 
+// Add display name for easier debugging
 NotificationPanel.displayName = "NotificationPanel";
 
-export default NotificationPanel;
+export default NotificationPanel; // Export memoized component if needed, but forwardRef is primary here
