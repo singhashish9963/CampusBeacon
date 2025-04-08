@@ -5,7 +5,7 @@ import App from "./App.jsx";
 import store from "./store.js";
 import { Provider } from "react-redux";
 import { checkAuthStatus } from "./slices/authSlice";
-
+import { Analytics } from "@vercel/analytics/react";
 const AppWrapper = () => {
   useEffect(() => {
     // Dispatch the auth status check which now relies solely on the cookie.
@@ -26,6 +26,7 @@ createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
       <AppWrapper />
+      <Analytics/>
     </Provider>
   </StrictMode>
 );
