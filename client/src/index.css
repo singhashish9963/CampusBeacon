@@ -4,3 +4,16 @@ html, body {
   overflow-x: hidden;
 }
 
+
+
+
+@keyframes shine {
+  100% {
+    left: 125%;
+  }
+}
+.animate-shine {
+  animation: shine 0.85s forwards; 
+}
+
+
