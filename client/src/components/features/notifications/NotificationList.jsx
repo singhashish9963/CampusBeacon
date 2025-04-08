@@ -4,7 +4,7 @@ import NotificationItem from "./NotificationItem";
 
 const NotificationList = () => {
   const { notifications, loading, error } = useSelector(
-    (state) => state.notification
+    (state) => state.notifications
   );
 
   if (error) {
