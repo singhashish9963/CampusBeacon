@@ -20,14 +20,12 @@ const Complaints = ({ hostelId }) => {
   const [formError, setFormError] = useState("");
   const [actionError, setActionError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // New states for official selection dialog
   const [showOfficialDialog, setShowOfficialDialog] = useState(false);
-  const [selectedOfficials, setSelectedOfficials] = useState([]); // array of official_id
+  const [selectedOfficials, setSelectedOfficials] = useState([]);
 
   const dispatch = useDispatch();
   const { complaints, loading, error } = useSelector((state) => state.hostel);
   const { user, roles } = useSelector((state) => state.auth);
-  // Get hostel officials from the hostel state; default to empty array if not loaded
   const hostelOfficials = useSelector(
     (state) => state.hostel.officials[hostelId] || []
   );
@@ -35,13 +33,17 @@ const Complaints = ({ hostelId }) => {
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
 
-  // Memoize filtered complaints for the current hostel
   const filteredComplaints = useMemo(() => {
     if (!Array.isArray(complaints[hostelId])) return [];
-    return complaints[hostelId].sort((a, b) => {
-      // Sort by status (pending first) and then by date
-      if (a.status === "pending" && b.status !== "pending") return -1;
-      if (a.status !== "pending" && b.status === "pending") return 1;
+    return [...complaints[hostelId]].sort((a, b) => {
+      const statusOrder = { pending: 1, resolved: 2, rejected: 3 };
+      const statusA = statusOrder[a.status] || 99;
+      const statusB = statusOrder[b.status] || 99;
+
+      if (statusA !== statusB) {
+        return statusA - statusB;
+      }
+
       return new Date(b.created_at) - new Date(a.created_at);
     });
   }, [complaints, hostelId]);
@@ -96,9 +98,8 @@ const Complaints = ({ hostelId }) => {
         complaint_description: complaintDescription.trim(),
         student_name: user.name,
         student_email: user.email,
-        // Send the selected official IDs (could be an array if multiple selection is allowed)
         official_ids: selectedOfficials,
-        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       };
       await dispatch(createComplaint(complaintData)).unwrap();
       setSelectedComplaintType("");
@@ -136,8 +137,6 @@ const Complaints = ({ hostelId }) => {
 
   const handleDeleteComplaint = async (complaintId) => {
     if (!complaintId) return;
-
-    // Ask for confirmation before deleting
     if (!window.confirm("Are you sure you want to delete this complaint?")) {
       return;
     }
@@ -153,7 +152,6 @@ const Complaints = ({ hostelId }) => {
     }
   };
 
-  // Allows a user to update selected officials from the dialog
   const toggleOfficial = (officialId) => {
     if (selectedOfficials.includes(officialId)) {
       setSelectedOfficials(selectedOfficials.filter((id) => id !== officialId));
@@ -162,7 +160,6 @@ const Complaints = ({ hostelId }) => {
     }
   };
 
-  // Only allow complaint editing/deletion if the current user created it OR if admin/hostel_president.
   const canModifyComplaint = (complaint) => {
     return (
       isAdmin || isHostelPresident || complaint.student_email === user.email
@@ -222,7 +219,6 @@ const Complaints = ({ hostelId }) => {
         </div>
       )}
 
-      {/* Complaint Form */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-white mb-4">
           File a Complaint
@@ -285,7 +281,6 @@ const Complaints = ({ hostelId }) => {
         </button>
       </div>
 
-      {/* Officials Dialog for Complaint */}
       {showOfficialDialog && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -341,7 +336,6 @@ const Complaints = ({ hostelId }) => {
         </motion.div>
       )}
 
-      {/* Complaints List */}
       <div className="space-y-4">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold text-white">
