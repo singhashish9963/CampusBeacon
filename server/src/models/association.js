@@ -113,6 +113,15 @@ export const initializeAssociations = () => {
     foreignKey: "channelId",
     onDelete: "CASCADE",
   });
+Event.hasOne(Channel, {
+  foreignKey: "event_id",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Channel.belongsTo(Event, {
+  foreignKey: "event_id",
+});
 
   // Channel creator association
   Channel.belongsTo(User, {

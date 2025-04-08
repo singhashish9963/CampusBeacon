@@ -11,7 +11,7 @@ export const fetchEvents = createAsyncThunk(
   "events/fetchEvents",
   async (clubId = null, { rejectWithValue }) => {
     try {
-      const url = clubId ? `/events/events?club_id=${clubId}` : "/events";
+      const url = clubId ? `/events/events?club_id=${clubId}` : "/events/events";
       const response = await api.get(url);
       return response.data.events;
     } catch (error) {

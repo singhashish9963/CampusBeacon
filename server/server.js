@@ -22,7 +22,7 @@ import coordinatorRoutes from "./src/routes/coordinator.routes.js";
 import eventRoutes from "./src/routes/events.routes.js";
 import enrollmentRoutes from "./src/routes/enrollment.routes.js"
 import attendanceRoutes from "./src/routes/attendance.routes.js"
-import scheduleServerPing from "./src/utils/pingServer.js";
+
 dotenv.config({ path: "./.env" });
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -49,7 +49,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 scheduleUnverifiedUserCleanup();
-scheduleServerPing()
+
 
 // Test route
 app.get("/", (req, res) => {
