@@ -1,69 +1,64 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Bell, X } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Bell } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import {
-  markAllNotificationsAsRead,
-  getNotifications,
-  getUnreadNotificationCount, 
-} from "../../../slices/notificationSlice"; 
-import NotificationList from "./NotificationList"; 
+import { getUnreadNotificationCount } from "../../../slices/notificationSlice";
+import NotificationPanel from "./NotificationPanel"; // Import the panel component
 
 const NotificationIcon = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const panelRef = useRef(null);
   const buttonRef = useRef(null);
+  const panelRef = useRef(null); // Ref for the panel, passed to NotificationPanel
   const dispatch = useDispatch();
 
+  // Select only the unread count needed for the badge
+  const unreadCount = useSelector(
+    (state) => state.notifications?.unreadCount ?? 0 // Use nullish coalescing for safety
+  );
 
-  const notificationsState = useSelector((state) => state.notifications);
-
-  const { unreadCount = 0 } = notificationsState || {};
-
+  // Fetch unread count on mount and when dependencies change (e.g., auth state)
   useEffect(() => {
     dispatch(getUnreadNotificationCount());
+  }, [dispatch]);
 
-  }, [dispatch]); 
+  // Toggle panel visibility
+  const togglePanel = useCallback(() => {
+    setIsOpen((prev) => !prev);
+  }, []);
 
+  // Close panel function
+  const closePanel = useCallback(() => {
+    setIsOpen(false);
+  }, []);
 
-  // Close panel on outside click (existing useEffect)
+  // Close panel on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // Close if click is outside the button AND outside the panel
       if (
         isOpen &&
-        panelRef.current &&
-        !panelRef.current.contains(event.target) &&
         buttonRef.current &&
-        !buttonRef.current.contains(event.target)
+        !buttonRef.current.contains(event.target) &&
+        panelRef.current && // Check if panelRef is assigned and exists
+        !panelRef.current.contains(event.target)
       ) {
-        setIsOpen(false);
+        closePanel();
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]); // Dependency array is correct
+    // Close on Escape key press
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        closePanel();
+      }
+    };
+    document.addEventListener("keydown", handleEscape);
 
-  const togglePanel = () => {
-    const newState = !isOpen;
-    setIsOpen(newState);
-
-    if (newState) {
-      // Fetch notifications list when opening the panel (keep this)
-      dispatch(getNotifications({}));
-    }
-  };
-
-  const handleMarkAllAsRead = (e) => {
-    e.stopPropagation();
-    if (unreadCount > 0) {
-      dispatch(markAllNotificationsAsRead());
-    }
-  };
-
-  const handleClosePanel = (e) => {
-    e.stopPropagation();
-    setIsOpen(false);
-  };
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [isOpen, closePanel]); // Add closePanel to dependency array
 
   return (
     <div className="relative">
@@ -71,62 +66,29 @@ const NotificationIcon = () => {
       <button
         ref={buttonRef}
         onClick={togglePanel}
-        className="relative p-2 bg-gray-800/50 rounded-full hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50"
-        aria-label="Notifications"
+        className="relative p-2 bg-gray-800/60 rounded-full hover:bg-gray-700/80 focus:bg-gray-700/80 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2 focus:ring-offset-gray-900"
+        aria-label={`Notifications ${
+          unreadCount > 0 ? `(${unreadCount} unread)` : ""
+        }`}
         aria-haspopup="true"
         aria-expanded={isOpen}
       >
-        <Bell className="w-6 h-6 text-white" />
-        {/* Conditional rendering based on unreadCount from state */}
+        <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-white" />{" "}
+        {/* Responsive icon size */}
+        {/* Unread Count Badge */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-amber-500 text-xs font-bold text-gray-900 pointer-events-none">
+          <span
+            className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center rounded-full bg-amber-500 text-[10px] sm:text-xs font-bold text-gray-900 pointer-events-none ring-1 ring-gray-800"
+            aria-hidden="true" // Hide from screen readers, covered by aria-label
+          >
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Notification Panel (no changes needed here) */}
-      {isOpen && (
-        <div
-          ref={panelRef}
-          className="absolute right-0 mt-2 w-96 bg-gradient-to-b from-[#1A1B35] to-[#0B1026] rounded-lg shadow-2xl border border-amber-500/30 overflow-hidden z-50"
-          style={{ maxHeight: "80vh" }}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="notification-panel-title"
-        >
-          {/* Panel Header */}
-          <div className="flex items-center justify-between p-4 border-b border-amber-500/30 sticky top-0 bg-gradient-to-b from-[#1A1B35] to-[#0B1026] z-10">
-            <h3
-              id="notification-panel-title"
-              className="text-lg font-semibold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-600"
-            >
-              Notifications
-            </h3>
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={handleMarkAllAsRead}
-                disabled={unreadCount === 0}
-                className={`text-xs text-amber-400 hover:text-amber-300 transition-colors ${
-                  unreadCount === 0 ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                Mark all as read
-              </button>
-              <button
-                onClick={handleClosePanel}
-                className="text-gray-400 hover:text-white transition-colors focus:outline-none"
-                aria-label="Close notifications panel"
-              >
-                <X size={18} />
-              </button>
-            </div>
-          </div>
-
-          {/* Notification Content */}
-          <NotificationList />
-        </div>
-      )}
+      {/* Render Notification Panel */}
+      {/* Pass the panelRef down so outside click detection works */}
+      <NotificationPanel ref={panelRef} isOpen={isOpen} onClose={closePanel} />
     </div>
   );
 };

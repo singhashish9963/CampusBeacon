@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useMemo, useCallback } from "react";
 
 const StarryBackground = () => {
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
   const starsRef = useRef([]);
   const animationFrameId = useRef(null);
 
@@ -41,7 +42,9 @@ const StarryBackground = () => {
   );
 
   const drawStars = useCallback((ctx, canvas, time) => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Fill with black background first to prevent any transparency issues
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     starsRef.current.forEach((star) => {
       star.phase += star.velocity;
@@ -81,14 +84,24 @@ const StarryBackground = () => {
 
     initializeStars(canvas);
 
-    if (prefersReducedMotion) {
-      drawStars(ctx, canvas, 0);
-    }
+    // Always draw immediately after resize
+    drawStars(ctx, canvas, 0);
   }, [initializeStars, prefersReducedMotion, drawStars]);
+
+  // Handle scroll events specifically
+  const handleTouchScroll = useCallback(() => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext("2d");
+    if (!canvas || !ctx) return;
+
+    // Redraw during scroll to prevent white flashes
+    drawStars(ctx, canvas, 0);
+  }, [drawStars]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext("2d");
+    const container = containerRef.current;
 
     if (!canvas || !ctx) {
       console.error("Canvas context not available");
@@ -104,21 +117,45 @@ const StarryBackground = () => {
     }
 
     window.addEventListener("resize", handleResize);
+    // Add scroll-related event listeners
+    window.addEventListener("scroll", handleTouchScroll, { passive: true });
+    window.addEventListener("touchmove", handleTouchScroll, { passive: true });
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("scroll", handleTouchScroll);
+      window.removeEventListener("touchmove", handleTouchScroll);
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
       }
     };
-  }, [prefersReducedMotion, animate, handleResize, initializeStars, drawStars]);
+  }, [
+    prefersReducedMotion,
+    animate,
+    handleResize,
+    initializeStars,
+    drawStars,
+    handleTouchScroll,
+  ]);
 
   return (
-    <div className="fixed inset-0 bg-black -z-10" aria-hidden="true">
+    <div
+      ref={containerRef}
+      className="fixed inset-0 bg-black -z-10"
+      aria-hidden="true"
+    >
       <canvas
         ref={canvasRef}
         className="block w-full h-full"
-        style={{ imageRendering: "pixelated" }}
+        style={{
+          imageRendering: "pixelated",
+          backgroundColor: "black", // Ensure the canvas itself has a black background
+          position: "absolute", // Ensure it stays fixed in place
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+        }}
       />
     </div>
   );

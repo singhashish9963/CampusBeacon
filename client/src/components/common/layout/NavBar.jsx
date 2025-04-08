@@ -177,8 +177,6 @@ function NavBar() {
             { name: "Home", path: "/", icon: HiHome },
             { name: "Lost & Found", path: "/lost-found", icon: HiSearch },
             { name: "Market", path: "/marketplace", icon: HiShoppingBag },
-            { name: "Rides", path: "/rides", icon: HiTruck },
-            { name: "Chat", path: "/chat", icon: HiChatBubbleLeftRight },
           ]
         : [{ name: "Home", path: "/", icon: HiHome }],
     [isAuthenticated]

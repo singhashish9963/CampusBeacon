@@ -316,7 +316,7 @@ const LoginSignup = () => {
               <AuthForm type="signup" />
             </div>
 
-            <div className="md:w-1/2 pt-25 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden hidden md:block">
+            <div className="md:w-1/2 pt-15 pr-10 pl-10 pb-10 border-t border-purple-500 rounded-lg md:border-hidden hidden md:block">
               <h2 className="text-3xl font-bold text-white mb-8">
                 Welcome Back!
               </h2>
