@@ -229,7 +229,7 @@ const Complaints = ({ hostelId }) => {
             setSelectedComplaintType(e.target.value);
             setFormError("");
           }}
-          className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white border border-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
           required
           disabled={isSubmitting}
         >
@@ -247,7 +247,7 @@ const Complaints = ({ hostelId }) => {
             setFormError("");
           }}
           placeholder="Describe your complaint in detail..."
-          className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white h-32 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+          className="w-full p-2 mb-4 bg-black/30 rounded-lg text-white h-32 resize-none border border-purple-400/50 focus:outline-none focus:ring-2 focus:ring-purple-500"
           required
           disabled={isSubmitting}
         />
@@ -255,10 +255,10 @@ const Complaints = ({ hostelId }) => {
           <button
             onClick={() => setShowOfficialDialog(true)}
             disabled={isSubmitting}
-            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+            className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg border border-purple-400/50"
           >
             {selectedOfficials.length > 0
-              ? `Selected Officials: ${selectedOfficials.join(", ")}`
+              ? `Selected Officials: ${selectedOfficials.length}`
               : "Select Official(s)"}
           </button>
         </div>
@@ -290,7 +290,7 @@ const Complaints = ({ hostelId }) => {
           <motion.div
             initial={{ scale: 0.9 }}
             animate={{ scale: 1 }}
-            className="bg-gray-900 p-6 rounded-lg w-full max-w-md relative"
+            className="bg-gray-900 p-6 rounded-lg w-full max-w-md relative border border-purple-400/50"
           >
             <button
               onClick={() => setShowOfficialDialog(false)}

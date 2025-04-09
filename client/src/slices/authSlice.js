@@ -1,6 +1,8 @@
+// src/slices/authSlice.js
+
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import toast from "react-hot-toast";
+// Removed: import toast from "react-hot-toast"; // Removed conflicting toast library
 
 // Configure axios to send cookies with every request.
 const api = axios.create({
@@ -11,10 +13,8 @@ const api = axios.create({
   },
 });
 
-// Remove the request interceptor that was reading token from localStorage.
-
-
-
+// Removed the request interceptor that was reading token from localStorage.
+// Keep the response interceptor for handling 401 errors if desired.
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -23,23 +23,31 @@ api.interceptors.response.use(
       error.config.url.includes("/users/signup") ||
       error.config.url.includes("/users/current");
 
+    // Optional: Handle redirection on 401 for non-auth endpoints
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      // Redirect to login if needed – since cookie-based sessions are used.
-      window.location.href = "/login";
+      // Consider dispatching logout or directly redirecting
+      // window.location.href = "/login"; // Direct redirect might be too abrupt
+      // It might be better to dispatch an action that updates state,
+      // allowing components to react (e.g., show login modal, redirect gracefully).
+      // For now, just rejecting the promise.
+      console.error("Received 401 Unauthorized for non-auth endpoint.");
     }
     return Promise.reject(error);
   }
 );
+
+// --- Async Thunks ---
 
 export const checkAuthStatus = createAsyncThunk(
   "auth/checkAuthStatus",
   async (_, { rejectWithValue }) => {
     try {
       const response = await api.get("/users/current");
-      const { user } = response.data.data;
-
-      return user ? user : null;
+      // Ensure consistent structure even if user is null from backend
+      const user = response.data?.data?.user || null;
+      return user;
     } catch (error) {
+      // Don't reject, just return null if not authenticated
       return null;
     }
   }
@@ -50,21 +58,26 @@ export const handleSignIn = createAsyncThunk(
   async ({ email, password }, { rejectWithValue }) => {
     try {
       const response = await api.post("/users/login", { email, password });
-      const { user } = response.data.data;
+      const user = response.data?.data?.user; // Use optional chaining
 
       if (!user) {
-        return rejectWithValue("Login failed. Please try again.");
+        // If backend structure is guaranteed, this might not be needed
+        return rejectWithValue("Login failed: Invalid response from server.");
       }
 
-      return user;
+      return user; // Return the user object on success
     } catch (error) {
+      // Provide specific user-friendly messages based on status or backend message
       if (error.response?.status === 403) {
-        return rejectWithValue("Please verify your email before logging in");
+        return rejectWithValue("Please verify your email before logging in.");
       }
-      if (error.response?.status === 400) {
-        return rejectWithValue("Invalid email or password");
+      if (error.response?.status === 401 || error.response?.status === 400) {
+        return rejectWithValue("Invalid email or password.");
       }
-      return rejectWithValue("Unable to sign in. Please try again later");
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Unable to sign in. Please try again later."
+      );
     }
   }
 );
@@ -73,10 +86,15 @@ export const handleSignUp = createAsyncThunk(
   "auth/handleSignUp",
   async ({ email, password }, { rejectWithValue }) => {
     try {
+      // Assuming signup returns a success message or data, but not the user object directly
+      // as verification is needed.
       const response = await api.post("/users/signup", { email, password });
+      // Return data which might include a success message, but not user/auth state yet.
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Signup failed");
+      return rejectWithValue(
+        error.response?.data?.message || "Signup failed. Please try again."
+      );
     }
   }
 );
@@ -86,10 +104,10 @@ export const handleForgetPassword = createAsyncThunk(
   async (email, { rejectWithValue }) => {
     try {
       const response = await api.post("/users/forgot-password", { email });
-      return response.data.message;
+      return response.data.message; // Return success message
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Password reset failed"
+        error.response?.data?.message || "Failed to send password reset email."
       );
     }
   }
@@ -103,10 +121,11 @@ export const handleResetPassword = createAsyncThunk(
         token,
         newPassword,
       });
-      return response.data.message;
+      return response.data.message; // Return success message
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Password reset failed"
+        error.response?.data?.message ||
+          "Password reset failed. The link might be invalid or expired."
       );
     }
   }
@@ -117,16 +136,19 @@ export const handleEmailVerification = createAsyncThunk(
   async (token, { rejectWithValue }) => {
     try {
       const response = await api.get(`/users/verify-email?token=${token}`);
-      const { user } = response.data.data;
+      const user = response.data?.data?.user; // Use optional chaining
 
       if (!user) {
-        return rejectWithValue("Email verification failed. Please try again.");
+        return rejectWithValue(
+          "Email verification failed: Invalid response from server."
+        );
       }
 
-      return user;
+      return user; // Return the user object, as verification logs them in
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Email verification failed"
+        error.response?.data?.message ||
+          "Email verification failed. The link might be invalid or expired."
       );
     }
   }
@@ -137,45 +159,46 @@ export const handleLogout = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       await api.post("/users/logout");
-      // Since we now solely use cookie-based auth,
-      // simply dispatch logout on a successful response.
-      dispatch(logout());
-      return true;
+      // No need to dispatch logout() here, it's handled in the fulfilled reducer
+      return true; // Indicate success
     } catch (error) {
-      return rejectWithValue("Unable to logout. Please try again.");
-    }
-  }
-);
-export const fetchAllUsers = createAsyncThunk(
-  "auth/fetchAllUsers",
-  async (_, { rejectWithValue }) => {
-    try {
-      // Assuming your backend route is '/api/users/admin/all'
-      // Adjust the URL if it's different (e.g., '/api/users/list')
-      const response = await api.get("/users/admin/all");
-      if (response.data.success) {
-        // Extract the users array from the response structure
-        return response.data.data.users;
-      } else {
-        return rejectWithValue(
-          response.data.message || "Failed to fetch users"
-        );
-      }
-    } catch (error) {
-      // Handle specific errors like 403 Forbidden separately if needed
-      if (error.response?.status === 403) {
-        toast.error("Permission denied: Cannot fetch user list.");
-        return rejectWithValue("Admin access required to fetch users.");
-      }
-      toast.error("Failed to fetch user list.");
+      // Even if logout fails server-side, we should clear client state
+      console.error("Server logout failed:", error);
+      // Still return true or handle differently if needed, but usually clear client state regardless
       return rejectWithValue(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to fetch users"
+        "Server logout failed, but client session cleared."
       );
     }
   }
 );
+
+export const fetchAllUsers = createAsyncThunk(
+  "auth/fetchAllUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await api.get("/users/admin/all");
+      if (response.data.success && response.data.data?.users) {
+        return response.data.data.users;
+      } else {
+        return rejectWithValue(
+          response.data.message ||
+            "Failed to fetch users: Invalid server response."
+        );
+      }
+    } catch (error) {
+      if (error.response?.status === 403) {
+        return rejectWithValue("Permission denied: Admin access required.");
+      }
+      return rejectWithValue(
+        error.response?.data?.message ||
+          error.message ||
+          "An error occurred while fetching users."
+      );
+    }
+  }
+);
+
+// --- Slice Definition ---
 
 const authSlice = createSlice({
   name: "auth",
@@ -183,159 +206,197 @@ const authSlice = createSlice({
     user: null,
     roles: [],
     isAuthenticated: false,
-    loading: false,
-    error: null,
+    loading: false, // General loading for auth actions (login, signup, status check)
+    error: null, // General error for auth actions
     lastChecked: null,
-    allUsers: [], // To store the list fetched by fetchAllUsers
-    loadingUsers: false, // Separate loading state for fetching all users
-    usersError: null,
+    allUsers: [], // List of all users (for admin)
+    loadingUsers: false, // Specific loading state for fetching all users
+    usersError: null, // Specific error state for fetching all users
   },
   reducers: {
+    // Synchronous action to log out (clears state)
     logout: (state) => {
       state.user = null;
       state.roles = [];
       state.isAuthenticated = false;
       state.lastChecked = null;
       state.error = null;
+      // Optionally clear admin-specific state too
+      state.allUsers = [];
+      state.usersError = null;
     },
+    // Synchronous action to clear the main auth error
     clearError: (state) => {
       state.error = null;
     },
+    // Synchronous action to clear the users list error
+    clearUsersError: (state) => {
+      state.usersError = null;
+    },
+    // Action to force re-checking auth status (e.g., on window focus)
     invalidateAuth: (state) => {
       state.lastChecked = null;
     },
   },
   extraReducers: (builder) => {
     builder
+      // --- checkAuthStatus ---
       .addCase(checkAuthStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(checkAuthStatus.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.payload) {
-          state.user = action.payload;
-          state.roles = action.payload.roles;
-          state.isAuthenticated = true;
-        } else {
-          state.user = null;
-          state.roles = [];
-          state.isAuthenticated = false;
-        }
+        state.user = action.payload; // payload is user object or null
+        state.roles = action.payload?.roles || [];
+        state.isAuthenticated = !!action.payload; // true if user object exists, false if null
         state.lastChecked = Date.now();
         state.error = null;
       })
-      .addCase(checkAuthStatus.rejected, (state) => {
+      .addCase(checkAuthStatus.rejected, (state, action) => {
+        // Should ideally not reject, but handle gracefully
         state.loading = false;
         state.user = null;
         state.roles = [];
         state.isAuthenticated = false;
-        state.lastChecked = Date.now();
-        state.error = null;
+        state.lastChecked = Date.now(); // Mark as checked even on failure
+        state.error =
+          action.payload || "Failed to check authentication status."; // Log error if needed
       })
+
+      // --- handleSignIn ---
       .addCase(handleSignIn.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(handleSignIn.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        state.roles = action.payload.roles;
+        state.user = action.payload; // payload is the user object
+        state.roles = action.payload.roles || [];
         state.isAuthenticated = true;
         state.lastChecked = Date.now();
         state.error = null;
+        // Success toast is handled in the component
       })
       .addCase(handleSignIn.rejected, (state, action) => {
         state.loading = false;
         state.user = null;
         state.roles = [];
         state.isAuthenticated = false;
-        state.error = action.payload;
+        state.error = action.payload; // Error message from rejectWithValue
       })
+
+      // --- handleSignUp ---
       .addCase(handleSignUp.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(handleSignUp.fulfilled, (state, _action) => {
+      .addCase(handleSignUp.fulfilled, (state) => {
         state.loading = false;
+        // Don't log in user yet, email verification needed
         state.user = null;
         state.roles = [];
         state.isAuthenticated = false;
-        state.lastChecked = Date.now();
         state.error = null;
-        toast.success(
-          "Verification link sent to your email. Please check your inbox."
-        );
+        // Success toast (e.g., "Verification email sent") is handled in the component
       })
       .addCase(handleSignUp.rejected, (state, action) => {
         state.loading = false;
         state.user = null;
         state.roles = [];
         state.isAuthenticated = false;
-        state.lastChecked = Date.now();
-        state.error = action.payload || "Signup failed";
+        state.error = action.payload; // Error message from rejectWithValue
       })
+
+      // --- handleForgetPassword ---
       .addCase(handleForgetPassword.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(handleForgetPassword.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
+        // Success toast is handled in the component
       })
       .addCase(handleForgetPassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Password reset failed";
+        state.error = action.payload; // Error message from rejectWithValue
       })
+
+      // --- handleResetPassword ---
       .addCase(handleResetPassword.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(handleResetPassword.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
+        // Success toast handled in the ResetPassword component
       })
       .addCase(handleResetPassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Password reset failed";
+        state.error = action.payload; // Error message from rejectWithValue
       })
+
+      // --- handleEmailVerification ---
       .addCase(handleEmailVerification.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(handleEmailVerification.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        state.roles = action.payload.roles;
+        state.user = action.payload; // Verification successful, log user in
+        state.roles = action.payload.roles || [];
         state.isAuthenticated = true;
         state.lastChecked = Date.now();
         state.error = null;
+        // Success toast handled in the EmailVerification component
       })
       .addCase(handleEmailVerification.rejected, (state, action) => {
         state.loading = false;
         state.user = null;
         state.roles = [];
         state.isAuthenticated = false;
-        state.lastChecked = Date.now();
-        state.error = action.payload || "Email verification failed";
+        state.error = action.payload; // Error message from rejectWithValue
       })
+
+      // --- handleLogout ---
       .addCase(handleLogout.pending, (state) => {
-        state.loading = true;
+        state.loading = true; // Can use general loading or a specific one
         state.error = null;
       })
       .addCase(handleLogout.fulfilled, (state) => {
-        state.loading = false;
+        // Clear all auth state regardless of server response (handled by reducer)
         state.user = null;
         state.roles = [];
         state.isAuthenticated = false;
         state.lastChecked = null;
         state.error = null;
+        state.loading = false;
+        // Optionally clear admin-specific state too
+        state.allUsers = [];
+        state.usersError = null;
+        // Success feedback (e.g., redirect) handled where logout was dispatched
       })
       .addCase(handleLogout.rejected, (state, action) => {
+        // Still clear client state even if server logout failed
+        state.user = null;
+        state.roles = [];
+        state.isAuthenticated = false;
+        state.lastChecked = null;
+        // Optionally clear admin-specific state too
+        state.allUsers = [];
+        state.usersError = null;
         state.loading = false;
-        state.error = action.payload;
+        // Log the server error, but don't necessarily show it prominently to user
+        console.error("Logout rejected:", action.payload);
+        state.error = action.payload; // Or set a generic client cleared message
       })
+
+      // --- fetchAllUsers (Admin action) ---
       .addCase(fetchAllUsers.pending, (state) => {
-        state.loadingUsers = true; // Set specific loading state
-        state.usersError = null; // Clear specific error state
+        state.loadingUsers = true; // Use specific loading state
+        state.usersError = null; // Use specific error state
       })
       .addCase(fetchAllUsers.fulfilled, (state, action) => {
         state.loadingUsers = false;
@@ -345,11 +406,15 @@ const authSlice = createSlice({
       .addCase(fetchAllUsers.rejected, (state, action) => {
         state.loadingUsers = false;
         state.usersError = action.payload; // Set the specific error
-        state.allUsers = []; // Clear list on error? Optional.
+        state.allUsers = []; // Optionally clear list on error
+        // Error toast/feedback handled in the Admin component checking state.usersError
       });
   },
 });
 
-export const { logout, clearError, invalidateAuth } = authSlice.actions;
+// Export synchronous actions
+export const { logout, clearError, clearUsersError, invalidateAuth } =
+  authSlice.actions;
 
+// Export the reducer
 export default authSlice.reducer;

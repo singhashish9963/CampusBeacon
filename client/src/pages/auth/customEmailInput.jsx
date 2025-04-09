@@ -1,73 +1,44 @@
 import React, { useState, useRef, useEffect } from "react";
 
-/**
- * A custom email input component specifically for MNNIT email addresses,
- * where the user only enters the username part.
- *
- * @param {object} props - The component props.
- * @param {string} props.name - A unique name for the input element (used for form submission and generating unique IDs). This *must* be unique for each instance of this component on a page.
- * @param {boolean} [props.required=true] - Whether the input is required.
- * @param {string} [props.autoComplete="username"] - The autocomplete attribute value for the username input. Consider "email" for the hidden input if needed.
- * @param {function} [props.onChange] - Callback function triggered when the effective email value changes. Receives an event-like object: { target: { name, value } }.
- * @param {string} [props.label="Email"] - The label text displayed above the input.
- * @param {string} [props.initialUsername=""] - The initial value for the username part of the email.
- * @param {string} [props.domain="@mnnit.ac.in"] - The domain to append (can be overridden if needed, though likely static).
- */
 const CustomEmailInput = ({
   name,
   required = true,
-  autoComplete = "username", // Can be overridden, e.g., "off", "new-password" contextually
+  autoComplete = "username",
   onChange,
   label = "Email",
   initialUsername = "",
-  domain = "@mnnit.ac.in", // Made it a prop for flexibility, though likely fixed
+  domain = "@mnnit.ac.in",
 }) => {
   const [username, setUsername] = useState(initialUsername);
   const [isFocused, setIsFocused] = useState(false);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
 
-  // --- Generate unique IDs based on the name prop ---
   const inputId = `${name}-input`;
   const errorId = `${name}-error`;
   const hintId = `${name}-hint`;
-  // ---
 
-  // --- Effect to notify parent component of the full email value change ---
   useEffect(() => {
     if (onChange) {
-      // Only include domain if username is not empty
       const fullEmail = username ? username + domain : "";
       onChange({ target: { name, value: fullEmail } });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username, name, domain]); // Include domain if it can change via props
-  // Note: 'onChange' is intentionally omitted from deps to prevent potential infinite loops
-  // if the parent component re-creates the function on every render.
-  // The effect should run when the *data* (username, name, domain) changes.
-  // ---
+  }, [username, name, domain]);
 
-  // --- Event Handlers ---
   const handleUsernameChange = (e) => {
     const value = e.target.value;
 
-    // Allow empty input without validation error
     if (value === "") {
       setUsername("");
       setError("");
-      return; // Exit early
+      return;
     }
 
-    // Basic validation: allow letters, numbers, dots (.), and underscores (_)
-    // Allow intermediate invalid states while typing for better UX, but validate the pattern
     if (/^[a-zA-Z0-9_.]*$/.test(value)) {
       setUsername(value);
-      // Clear error immediately if the input becomes potentially valid
-      // Re-validate on blur or submit if stricter validation is needed
       setError("");
     } else {
-      // If the pattern is definitely broken (e.g., contains disallowed chars)
-      setUsername(value); // Still show the invalid input
+      setUsername(value);
       setError(
         "Username can only contain letters (a-z, A-Z), numbers (0-9), dots (.), and underscores (_)."
       );
@@ -76,7 +47,6 @@ const CustomEmailInput = ({
 
   const handleBlur = () => {
     setIsFocused(false);
-    // Optional: Add stricter validation on blur if needed
     if (username && !/^[a-zA-Z0-9_.]+$/.test(username)) {
       setError(
         "Username contains invalid characters. Allowed: letters, numbers, dots, underscores."
@@ -84,7 +54,6 @@ const CustomEmailInput = ({
     } else if (required && !username) {
       setError("This field is required.");
     } else {
-      // Clear error if valid on blur
       if (error && /^[a-zA-Z0-9_.]+$/.test(username)) {
         setError("");
       }
@@ -92,86 +61,72 @@ const CustomEmailInput = ({
   };
 
   const handleContainerClick = () => {
-    inputRef.current?.focus(); // Use optional chaining for safety
+    inputRef.current?.focus();
   };
 
   const handleClearClick = (e) => {
-    e.stopPropagation(); // Prevent container click handler from firing and refocusing
+    e.stopPropagation();
     setUsername("");
-    setError(""); // Clear any errors associated with the previous value
-    inputRef.current?.focus(); // Focus the input after clearing
+    setError("");
+    inputRef.current?.focus();
   };
-  // ---
 
-  // Construct the full email value for the hidden input
   const fullEmailValue = username ? username + domain : "";
 
   return (
     <div className="w-full max-w-lg mx-auto">
-      {/* Hidden actual email input that will be submitted with the form */}
-      {/* You might want autocomplete="email" here if this *represents* the email field */}
       <input type="hidden" name={name} value={fullEmailValue} />
-
-      {/* Label above the input */}
       <label
-        htmlFor={inputId} // Use dynamic ID
+        htmlFor={inputId}
         className="block text-sm font-medium text-purple-700 mb-2"
       >
         {label} {required && <span className="text-red-500">*</span>}
       </label>
-
-      {/* Input container */}
       <div
         onClick={handleContainerClick}
-        // Consider adding role="button" and keyboard handlers (onKeyDown for Space/Enter)
-        // if you want the *entire* container to be focusable and clickable like a button.
-        // However, standard behavior is for the input itself to be focusable via Tab.
         className={`flex items-center w-full overflow-hidden bg-white/5 rounded-lg text-white shadow-sm transition-all duration-150 ease-in-out ${
           isFocused
-            ? "ring-2 ring-purple-500 border-purple-500" // Use border color consistent with ring
+            ? "ring-2 ring-purple-500 border-purple-500"
             : error
-            ? "border-red-500 ring-1 ring-red-500" // Use border+ring for error
+            ? "border-red-500 ring-1 ring-red-500"
             : "border border-white/20 hover:border-white/30"
         }`}
         style={{
           borderColor: isFocused ? "#a855f7" : error ? "#ef4444" : undefined,
-        }} // Explicit border color override if needed for specificity
+        }}
       >
-        {/* Username text input section */}
         <div className="relative flex-grow">
           <input
-            id={inputId} // Use dynamic ID
+            id={inputId}
             ref={inputRef}
             type="text"
             value={username}
             onChange={handleUsernameChange}
             onFocus={() => setIsFocused(true)}
-            onBlur={handleBlur} // Use blur handler for validation/state changes
+            onBlur={handleBlur}
             placeholder="name.registration_number"
             className={`w-full p-3 md:p-4 bg-transparent focus:outline-none text-white placeholder-gray-400 ${
-              username ? "text-white" : "text-gray-400" // Style based on whether there's input
+              username ? "text-white" : "text-gray-400"
             }`}
-            required={required} // HTML5 required attribute
-            autoComplete={autoComplete} // Use the prop
-            aria-label={`${label} Username`} // More specific ARIA label
-            // Dynamically link hint and error message using their unique IDs
+            required={required}
+            autoComplete={autoComplete}
+            aria-label={`${label} Username`}
             aria-describedby={`${hintId}${error ? ` ${errorId}` : ""}`}
-            aria-invalid={!!error} // Indicate invalid state for screen readers
+            aria-invalid={!!error}
           />
-          {/* Clear button */}
           {username && (
             <button
               type="button"
-              className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-white focus:outline-none focus:ring-1 focus:ring-purple-400 rounded-full p-0.5" // Adjusted positioning and focus style
+              className="absolute inset-y-0 right-2 flex items-center text-gray-400 hover:text-white focus:outline-none focus:ring-1 focus:ring-purple-400 rounded-full p-0.5"
               onClick={handleClearClick}
-              aria-label="Clear username input" // Specific label for the button's action
+              aria-label="Clear username input"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-4 w-4"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                aria-hidden="true" // Hide decorative icon from screen readers
+                aria-hidden="true"
               >
                 <path
                   fillRule="evenodd"
@@ -182,29 +137,19 @@ const CustomEmailInput = ({
             </button>
           )}
         </div>
-
-        {/* Domain part (read-only) */}
         <div className="py-3 px-3 md:px-4 bg-white/10 text-gray-300 whitespace-nowrap font-mono text-sm md:text-base flex-shrink-0">
           {domain}
         </div>
       </div>
-
-      {/* Error message area */}
-      {/* Use role="alert" for dynamic errors to be announced by screen readers */}
       <div className="min-h-[1.25rem] mt-1">
-        {" "}
-        {/* Reserve space to prevent layout shifts */}
         {error && (
           <p id={errorId} className="text-sm text-red-500" role="alert">
             {error}
           </p>
         )}
       </div>
-
-      {/* Helper text / Hint */}
       <div className="mt-2 flex items-start">
         <div className="flex-shrink-0 mt-0.5">
-          {/* Info Icon */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-4 w-4 text-purple-400"
@@ -222,16 +167,13 @@ const CustomEmailInput = ({
           </svg>
         </div>
         <p id={hintId} className="ml-2 text-xs md:text-sm text-gray-400">
-          {" "}
-          {/* Use dynamic ID */}
           Enter only your username (e.g.,{" "}
           <span className="font-medium text-purple-400">john.2022ca045</span>).
-          The domain <span className="font-mono text-purple-400">{domain}</span>{" "}
-          will be appended automatically.
+          The domain{" "}
+          <span className="font-mono text-purple-400">{domain}</span> will be
+          appended automatically.
         </p>
       </div>
-
-      {/* Preview of the full email (optional) */}
       {username && (
         <div className="mt-3 p-2 bg-purple-900/20 border border-purple-500/30 rounded text-sm text-purple-300 font-mono break-all">
           <span className="font-normal text-gray-400">Email preview: </span>

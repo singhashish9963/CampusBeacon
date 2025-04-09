@@ -1,6 +1,6 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Phone, Mail, Edit, Plus, X } from "lucide-react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Phone, Mail, Edit, Plus, X, ChevronDown } from "lucide-react";
 import { FaUsersGear } from "react-icons/fa6";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -25,6 +25,8 @@ const Officials = ({ hostelId }) => {
     official_id: null,
   });
   const [formErrors, setFormErrors] = useState({});
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const officialsContainerRef = useRef(null);
 
   // Updated permission check to use roles from auth state.
   const hasPermission = useMemo(() => {
@@ -46,6 +48,30 @@ const Officials = ({ hostelId }) => {
     if (!Array.isArray(officials[hostelId])) return [];
     return officials[hostelId];
   }, [officials, hostelId]);
+
+  // Check if scroll indicator should be shown
+  useEffect(() => {
+    if (hostelOfficials.length > 3 && officialsContainerRef.current) {
+      setShowScrollIndicator(true);
+    } else {
+      setShowScrollIndicator(false);
+    }
+  }, [hostelOfficials]);
+
+  // Handle scroll event to hide indicator when scrolled to bottom
+  const handleScroll = () => {
+    if (officialsContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } =
+        officialsContainerRef.current;
+      const isScrolledToBottom = scrollTop + clientHeight >= scrollHeight - 20;
+
+      if (isScrolledToBottom) {
+        setShowScrollIndicator(false);
+      } else if (hostelOfficials.length > 3) {
+        setShowScrollIndicator(true);
+      }
+    }
+  };
 
   const handleDeleteOfficial = async (officialId) => {
     if (!officialId || !hasPermission) return;
@@ -232,58 +258,106 @@ const Officials = ({ hostelId }) => {
         </div>
       )}
 
-      <div className="space-y-4">
-        {hostelOfficials.length === 0 ? (
-          <p className="text-center text-gray-400 py-4">No officials found</p>
-        ) : (
-          hostelOfficials.map((official) => (
+      {/* Scrollable container with fixed height - removed scrollbars */}
+      <div className="relative">
+        <div
+          ref={officialsContainerRef}
+          className="space-y-4 max-h-96 overflow-y-auto pr-2"
+          style={{
+            msOverflowStyle: "none" /* IE and Edge */,
+            scrollbarWidth: "none" /* Firefox */,
+          }}
+          onScroll={handleScroll}
+        >
+          {/* CSS to hide scrollbar for Chrome, Safari and Opera */}
+          <style jsx>{`
+            div::-webkit-scrollbar {
+              display: none;
+            }
+          `}</style>
+
+          {hostelOfficials.length === 0 ? (
+            <p className="text-center text-gray-400 py-4">No officials found</p>
+          ) : (
+            hostelOfficials.map((official) => (
+              <motion.div
+                key={official.official_id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+                className="p-4 rounded-lg border bg-black/30 flex flex-col md:flex-row justify-between"
+                layout
+              >
+                <div className="w-full md:w-3/4">
+                  <h3 className="text-xl font-semibold text-white">
+                    {official.name}
+                  </h3>
+                  <p className="text-gray-300">{official.designation}</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center mt-2 sm:space-x-4 space-y-2 sm:space-y-0">
+                    <a
+                      href={`tel:${official.phone}`}
+                      className="flex items-center text-gray-400 hover:text-white truncate max-w-xs"
+                    >
+                      <Phone className="w-4 h-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">{official.phone}</span>
+                    </a>
+                    <a
+                      href={`mailto:${official.email}`}
+                      className="flex items-center text-gray-400 hover:text-white truncate max-w-xs"
+                    >
+                      <Mail className="w-4 h-4 mr-1 flex-shrink-0" />
+                      <span className="truncate">{official.email}</span>
+                    </a>
+                  </div>
+                </div>
+                {hasPermission && (
+                  <div className="flex items-center space-x-2 mt-3 md:mt-0 justify-end">
+                    <button
+                      onClick={() => openEditModal(official)}
+                      className="text-blue-500 hover:text-blue-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-500/10"
+                    >
+                      <Edit className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteOfficial(official.official_id)}
+                      className="text-red-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-500/10"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </motion.div>
+            ))
+          )}
+        </div>
+
+        {/* Scroll Down Indicator */}
+        <AnimatePresence>
+          {showScrollIndicator && (
             <motion.div
-              key={official.official_id}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="p-4 rounded-lg border bg-black/30 flex flex-col md:flex-row justify-between"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex flex-col items-center cursor-pointer"
+              onClick={() => {
+                if (officialsContainerRef.current) {
+                  officialsContainerRef.current.scrollTop += 100;
+                }
+              }}
             >
-              <div className="w-full md:w-3/4">
-                <h3 className="text-xl font-semibold text-white">
-                  {official.name}
-                </h3>
-                <p className="text-gray-300">{official.designation}</p>
-                <div className="flex flex-col sm:flex-row sm:items-center mt-2 sm:space-x-4 space-y-2 sm:space-y-0">
-                  <a
-                    href={`tel:${official.phone}`}
-                    className="flex items-center text-gray-400 hover:text-white truncate max-w-xs"
-                  >
-                    <Phone className="w-4 h-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">{official.phone}</span>
-                  </a>
-                  <a
-                    href={`mailto:${official.email}`}
-                    className="flex items-center text-gray-400 hover:text-white truncate max-w-xs"
-                  >
-                    <Mail className="w-4 h-4 mr-1 flex-shrink-0" />
-                    <span className="truncate">{official.email}</span>
-                  </a>
-                </div>
-              </div>
-              {hasPermission && (
-                <div className="flex items-center space-x-2 mt-3 md:mt-0 justify-end">
-                  <button
-                    onClick={() => openEditModal(official)}
-                    className="text-blue-500 hover:text-blue-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-blue-500/10"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteOfficial(official.official_id)}
-                    className="text-red-500 hover:text-red-600 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-500/10"
-                  >
-                    Delete
-                  </button>
-                </div>
-              )}
+              <motion.div
+                animate={{ y: [0, 5, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+                className="bg-purple-600/80 text-white p-2 rounded-full"
+              >
+                <ChevronDown className="w-5 h-5" />
+              </motion.div>
+              <span className="text-xs text-gray-300 mt-1">
+                Scroll for more
+              </span>
             </motion.div>
-          ))
-        )}
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Modal for Create/Edit Official */}

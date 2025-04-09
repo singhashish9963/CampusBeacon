@@ -307,17 +307,6 @@ function NavBar() {
           <HiMenu className="w-6 h-6 text-white" />
         </motion.button>
       </div>
-
-      {/* Mobile Logo */}
-      <div className="fixed top-4 left-4 z-[60] sm:hidden">
-        <Link
-          to="/"
-          className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-300 bg-clip-text text-transparent"
-        >
-          CampusBeacon
-        </Link>
-      </div>
-
       {/* Mobile Navigation */}
       <AnimatePresence>
         {isMobileMenuOpen && (

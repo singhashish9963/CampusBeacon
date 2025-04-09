@@ -73,11 +73,9 @@ const ChatbotWidget = () => {
   const chatContainerRef = useRef(null);
   const dispatch = useDispatch();
 
-  const { loading, error, sessionId } = useSelector((state) => ({
-    loading: state.chatbot.loading,
-    error: state.chatbot.error,
-    sessionId: state.chatbot.sessionId,
-  }));
+  const loading = useSelector((state) => state.chatbot.loading);
+  const error = useSelector((state) => state.chatbot.error);
+  const sessionId = useSelector((state) => state.chatbot.sessionId);
 
   const chatHistoryKey = useMemo(() => `chatHistory_${sessionId || "default"}`, [sessionId]);
 
