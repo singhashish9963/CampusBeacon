@@ -1,19 +1,46 @@
-import React, { useCallback } from "react";
+import React, { useCallback, memo } from "react";
 import PropTypes from "prop-types";
-import { Check, Trash, Clock, Paperclip, AlertCircle } from "lucide-react"; // Added AlertCircle
+import { Check, Trash, Clock, Paperclip } from "lucide-react";
 import { useDispatch } from "react-redux";
 import {
   markNotificationAsRead,
   deleteNotification,
 } from "../../../slices/notificationSlice";
-import { formatDistanceToNowStrict } from "date-fns"; // Using date-fns for robust time formatting
+import { formatDistanceToNowStrict } from "date-fns";
 
-const NotificationItem = React.memo(({ notification }) => {
+// Create a separate FormatTime component for better memoization
+const FormatTime = memo(({ dateString }) => {
+  try {
+    const date = new Date(dateString);
+    const formatted = formatDistanceToNowStrict(date, { addSuffix: true });
+    return (
+      <span className="flex items-center text-gray-500 text-xs">
+        <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
+        {formatted}
+      </span>
+    );
+  } catch (error) {
+    return (
+      <span className="flex items-center text-gray-500 text-xs">
+        <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
+        Invalid date
+      </span>
+    );
+  }
+});
+
+FormatTime.displayName = "FormatTime";
+FormatTime.propTypes = {
+  dateString: PropTypes.string.isRequired,
+};
+
+// Optimized NotificationItem component
+const NotificationItem = memo(({ notification }) => {
   const dispatch = useDispatch();
 
   const handleMarkAsRead = useCallback(
     (e) => {
-      e.stopPropagation(); // Prevent parent onClick
+      e.stopPropagation();
       if (!notification.is_read) {
         dispatch(markNotificationAsRead(notification.id));
       }
@@ -23,41 +50,27 @@ const NotificationItem = React.memo(({ notification }) => {
 
   const handleDelete = useCallback(
     (e) => {
-      e.stopPropagation(); // Prevent parent onClick
+      e.stopPropagation();
       dispatch(deleteNotification(notification.id));
     },
     [dispatch, notification.id]
   );
 
-  // Use date-fns for robust relative time formatting
-  const formatTime = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      return formatDistanceToNowStrict(date, { addSuffix: true });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Invalid date";
+  const handleItemClick = useCallback(() => {
+    if (!notification.is_read) {
+      dispatch(markNotificationAsRead(notification.id));
     }
-  };
+  }, [dispatch, notification.id, notification.is_read]);
 
   // Determine background/opacity based on read status
   const itemClasses = `
     p-3 sm:p-4 transition-colors duration-150 relative group
     ${
       notification.is_read
-        ? "opacity-75 hover:opacity-100" // Slightly faded when read, fully visible on hover
-        : "bg-gradient-to-r from-amber-900/10 via-transparent to-transparent hover:bg-amber-900/20 cursor-pointer" // Subtle gradient/bg when unread
+        ? "opacity-75 hover:opacity-100"
+        : "bg-gradient-to-r from-amber-900/10 via-transparent to-transparent hover:bg-amber-900/20 cursor-pointer"
     }
   `;
-
-  // Main item click handler (only marks as read if unread)
-  const handleItemClick = useCallback(() => {
-    if (!notification.is_read) {
-      dispatch(markNotificationAsRead(notification.id));
-    }
-    // Potentially navigate somewhere based on notification type/content here
-    // e.g., if (notification.link) { navigate(notification.link); }
-  }, [dispatch, notification.id, notification.is_read]);
 
   return (
     <div
@@ -79,17 +92,10 @@ const NotificationItem = React.memo(({ notification }) => {
           !notification.is_read ? "pl-5" : ""
         }`}
       >
-        {" "}
-        {/* Add padding left if indicator is present */}
-        {/* Optional: Icon based on notification type could go here */}
-        {/* <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" /> */}
         <div className="flex-1 min-w-0">
-          {" "}
-          {/* min-w-0 prevents overflow issues */}
           {/* Message */}
           <p
             className={`text-sm break-words ${
-              // break-words for long messages without spaces
               notification.is_read
                 ? "text-gray-400"
                 : "text-gray-200 font-medium"
@@ -97,28 +103,26 @@ const NotificationItem = React.memo(({ notification }) => {
           >
             {notification.message}
           </p>
+
           {/* Attachment Link */}
           {notification.file_url && (
             <a
               href={notification.file_url}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()} // Prevent parent onClick
+              onClick={(e) => e.stopPropagation()}
               className="mt-1.5 inline-flex items-center text-xs text-blue-400 hover:text-blue-300 hover:underline focus:outline-none focus:ring-1 focus:ring-blue-400 rounded"
             >
               <Paperclip className="w-3 h-3 mr-1 flex-shrink-0" />
               View Attachment
             </a>
           )}
-          {/* Footer: Timestamp and Actions (Show actions on hover/focus for read items) */}
+
+          {/* Footer: Timestamp and Actions */}
           <div className="flex items-center justify-between mt-2">
-            <div className="flex items-center text-gray-500 text-xs">
-              <Clock className="w-3 h-3 mr-1 flex-shrink-0" />
-              <span>{formatTime(notification.createdAt)}</span>
-            </div>
+            <FormatTime dateString={notification.createdAt} />
 
             {/* Action Buttons Container */}
-            {/* Show permanently for unread, on group-hover/focus-within for read */}
             <div
               className={`flex space-x-1 transition-opacity duration-150 ${
                 notification.is_read
@@ -157,9 +161,8 @@ NotificationItem.propTypes = {
     id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
     message: PropTypes.string.isRequired,
     is_read: PropTypes.bool.isRequired,
-    createdAt: PropTypes.string.isRequired, // Should be ISO string ideally
+    createdAt: PropTypes.string.isRequired,
     file_url: PropTypes.string,
-    // Add other potential fields like 'type', 'link', etc.
   }).isRequired,
 };
 

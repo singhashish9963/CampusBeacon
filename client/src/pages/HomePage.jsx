@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { motion } from "framer-motion";
 import {
-  Users, // Note: Users icon isn't used in featureCards, but kept import
   Globe,
   Search,
   Coffee,
@@ -186,14 +185,10 @@ const HomePage = () => {
       <div className="relative z-10 min-h-screen pt-16 text-white">
         {" "}
         {/* Ensure base text color */}
-        {/* Top Right Icons Container - Adjusted for Mobile */}
+        
         <div
-          className="fixed top-4 right-16 sm:right-4 z-50 flex items-center space-x-4"
-          // Explanation:
-          // - `right-16`: On small screens (default), position 4rem (16 * 0.25rem) from the right edge.
-          //   This leaves space on the far right, presumably for a hamburger menu.
-          // - `sm:right-4`: On 'sm' breakpoint and larger, revert to 1rem (4 * 0.25rem) from the right edge.
-          // - `z-50`: Ensures it stays above most other content. Adjust if needed based on your navbar's z-index.
+          className="fixed top-16 right-4 sm:right-4 z-50 flex items-center space-x-4"
+        
         >
           {isAuthenticated && <NotificationIcon />}
         </div>

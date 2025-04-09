@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux"; // Removed shallowEqual if using individual selectors
+import { useDispatch, useSelector } from "react-redux";
 import {
   handleSignIn,
   handleSignUp,
@@ -11,33 +11,30 @@ import {
 } from "../../slices/authSlice";
 import { ButtonColourfull } from "../../components/common/buttons";
 import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css"; // Ensure CSS is imported only once
+import "react-toastify/dist/ReactToastify.css";
 import CustomEmailInput from "./customEmailInput";
 import PasswordInput from "./password";
 
 const LoginSignup = () => {
   const dispatch = useDispatch();
-  // Use individual selectors for optimization
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const authError = useSelector((state) => state.auth.error);
   const loading = useSelector((state) => state.auth.loading);
 
   const [isSignUp, setIsSignUp] = useState(false);
-  const [authMode, setAuthMode] = useState("default"); // 'default', 'forgot'
+  const [authMode, setAuthMode] = useState("default");
 
   const navigate = useNavigate();
   const loginSuccessShown = useRef(false);
   const redirectTimerRef = useRef(null);
   const toastIdRef = useRef(null);
 
-  // Clear Redux error when component mounts or view changes
   useEffect(() => {
     dispatch(clearError());
     if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
     loginSuccessShown.current = false;
   }, [dispatch, authMode, isSignUp]);
 
-  // --- Login Success Effect ---
   useEffect(() => {
     if (isAuthenticated && !loading && !loginSuccessShown.current) {
       loginSuccessShown.current = true;
@@ -63,7 +60,6 @@ const LoginSignup = () => {
       }, 1800);
 
       return () => {
-        // Cleanup timer on unmount or re-run
         if (redirectTimerRef.current) {
           clearTimeout(redirectTimerRef.current);
           redirectTimerRef.current = null;
@@ -79,7 +75,6 @@ const LoginSignup = () => {
     }
   }, [isAuthenticated, loading, navigate, dispatch]);
 
-  // --- Auth Error Effect ---
   useEffect(() => {
     if (authError && !loading) {
       if (toastIdRef.current) toast.dismiss(toastIdRef.current);
@@ -102,16 +97,14 @@ const LoginSignup = () => {
     }
   }, [authError, loading, dispatch]);
 
-  // --- Form Submission Handler ---
   const handleFormSubmit = async (e, type) => {
     e.preventDefault();
     dispatch(clearError());
     if (toastIdRef.current) toast.dismiss(toastIdRef.current);
     loginSuccessShown.current = false;
 
-    // Ensure you are accessing elements correctly (e.target.elements might be safer)
     const email = e.target.elements.email?.value;
-    const password = e.target.elements.password?.value; // Use optional chaining
+    const password = e.target.elements.password?.value;
 
     if (!email) {
       console.error("Email field not found in form");
@@ -127,7 +120,16 @@ const LoginSignup = () => {
     try {
       if (type === "login") {
         await dispatch(handleSignIn({ email, password })).unwrap();
-        // Success handled by useEffect watching isAuthenticated
+        toast.success("Welcome back!", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: false,
+        });
+        setTimeout(() => {
+          navigate("/");
+        }, 1000);
       } else if (type === "signup") {
         await dispatch(handleSignUp({ email, password })).unwrap();
         toastIdRef.current = toast.success(
@@ -159,23 +161,19 @@ const LoginSignup = () => {
       }
     } catch (err) {
       console.error(`[${type}] Dispatch rejected:`, err);
-      // Error toast handled by the useEffect watching authError
     }
   };
 
-  // Reusable AuthForm component - PASSES UNIQUE IDs
   const AuthForm = ({ type }) => (
     <form onSubmit={(e) => handleFormSubmit(e, type)} className="space-y-6">
       <CustomEmailInput
-        // *** PASS UNIQUE ID ***
         id={`${type}-email-input`}
         name="email"
         required
-        autoComplete={type === "signup" ? "email" : "username"} // Use "username" for login if it's not strictly email
+        autoComplete={type === "signup" ? "email" : "username"}
       />
       {type !== "forgot" && (
         <PasswordInput
-          // *** PASS UNIQUE ID ***
           id={`${type}-password-input`}
           name="password"
           placeholder="Enter password"
@@ -199,7 +197,6 @@ const LoginSignup = () => {
     </form>
   );
 
-  // Helper function to switch view
   const switchView = (newIsSignUp, newAuthMode = "default") => {
     dispatch(clearError());
     if (toastIdRef.current) toast.dismiss(toastIdRef.current);
@@ -223,7 +220,6 @@ const LoginSignup = () => {
               backdropFilter: "blur(10px)",
             }}
           >
-            {/* === Desktop Overlay Panel === */}
             <motion.div
               animate={{ x: isSignUp ? "100%" : "0%" }}
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
@@ -251,8 +247,6 @@ const LoginSignup = () => {
                 </button>
               </div>
             </motion.div>
-
-            {/* === Mobile View (Renders AuthForm with type='signup' or type='login') === */}
             <div className="md:hidden w-full perspective-1000 p-6">
               <AnimatePresence mode="wait">
                 <motion.div
@@ -277,7 +271,6 @@ const LoginSignup = () => {
                       <h2 className="text-3xl font-bold text-white mb-6 text-center">
                         Create Account
                       </h2>
-                      {/* AuthForm receives type='signup' */}
                       <AuthForm type="signup" />
                       <div className="mt-6 text-center">
                         <button
@@ -294,7 +287,6 @@ const LoginSignup = () => {
                       <h2 className="text-3xl font-bold text-white mb-6 text-center">
                         Welcome Back!
                       </h2>
-                      {/* AuthForm receives type='login' */}
                       <AuthForm type="login" />
                       <div className="mt-4 flex flex-col items-center space-y-3">
                         <button
@@ -317,38 +309,28 @@ const LoginSignup = () => {
                 </motion.div>
               </AnimatePresence>
             </div>
-
-            {/* === Desktop Forms Container === */}
             <div className="hidden md:flex w-full">
-              {/* === Desktop Sign Up Form (Renders AuthForm with type='signup') === */}
               <div className="w-1/2 flex items-center justify-center p-10">
                 <div
                   className={`w-full transition-opacity duration-300 ${
-                    isSignUp
-                      ? "opacity-100 z-20"
-                      : "opacity-0 z-0 pointer-events-none"
+                    isSignUp ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
                   }`}
                 >
                   <h2 className="text-3xl font-bold text-white mb-8 text-center">
                     Create Account
                   </h2>
-                  {/* AuthForm receives type='signup' */}
                   <AuthForm type="signup" />
                 </div>
               </div>
-              {/* === Desktop Sign In Form (Renders AuthForm with type='login') === */}
               <div className="w-1/2 flex items-center justify-center p-10">
                 <div
                   className={`w-full transition-opacity duration-300 ${
-                    !isSignUp
-                      ? "opacity-100 z-20"
-                      : "opacity-0 z-0 pointer-events-none"
+                    !isSignUp ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
                   }`}
                 >
                   <h2 className="text-3xl font-bold text-white mb-8 text-center">
                     Welcome Back!
                   </h2>
-                  {/* AuthForm receives type='login' */}
                   <AuthForm type="login" />
                   <button
                     className="mt-4 text-purple-400 hover:text-purple-300 w-full text-center"
@@ -362,7 +344,6 @@ const LoginSignup = () => {
             </div>
           </motion.div>
         ) : (
-          // === Forgot Password View (Renders AuthForm with type='forgot') ===
           <motion.div
             key="forgot-password"
             initial={{ opacity: 0, scale: 0.9 }}
@@ -374,7 +355,6 @@ const LoginSignup = () => {
             <h2 className="text-2xl font-bold text-white mb-6 text-center">
               Reset Password
             </h2>
-            {/* AuthForm receives type='forgot' */}
             <AuthForm type="forgot" />
             <button
               className="mt-6 text-purple-400 hover:text-purple-300 w-full text-center"
