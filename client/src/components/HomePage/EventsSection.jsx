@@ -218,7 +218,7 @@ const EventCard = React.memo(({ event, clubName, onNavigate }) => {
         <div className="mt-auto">
           <button
             onClick={handleViewDetails}
-            className={`flex items-center justify-center w-full px-4 py-2 rounded-lg bg-gradient-to-r ${gradient} text-white text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg shadow-black/30 hover:brightness-110 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-white/50`}
+            className={`flex items-center justify-center w-full px-4 py-2 rounded-lg bg-gradient-to-r ${gradient} text-white text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg shadow-black/30 hover:brightness-110 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-white/50 cursor-pointer`}
           >
             View Details
             <ArrowRight className="w-4 h-4 ml-1.5" />
