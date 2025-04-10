@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useMemo,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
@@ -162,81 +156,89 @@ const getEventStyle = (eventId, clubName = "", category = "") => {
 };
 
 const EventCard = React.memo(({ event, clubName, onNavigate }) => {
-  const { Icon, gradient } = getEventStyle(event.id, clubName, event.category);
-  const { date: eventDate, time: eventTime } = formatEventDateTime(event.date);
+  const { id, name = "Untitled Event", description = "No description available.", location = "Location TBD", date: eventDate, category } = event || {};
+  const { Icon, gradient } = useMemo(() => getEventStyle(id, clubName, category), [id, clubName, category]);
+  const { date, time } = useMemo(() => formatEventDateTime(eventDate), [eventDate]);
+  const handleCardClick = useCallback(() => {
+    if (id && onNavigate) {
+      onNavigate(`/events/${id}`);
+    }
+  }, [onNavigate, id]);
 
-  const handleViewDetails = useCallback(() => {
-    onNavigate(`/events/${event.id}`);
-  }, [onNavigate, event.id]);
+  if (!event) return null;
+
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      handleCardClick();
+    }
+  };
 
   return (
-    <div className="relative overflow-hidden rounded-2xl h-[420px] flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out group w-full sm:w-80 md:w-[350px] border border-white/10 hover:border-white/20 bg-gradient-to-b from-gray-900/50 to-black/60 backdrop-blur-md shadow-lg hover:shadow-xl">
-      <div
-        className={`absolute inset-0 opacity-5 group-hover:opacity-10 bg-gradient-to-br ${gradient} transition-opacity duration-500 blur-2xl`}
-      />
-      <div
-        className={`absolute -right-10 -top-10 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-xl group-hover:opacity-15 group-hover:scale-110 transition-all duration-500`}
-      />
-      <div className="p-5 sm:p-6 relative z-10 flex flex-col flex-grow h-full">
+    <div
+      onClick={handleCardClick}
+      className="relative overflow-hidden rounded-2xl h-[420px] flex-shrink-0 flex flex-col transition-all duration-300 ease-in-out group w-full sm:w-80 md:w-[350px] border border-white/10 hover:border-white/20 bg-gradient-to-b from-gray-900/60 to-black/70 backdrop-blur-md shadow-lg hover:shadow-xl cursor-pointer"
+      role="button"
+      aria-label={`View details for event: ${name}`}
+      tabIndex={0}
+      onKeyDown={handleKeyPress}
+    >
+      <div className={`absolute inset-0 opacity-5 group-hover:opacity-10 bg-gradient-to-br ${gradient} transition-opacity duration-500 blur-2xl`} aria-hidden="true" />
+      <div className={`absolute -right-10 -top-10 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-xl group-hover:opacity-15 group-hover:scale-110 transition-all duration-500`} aria-hidden="true" />
+      <div className="p-6 relative z-10 flex flex-col h-full">
         <div className="flex justify-between items-start mb-4">
-          <div
-            className={`text-3xl p-3 rounded-xl bg-gradient-to-br ${gradient} text-white shadow-md shadow-black/30`}
-          >
-            <Icon className="w-5 h-5 sm:w-6 sm:h-6" />
+          <div className={`text-3xl p-3 rounded-xl bg-gradient-to-br ${gradient} text-white shadow-md shadow-black/30 transition-transform duration-300 group-hover:scale-105`}>
+            <Icon className="w-6 h-6" />
           </div>
-          <span
-            className={`inline-block px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${gradient} bg-opacity-80 text-white/95 shadow-sm`}
-          >
+          <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${gradient} bg-opacity-80 text-white/95 shadow-sm`}>
             {clubName || "General"}
           </span>
         </div>
-        <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 line-clamp-2 leading-snug">
-          {event.name || "Untitled Event"}
+        <h3 className="text-xl font-semibold text-white mb-3 line-clamp-2 leading-snug group-hover:text-purple-300 transition-colors duration-200">
+          {name}
         </h3>
         <div className="space-y-2 mb-4 text-sm text-gray-300/90">
           <div className="flex items-center">
             <Calendar className="w-4 h-4 mr-2 flex-shrink-0 text-purple-300/80" />
-            <span>{eventDate}</span>
+            <span>{date}</span>
           </div>
           <div className="flex items-center">
             <Clock className="w-4 h-4 mr-2 flex-shrink-0 text-purple-300/80" />
-            <span>{eventTime}</span>
+            <span>{time}</span>
           </div>
           <div className="flex items-center">
             <MapPin className="w-4 h-4 mr-2 flex-shrink-0 text-purple-300/80" />
-            <span className="line-clamp-1">
-              {event.location || "Location TBD"}
-            </span>
+            <span className="line-clamp-1">{location}</span>
           </div>
         </div>
-        <div className="relative flex-grow mb-4 min-h-[60px]">
-          <p className="text-gray-400 text-sm line-clamp-3">
-            {event.description || "No description available."}
-          </p>
-          <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-black/70 via-black/60 to-transparent pointer-events-none" />
+        <div className="relative flex-grow mb-3 min-h-[60px]">
+          <p className="text-gray-400 text-sm line-clamp-3">{description}</p>
+          <div className="absolute bottom-0 left-0 right-0 h-5 bg-gradient-to-t from-black/70 to-transparent pointer-events-none" aria-hidden="true" />
         </div>
-        <div className="mt-auto">
-          <button
-            onClick={handleViewDetails}
-            className={`flex items-center justify-center w-full px-4 py-2 rounded-lg bg-gradient-to-r ${gradient} text-white text-sm font-medium transition-all duration-300 shadow-md hover:shadow-lg shadow-black/30 hover:brightness-110 transform hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-black/50 focus:ring-white/50 cursor-pointer`}
-          >
-            View Details
-            <ArrowRight className="w-4 h-4 ml-1.5" />
-          </button>
+        <div className="mt-auto pt-2">
+          {category ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-purple-900/40 text-purple-300 border border-purple-500/30 group-hover:bg-purple-900/60 transition-colors duration-200">
+              <Tag className="w-3 h-3" />
+              {category}
+            </span>
+          ) : (
+            <div className="h-6" />
+          )}
         </div>
       </div>
     </div>
   );
 });
+
 EventCard.displayName = "EventCard";
 
 const EventsSection = () => {
   const [activeClub, setActiveClub] = useState("ALL");
-  const [isTransitioning, setIsTransitioning] = useState(false); // Local loading state for filter changes
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const scrollContainerRef = useRef(null);
-  const transitionTimerRef = useRef(null); // Ref to manage transition timer
+  const transitionTimerRef = useRef(null);
 
   const {
     clubs: fetchedClubData = [],
@@ -246,7 +248,7 @@ const EventsSection = () => {
 
   const {
     events: fetchedEventsData = [],
-    loading: eventsLoading, // Loading state from Redux (for fetch status)
+    loading: eventsLoading,
     error: eventsError,
   } = useSelector((state) => state.events || {});
 
@@ -258,69 +260,46 @@ const EventsSection = () => {
   }, [fetchedClubData]);
 
   const filteredEventsByClub = useMemo(() => {
-    // Prevent filtering if transitioning, show empty to allow loading state to take over
     if (isTransitioning || !fetchedEventsData || fetchedEventsData.length === 0)
       return [];
-
-    const sortedEvents = [...fetchedEventsData].sort(
-      (a, b) => new Date(b.date) - new Date(a.date)
-    );
-
+    const sortedEvents = [...fetchedEventsData].sort((a, b) => new Date(b.date) - new Date(a.date));
     if (activeClub === "ALL") {
       return sortedEvents;
     }
-
-    const selectedClub = fetchedClubData?.find(
-      (club) => club.name === activeClub
-    );
+    const selectedClub = fetchedClubData?.find((club) => club.name === activeClub);
     if (!selectedClub) return [];
-
     return sortedEvents.filter((event) => event.club_id === selectedClub.id);
-  }, [fetchedEventsData, activeClub, fetchedClubData, isTransitioning]); // Add isTransitioning dependency
+  }, [fetchedEventsData, activeClub, fetchedClubData, isTransitioning]);
 
-  // Effect for initial data fetching
   useEffect(() => {
     if (!fetchedClubData || fetchedClubData.length === 0) {
       dispatch(fetchClubs());
     }
     if (!fetchedEventsData || fetchedEventsData.length === 0) {
-      // Fetch ALL events on initial load if none exist
       dispatch(fetchEvents());
     }
-  }, [dispatch, fetchedClubData, fetchedEventsData]); // Consolidate initial fetches
+  }, [dispatch, fetchedClubData, fetchedEventsData]);
 
-  // Effect for fetching based on filter changes
   useEffect(() => {
-    // Don't fetch if it's the initial load (handled above)
     if (fetchedEventsData && fetchedEventsData.length > 0) {
       let clubIdToFetch = null;
       if (activeClub !== "ALL") {
-        const selectedClub = fetchedClubData?.find(
-          (club) => club.name === activeClub
-        );
+        const selectedClub = fetchedClubData?.find((club) => club.name === activeClub);
         clubIdToFetch = selectedClub?.id;
       }
-      // Always dispatch when filter changes, pass null for 'ALL'
       dispatch(fetchEvents(clubIdToFetch));
     }
-  }, [dispatch, activeClub, fetchedClubData]); // Runs when filter changes
+  }, [dispatch, activeClub, fetchedClubData]);
 
-  // Effect to manage the transition loading state
   useEffect(() => {
-    // Clear any existing timer when dependencies change
     if (transitionTimerRef.current) {
       clearTimeout(transitionTimerRef.current);
     }
-
-    // If Redux stops loading and we were in a transition, clear the local state
     if (!eventsLoading && isTransitioning) {
-      // Add a very short delay to ensure React renders the new filtered data first
       transitionTimerRef.current = setTimeout(() => {
         setIsTransitioning(false);
-      }, 50); // Adjust timing if needed (50ms is usually enough)
+      }, 50);
     }
-
-    // Cleanup timer on component unmount or before next run
     return () => {
       if (transitionTimerRef.current) {
         clearTimeout(transitionTimerRef.current);
@@ -331,16 +310,12 @@ const EventsSection = () => {
   const handleFilterClick = useCallback(
     (clubName) => {
       if (activeClub !== clubName) {
-        setIsTransitioning(true); // Start transition loading
+        setIsTransitioning(true);
         setActiveClub(clubName);
-        // Scroll carousel back to start? Optional.
-        // if (scrollContainerRef.current) {
-        //   scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-        // }
       }
     },
     [activeClub]
-  ); // Dependency on activeClub needed
+  );
 
   const scrollLeft = useCallback(() => {
     scrollContainerRef.current?.scrollBy({
@@ -364,12 +339,7 @@ const EventsSection = () => {
   );
 
   const renderStatus = () => {
-    // This function now primarily handles initial load, error, and empty states *when not transitioning*
-    if (
-      eventsLoading &&
-      !isTransitioning &&
-      filteredEventsByClub.length === 0
-    ) {
+    if (eventsLoading && !isTransitioning && filteredEventsByClub.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center text-gray-400 py-20 space-y-3">
           <Loader2 className="w-10 h-10 animate-spin text-purple-400" />
@@ -392,13 +362,7 @@ const EventsSection = () => {
         </div>
       );
     }
-    // Show empty state only if not loading/error AND not transitioning AND filtered list is empty
-    if (
-      !eventsLoading &&
-      !eventsError &&
-      !isTransitioning &&
-      filteredEventsByClub.length === 0
-    ) {
+    if (!eventsLoading && !eventsError && !isTransitioning && filteredEventsByClub.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center py-20 text-gray-500 text-center px-4">
           <Calendar className="w-16 h-16 mb-4 text-gray-600/50" />
@@ -428,7 +392,6 @@ const EventsSection = () => {
             Discover exciting activities and gatherings happening across campus.
           </p>
         </div>
-
         <div className="mb-10 md:mb-12 sticky top-16 sm:top-0 z-30 py-3 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 backdrop-blur-lg bg-black/40 border-b border-white/10">
           <div className="flex flex-wrap justify-center gap-2 sm:gap-3 min-h-[44px] items-center max-w-screen-lg mx-auto">
             {clubsLoading && (
@@ -450,8 +413,8 @@ const EventsSection = () => {
               clubNamesForFilter.map((clubName) => (
                 <button
                   key={clubName}
-                  onClick={() => handleFilterClick(clubName)} // Use updated handler
-                  disabled={isTransitioning} // Disable buttons during transition
+                  onClick={() => handleFilterClick(clubName)}
+                  disabled={isTransitioning}
                   className={`px-4 py-1.5 sm:px-5 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ease-in-out whitespace-nowrap border disabled:opacity-50 disabled:cursor-not-allowed
                     ${
                       activeClub === clubName
@@ -465,21 +428,14 @@ const EventsSection = () => {
               ))}
           </div>
         </div>
-
-        {/* Events Display Area - Structure revised for Transition */}
         <div className="relative min-h-[450px]">
-          {" "}
-          {/* Container needs min-height */}
           {isTransitioning && (
-            // Transition Loading Overlay - Covers the whole area
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-20 rounded-lg">
               <Loader2 className="w-10 h-10 animate-spin text-purple-400" />
               <span className="mt-3 text-gray-400">Loading Events...</span>
             </div>
           )}
-          {/* Render initial status OR the carousel */}
           {!isTransitioning && renderStatus()}
-          {/* Carousel is rendered only when not transitioning AND events exist */}
           {!isTransitioning &&
             !eventsLoading &&
             !eventsError &&
@@ -487,7 +443,7 @@ const EventsSection = () => {
               <div className="relative group/carousel">
                 <button
                   onClick={scrollLeft}
-                  disabled={isTransitioning} // Also disable scroll buttons during transition
+                  disabled={isTransitioning}
                   className="absolute left-0 top-1/2 -translate-y-1/2 z-20 bg-black/50 hover:bg-black/80 backdrop-blur-sm p-2.5 rounded-full text-white transition-all duration-300 shadow-lg -ml-3 sm:-ml-4 opacity-0 group-hover/carousel:opacity-100 focus:opacity-100 disabled:opacity-0"
                   aria-label="Scroll left"
                 >
@@ -498,17 +454,11 @@ const EventsSection = () => {
                   className="flex overflow-x-auto gap-4 sm:gap-6 pb-6 pt-2 snap-x snap-mandatory hide-scrollbar px-1"
                 >
                   {filteredEventsByClub.map((event) => {
-                    const club = fetchedClubData?.find(
-                      (c) => c.id === event.club_id
-                    );
+                    const club = fetchedClubData?.find((c) => c.id === event.club_id);
                     const clubName = club?.name;
                     return (
                       <div key={event.id} className="snap-center flex-shrink-0">
-                        <EventCard
-                          event={event}
-                          clubName={clubName}
-                          onNavigate={handleNavigate}
-                        />
+                        <EventCard event={event} clubName={clubName} onNavigate={handleNavigate} />
                       </div>
                     );
                   })}
