@@ -113,16 +113,7 @@ const Footer = () => {
             </p>
             <motion.div {...simpleFadeIn} className="flex space-x-5">
               <a
-                href="https://twitter.com/campusbeacon"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-blue-400 transition-colors"
-                aria-label="CampusBeacon Twitter"
-              >
-                <FaTwitter size={24} />
-              </a>
-              <a
-                href="https://instagram.com/campusbeacon"
+                href="https://www.instagram.com/campus_beacon/"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-pink-400 transition-colors"
@@ -131,7 +122,7 @@ const Footer = () => {
                 <FaInstagram size={24} />
               </a>
               <a
-                href="https://github.com/campusbeacon"
+                href="https://github.com/ayush-jadaun/CampusBeacon"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white transition-colors"
@@ -320,8 +311,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-
-     
     </footer>
   );
 };

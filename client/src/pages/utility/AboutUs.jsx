@@ -28,10 +28,18 @@ const AboutUs = () => {
     () => [
       {
         name: "Ayush Jadaun",
-        role: "Co-Founder & Full Stack Developer",
-        image: "src/assets/images/jadaun.jpeg",
+        role: "Founder & Full Stack Developer",
+        image: "src/public/assets/images/jadaun.jpeg",
         bio: "Electronics And Communications student at MNNIT Allahabad, passionate about building efficient backend systems and scalable web applications. Driving the technical architecture of CampusBeacon.",
-        skills: ["Node.js", "React", "PostgreSQL", "Prisma", "Docker", "AWS"],
+        skills: [
+          "Node.js",
+          "React",
+          "PostgreSQL",
+          "Prisma",
+          "Docker",
+          "Express",
+          "fastify",
+        ],
         social: {
           github: "https://github.com/ayush-jadaun",
           linkedin: "https://www.linkedin.com/in/ayush-jadaun-677199311/",
@@ -41,7 +49,7 @@ const AboutUs = () => {
       {
         name: "Ayush Agarwal",
         role: "Co-Founder & Full Stack Developer",
-        image: "src/assets/images/agarwal.jpeg",
+        image: "src/public/assets/images/agarwal.jpeg",
         bio: "Electronics And Communications student at MNNIT Allahabad, focusing on creating intuitive user interfaces and seamless user experiences. Bringing the CampusBeacon vision to life visually.",
         skills: [
           "React",
@@ -100,7 +108,7 @@ const AboutUs = () => {
   ];
 
   const stats = [
-    { value: "15+", label: "Core Features" },
+    { value: "10+", label: "Core Features" },
     { value: "2", label: "Passionate Developers" },
     { value: "1", label: "Shared Vision" },
   ];
