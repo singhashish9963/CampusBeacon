@@ -9,7 +9,6 @@ import {
   createOfficial,
   editOfficial,
 } from "../../../slices/hostelSlice";
-
 const Officials = ({ hostelId }) => {
   const { officials, loading, error } = useSelector((state) => state.hostel);
   const { user } = useSelector((state) => state.auth);
