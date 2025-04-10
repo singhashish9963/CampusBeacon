@@ -161,8 +161,8 @@ const CollegeEateries = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-blue-950 text-gray-200 p-4 sm:p-8">
       <div className="container mx-auto max-w-7xl">
-        {/* --- Sticky Header --- */}
-        <div className="sticky top-0 z-30 bg-black/60 backdrop-blur-lg py-4 px-4 sm:px-8 -mx-4 sm:-mx-8 mb-8 rounded-b-lg shadow-lg">
+        {/* --- Header Section (Modified) --- */}
+        <div className="mb-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             {/* Title Area */}
             <motion.div
@@ -187,7 +187,7 @@ const CollegeEateries = () => {
                   placeholder="Search name or location..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="bg-gray-800/50 border border-purple-600/40 rounded-full py-2 px-4 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition w-full sm:w-64 text-sm"
+                  className="bg-gray-800/30 border border-purple-600/30 rounded-full py-2 px-4 pl-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-transparent transition w-full sm:w-64 text-sm backdrop-blur-sm"
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 pointer-events-none" />
               </div>
