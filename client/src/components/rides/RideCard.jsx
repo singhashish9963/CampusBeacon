@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   IndianRupee,
@@ -9,6 +9,8 @@ import {
   User,
   Loader2,
   Eye,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 import { formatDateTime, isRideActive } from "../../utils/dateUtils";
 import { useSelector } from "react-redux";
@@ -31,167 +33,229 @@ const RideCard = ({
   );
 
   const [showParticipants, setShowParticipants] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   if (!ride) {
     return <div className="p-6 text-red-500">Invalid ride data</div>;
   }
 
+  const isActive = isRideActive(ride.departureDateTime);
+  const cardStatusClass = isCreator
+    ? "border-l-4 border-purple-500"
+    : !isActive
+    ? "border-l-4 border-gray-500"
+    : ride.availableSeats === 0
+    ? "border-l-4 border-red-500"
+    : "border-l-4 border-green-500";
+
   return (
-    <div className="p-6 bg-gray-800 rounded-lg shadow-md">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h2 className="text-2xl font-bold text-white mb-2">
-            {ride.pickupLocation} &rarr; {ride.dropLocation}
-          </h2>
-          <p className="text-gray-400">
-            {formatDateTime(ride.departureDateTime)}
-          </p>
-          <div className="flex items-center mt-2 text-gray-400">
-            <User className="w-4 h-4 mr-2" />
-            <span>
-              Posted by:{" "}
-              {ride.creator?.name || ride.creator?.email || "Anonymous"}
-            </span>
-          </div>
-        </div>
-        <div className="flex space-x-2">
-          {ride.participants && ride.participants.length > 0 && (
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setShowParticipants(true)}
-              className="bg-purple-500 p-2 rounded-full text-white hover:bg-purple-600 transition-colors"
-              aria-label="View participants"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{
+        y: -5,
+        boxShadow: "0 10px 30px -15px rgba(138, 75, 235, 0.3)",
+      }}
+      onHoverStart={() => setIsHovered(true)}
+      onHoverEnd={() => setIsHovered(false)}
+      className={`p-5 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg shadow-lg ${cardStatusClass} overflow-hidden relative`}
+    >
+      {/* Background pattern for visual interest */}
+      <div className="absolute inset-0 opacity-5 bg-[radial-gradient(circle_at_15%_50%,rgba(138,75,235,0.8),transparent_30%),radial-gradient(circle_at_85%_30%,rgba(59,130,246,0.8),transparent_30%)]"></div>
+
+      <div className="relative">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <motion.h2
+              layout
+              className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-300 to-blue-300 mb-1"
             >
-              <Eye className="w-4 h-4" />
-            </motion.button>
-          )}
-          {(isCreator || isAdmin) && (
-            <>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => onEdit(ride)}
-                className="bg-blue-500 p-2 rounded-full text-white hover:bg-blue-600 transition-colors"
-                aria-label="Edit ride"
-              >
-                <Edit className="w-4 h-4" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => onDelete(ride.id)}
-                className="bg-red-500 p-2 rounded-full text-white hover:bg-red-600 transition-colors"
-                aria-label="Delete ride"
-              >
-                <Trash2 className="w-4 h-4" />
-              </motion.button>
-            </>
-          )}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex justify-between items-center text-gray-300">
-          <div className="flex items-center">
-            <Users className="w-4 h-4 mr-2 text-purple-400" />
-            <span>
-              {ride.availableSeats}/{ride.totalSeats} seats available
-            </span>
-          </div>
-          <div className="flex items-center">
-            <IndianRupee className="w-4 h-4 mr-1 text-green-400" />
-            <span>{ride.estimatedCost || "Free"}</span>
-          </div>
-        </div>
-
-        {ride.phoneNumber && (
-          <p className="text-gray-300 flex items-center">
-            <Phone className="w-4 h-4 mr-2 text-purple-400" />{" "}
-            {ride.phoneNumber}
-          </p>
-        )}
-
-        {ride.description && (
-          <p className="text-gray-300 text-sm italic">"{ride.description}"</p>
-        )}
-
-        {ride.participants && ride.participants.length > 0 && (
-          <div className="mt-4">
-            <p className="text-gray-400 mb-2">Participants:</p>
-            <div className="flex flex-wrap gap-2">
-              {ride.participants.slice(0, 3).map((participant) => (
-                <span
-                  key={participant.id}
-                  className="bg-purple-500/20 text-purple-200 text-sm px-3 py-1 rounded-full"
-                >
-                  {participant.participant?.name ||
-                    participant.participant?.email}
-                </span>
-              ))}
-              {ride.participants.length > 3 && (
-                <span className="bg-purple-500/20 text-purple-200 text-sm px-3 py-1 rounded-full">
-                  +{ride.participants.length - 3} more
-                </span>
-              )}
+              {ride.pickupLocation} &rarr; {ride.dropLocation}
+            </motion.h2>
+            <div className="flex items-center text-gray-400 mb-1">
+              <Calendar className="w-4 h-4 mr-2 text-blue-400" />
+              <span>{formatDateTime(ride.departureDateTime)}</span>
+            </div>
+            <div className="flex items-center text-gray-400">
+              <User className="w-4 h-4 mr-2 text-purple-400" />
+              <span>
+                {ride.creator?.name || ride.creator?.email || "Anonymous"}
+              </span>
             </div>
           </div>
-        )}
-      </div>
 
-      {!isCreator && isRideActive(ride.departureDateTime) && (
-        <div className="mt-4">
-          {hasJoined ? (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onUnjoin(ride.id)}
-              disabled={isLoading}
-              className={`w-full py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors flex items-center justify-center ${
-                isLoading ? "opacity-75 cursor-not-allowed" : ""
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Cancelling...
-                </>
-              ) : (
-                "Cancel Join"
+          <AnimatePresence>
+            <div className="flex space-x-2">
+              {ride.participants && ride.participants.length > 0 && (
+                <motion.button
+                  initial={{ scale: 1 }}
+                  whileHover={{ scale: 1.1, backgroundColor: "#9061F9" }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setShowParticipants(true)}
+                  className="bg-purple-600 p-2 rounded-full text-white transition-all shadow-md"
+                  aria-label="View participants"
+                >
+                  <Eye className="w-4 h-4" />
+                </motion.button>
               )}
-            </motion.button>
-          ) : (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => onJoin(ride.id)}
-              disabled={ride.availableSeats === 0 || isLoading}
-              className={`w-full py-2 rounded-lg transition-colors flex items-center justify-center ${
-                ride.availableSeats === 0 || isLoading
-                  ? "bg-gray-600 cursor-not-allowed text-gray-300"
-                  : "bg-purple-600 hover:bg-purple-700 text-white"
-              }`}
-            >
-              {isLoading ? (
+              {(isCreator || isAdmin) && (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Joining...
+                  <motion.button
+                    initial={{ scale: 1 }}
+                    whileHover={{ scale: 1.1, backgroundColor: "#3B82F6" }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => onEdit(ride)}
+                    className="bg-blue-600 p-2 rounded-full text-white transition-all shadow-md"
+                    aria-label="Edit ride"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </motion.button>
+                  <motion.button
+                    initial={{ scale: 1 }}
+                    whileHover={{ scale: 1.1, backgroundColor: "#EF4444" }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => onDelete(ride.id)}
+                    className="bg-red-600 p-2 rounded-full text-white transition-all shadow-md"
+                    aria-label="Delete ride"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </motion.button>
                 </>
-              ) : ride.availableSeats === 0 ? (
-                "Full"
-              ) : (
-                "Join Ride"
               )}
-            </motion.button>
+            </div>
+          </AnimatePresence>
+        </div>
+
+        {/* Details */}
+        <div className="space-y-3">
+          <div className="flex justify-between items-center text-gray-300">
+            <motion.div
+              className="flex items-center bg-purple-500/10 px-3 py-1 rounded-full"
+              whileHover={{ scale: 1.05 }}
+            >
+              <Users className="w-4 h-4 mr-2 text-purple-400" />
+              <span>
+                {ride.availableSeats}/{ride.totalSeats} seats
+              </span>
+            </motion.div>
+            <motion.div
+              className="flex items-center bg-green-500/10 px-3 py-1 rounded-full"
+              whileHover={{ scale: 1.05 }}
+            >
+              <IndianRupee className="w-4 h-4 mr-1 text-green-400" />
+              <span>{ride.estimatedCost || "Free"}</span>
+            </motion.div>
+          </div>
+
+          {ride.phoneNumber && (
+            <motion.div
+              className="text-gray-300 flex items-center"
+              initial={{ opacity: 0.8 }}
+              whileHover={{ opacity: 1, x: 5 }}
+            >
+              <Phone className="w-4 h-4 mr-2 text-blue-400" />{" "}
+              {ride.phoneNumber}
+            </motion.div>
+          )}
+
+          {ride.description && (
+            <motion.div
+              className="bg-gray-800/50 p-3 rounded-lg mt-2 text-gray-300 text-sm italic border-l-2 border-purple-500/50"
+              initial={{ opacity: 0.8 }}
+              whileHover={{ opacity: 1 }}
+            >
+              "{ride.description}"
+            </motion.div>
+          )}
+
+          {ride.participants && ride.participants.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0.8 }}
+              whileHover={{ opacity: 1 }}
+              className="mt-3"
+            >
+              <p className="text-gray-400 mb-2 text-sm">Participants:</p>
+              <div className="flex flex-wrap gap-2">
+                {ride.participants.slice(0, 3).map((participant) => (
+                  <span
+                    key={participant.id}
+                    className="bg-blue-500/20 text-blue-200 text-xs px-3 py-1 rounded-full"
+                  >
+                    {participant.participant?.name ||
+                      participant.participant?.email}
+                  </span>
+                ))}
+                {ride.participants.length > 3 && (
+                  <span className="bg-purple-500/20 text-purple-200 text-xs px-3 py-1 rounded-full">
+                    +{ride.participants.length - 3} more
+                  </span>
+                )}
+              </div>
+            </motion.div>
           )}
         </div>
-      )}
 
-      {isCreator && (
-        <div className="mt-4 text-center text-gray-400 bg-purple-500/10 py-2 rounded-lg">
-          Your Ride Offering
-        </div>
-      )}
+        {/* Action Button */}
+        {!isCreator && isActive && (
+          <div className="mt-4">
+            {hasJoined ? (
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onUnjoin(ride.id)}
+                disabled={isLoading}
+                className={`w-full py-2 rounded-lg shadow-lg bg-gradient-to-r from-red-600 to-red-500 text-white transition-all ${
+                  isLoading ? "opacity-75 cursor-not-allowed" : ""
+                }`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </div>
+                ) : (
+                  "Cancel Join"
+                )}
+              </motion.button>
+            ) : (
+              <motion.button
+                whileHover={{ scale: 1.02, y: -2 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => onJoin(ride.id)}
+                disabled={ride.availableSeats === 0 || isLoading}
+                className={`w-full py-2 rounded-lg shadow-lg transition-all ${
+                  ride.availableSeats === 0 || isLoading
+                    ? "bg-gray-600 cursor-not-allowed text-gray-300"
+                    : "bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+                }`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center justify-center">
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Joining...
+                  </div>
+                ) : ride.availableSeats === 0 ? (
+                  "No Seats Available"
+                ) : (
+                  "Join Ride"
+                )}
+              </motion.button>
+            )}
+          </div>
+        )}
+
+        {isCreator && (
+          <motion.div
+            initial={{ opacity: 0.8 }}
+            whileHover={{ opacity: 1, scale: 1.02 }}
+            className="mt-4 text-center text-white font-medium bg-gradient-to-r from-purple-600/30 to-blue-600/30 py-2 rounded-lg border border-purple-500/20"
+          >
+            Your Ride Offering
+          </motion.div>
+        )}
+      </div>
 
       <ParticipantsModal
         isOpen={showParticipants}
@@ -199,7 +263,7 @@ const RideCard = ({
         participants={ride.participants || []}
         rideDetails={ride}
       />
-    </div>
+    </motion.div>
   );
 };
 
