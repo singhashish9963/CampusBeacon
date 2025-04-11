@@ -70,20 +70,19 @@ const LostAndFound = () => {
     }
   }, [activeTab, dispatch]);
 
-  useEffect(() => {
-    if (error) {
-      setNotification({
-        type: "error",
-        message: error,
-      });
-      // Consider automatically clearing after showing
-      const timer = setTimeout(() => {
-        dispatch(clearLostAndFoundError());
-        setNotification(null); // Also clear local notification state
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error, dispatch]);
+useEffect(() => {
+  if (error) {
+    setNotification({
+      type: "error",
+      message: error,
+    });
+    const timer = setTimeout(() => {
+      dispatch(clearLostAndFoundError());
+      setNotification(null); 
+    }, 2000);
+    return () => clearTimeout(timer);
+  }
+}, [error, dispatch]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
