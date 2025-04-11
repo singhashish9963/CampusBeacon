@@ -6,6 +6,7 @@ import {
   FaRegHeart,
   FaHeart,
   FaEdit,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { IoMdCall, IoMdTime } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
@@ -19,6 +20,7 @@ function ItemCard({ item, onEdit }) {
   const [showContact, setShowContact] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Check if current user is the owner or admin
   const isOwner = user?.id === item.userId;
@@ -30,19 +32,27 @@ function ItemCard({ item, onEdit }) {
     setTimeout(() => setNotification(null), 3000);
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     try {
-      if (window.confirm("Are you sure you want to delete this item?")) {
-        await dispatch(deleteItem(item.id)).unwrap();
-        showNotification("Item deleted successfully", "success");
-      }
+      await dispatch(deleteItem(item.id)).unwrap();
+      showNotification("Item deleted successfully", "success");
+      setShowDeleteModal(false);
     } catch (error) {
       console.error("Error deleting item:", error);
       showNotification(
         "Failed to delete item: " + (error.message || "Unknown error"),
         "error"
       );
+      setShowDeleteModal(false);
     }
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
   };
 
   const handleEdit = () => {
@@ -86,6 +96,62 @@ function ItemCard({ item, onEdit }) {
     return text;
   };
 
+  // Delete confirmation modal
+  const DeleteConfirmationModal = () => (
+    <AnimatePresence>
+      {showDeleteModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={handleDeleteCancel}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl p-5 max-w-md w-full shadow-2xl border border-gray-700"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="bg-red-500/20 p-3 rounded-full mb-4">
+                <FaExclamationTriangle className="text-red-500" size={24} />
+              </div>
+
+              <h3 className="text-xl font-bold text-white mb-2">Delete Item</h3>
+
+              <p className="text-gray-300 mb-6">
+                Are you sure you want to delete "{item.item_name}"? This action
+                cannot be undone.
+              </p>
+
+              <div className="flex gap-3 w-full">
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleDeleteCancel}
+                  className="flex-1 bg-gray-700 hover:bg-gray-600 text-gray-200 py-2 rounded-lg font-medium transition-colors"
+                >
+                  Cancel
+                </motion.button>
+
+                <motion.button
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleDeleteConfirm}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-500 text-white py-2 rounded-lg font-medium shadow-lg hover:shadow-red-500/20 transition-all"
+                >
+                  Delete
+                </motion.button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <motion.div
       layout
@@ -94,6 +160,9 @@ function ItemCard({ item, onEdit }) {
       exit={{ opacity: 0, y: -20 }}
       className="relative overflow-hidden"
     >
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal />
+
       {/* Notification */}
       <AnimatePresence>
         {notification && (
@@ -113,7 +182,7 @@ function ItemCard({ item, onEdit }) {
       <div className="bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 h-full flex flex-col">
         {/* Image Container */}
         <div className="relative group">
-          {item.image_url && (
+          {item.image_url ? (
             <>
               <motion.img
                 src={item.image_url}
@@ -126,6 +195,12 @@ function ItemCard({ item, onEdit }) {
                 <div className="absolute inset-0 bg-gray-800 animate-pulse" />
               )}
             </>
+          ) : (
+            <div className="w-full h-40 sm:h-48 bg-gradient-to-r from-gray-800 to-gray-700 flex items-center justify-center">
+              <p className="text-gray-500 text-sm font-medium">
+                No image available
+              </p>
+            </div>
           )}
 
           {/* Actions Overlay */}
@@ -136,7 +211,7 @@ function ItemCard({ item, onEdit }) {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={handleEdit}
-                  className="p-1.5 text-blue-500 hover:text-blue-400 transition-colors rounded-full bg-blue-500/10 hover:bg-blue-500/20"
+                  className="p-1.5 text-yellow-500 hover:text-yellow-400 transition-colors rounded-full bg-yellow-500/10 hover:bg-yellow-500/20"
                   title="Edit Item"
                 >
                   <FaEdit size={14} />
@@ -144,7 +219,7 @@ function ItemCard({ item, onEdit }) {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={handleDelete}
+                  onClick={handleDeleteClick}
                   className="p-1.5 text-red-500 hover:text-red-400 transition-colors rounded-full bg-red-500/10 hover:bg-red-500/20"
                   title="Delete Item"
                 >
@@ -156,7 +231,7 @@ function ItemCard({ item, onEdit }) {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
               onClick={handleShare}
-              className="p-1.5 text-indigo-500 hover:text-indigo-400 transition-colors rounded-full bg-indigo-500/10 hover:bg-indigo-500/20"
+              className="p-1.5 text-yellow-500 hover:text-yellow-400 transition-colors rounded-full bg-yellow-500/10 hover:bg-yellow-500/20"
               title="Share Item"
             >
               <FaShareAlt size={14} />
@@ -167,7 +242,7 @@ function ItemCard({ item, onEdit }) {
               onClick={() => setIsLiked(!isLiked)}
               className={`p-1.5 transition-colors rounded-full ${
                 isLiked
-                  ? "text-pink-500 hover:text-pink-400 bg-pink-500/10 hover:bg-pink-500/20"
+                  ? "text-yellow-500 hover:text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20"
                   : "text-gray-400 hover:text-gray-300 bg-gray-500/10 hover:bg-gray-500/20"
               }`}
               title={isLiked ? "Unlike" : "Like"}
@@ -181,10 +256,10 @@ function ItemCard({ item, onEdit }) {
             <motion.div
               initial={{ x: 100 }}
               animate={{ x: 0 }}
-              className="flex items-center bg-green-500/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-lg"
+              className="flex items-center bg-yellow-500/90 backdrop-blur-sm px-2 py-1 rounded-full shadow-lg"
             >
-              <FaRupeeSign className="mr-0.5 text-white" size={12} />
-              <span className="font-bold text-white text-sm">{item.price}</span>
+              <FaRupeeSign className="mr-0.5 text-black" size={12} />
+              <span className="font-bold text-black text-sm">{item.price}</span>
             </motion.div>
           </div>
         </div>
@@ -208,11 +283,11 @@ function ItemCard({ item, onEdit }) {
                   item.item_condition === "New"
                     ? "bg-green-500/20 text-green-400"
                     : item.item_condition === "Like New"
-                    ? "bg-blue-500/20 text-blue-400"
+                    ? "bg-yellow-500/20 text-yellow-400"
                     : item.item_condition === "Good"
-                    ? "bg-teal-500/20 text-teal-400"
+                    ? "bg-yellow-500/20 text-yellow-400"
                     : item.item_condition === "Fair"
-                    ? "bg-orange-500/20 text-orange-400"
+                    ? "bg-yellow-500/20 text-yellow-400"
                     : "bg-red-500/20 text-red-400"
                 }`}
               >
@@ -220,7 +295,7 @@ function ItemCard({ item, onEdit }) {
               </span>
             )}
             {item.category && (
-              <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full font-medium">
+              <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full font-medium">
                 {item.category}
               </span>
             )}
@@ -238,28 +313,17 @@ function ItemCard({ item, onEdit }) {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => setShowContact(!showContact)}
-              className="w-full py-1.5 px-3 bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-300 rounded-lg text-sm font-medium transition-colors flex items-center justify-center"
+              className="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-lg text-sm font-medium shadow-lg hover:shadow-yellow-500/20 transition-all duration-300"
             >
-              <IoMdCall className="mr-1.5" size={16} />
-              {showContact ? "Hide Contact" : "Show Contact"}
-            </motion.button>
-
-            <AnimatePresence>
-              {showContact && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="bg-indigo-900/30 rounded-lg p-2 text-center">
-                    <p className="text-indigo-200 text-sm break-all">
-                      {item.owner_contact || "No contact info provided"}
-                    </p>
-                  </div>
-                </motion.div>
+              <IoMdCall size={16} className="mr-1.5 flex-shrink-0" />
+              {showContact ? (
+                <span className="truncate">
+                  {item.owner_contact || "No contact info provided"}
+                </span>
+              ) : (
+                <span>Show Contact</span>
               )}
-            </AnimatePresence>
+            </motion.button>
           </div>
         </div>
       </div>
