@@ -10,14 +10,25 @@ function LostItemCard({ item }) {
   const { user } = useSelector((state) => state.auth);
   const [showFullImage, setShowFullImage] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  const showNotification = (message, type = "success") => {
+    setNotification({ message, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
 
   const handleDelete = async () => {
     try {
       if (window.confirm("Are you sure you want to delete this item?")) {
         await dispatch(deleteLostItem(item.id)).unwrap();
+        showNotification("Item deleted successfully", "success");
       }
     } catch (error) {
       console.error("Error deleting item:", error);
+      showNotification(
+        "Failed to delete item: " + (error.message || "Unknown error"),
+        "error"
+      );
     }
   };
 
@@ -31,7 +42,20 @@ function LostItemCard({ item }) {
       await navigator.share(shareData);
     } catch (error) {
       console.error("Error sharing:", error);
+      // Use notification instead of browser alert
+      navigator.clipboard.writeText(window.location.href);
+      showNotification("Link copied to clipboard!", "success");
     }
+  };
+
+  // Function to sanitize description text
+  const sanitizeDescription = (text) => {
+    if (!text) return "";
+    // Check if the text looks like an SQL query
+    if (/SELECT|INSERT|UPDATE|DELETE.*FROM/i.test(text)) {
+      return "No description available";
+    }
+    return text;
   };
 
   const formatDate = (date) => {

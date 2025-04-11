@@ -21,6 +21,7 @@ import {
   createItem,
   getAllItems,
   clearError,
+  updateItem,
 } from "../../slices/buyandsellSlice";
 
 const Marketplace = () => {
@@ -38,6 +39,8 @@ const Marketplace = () => {
   const [priceRange, setPriceRange] = useState({ min: "", max: "" });
   const [showFilters, setShowFilters] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editItemId, setEditItemId] = useState(null);
 
   const [listingItem, setListingItem] = useState({
     item_name: "",
@@ -97,7 +100,12 @@ const Marketplace = () => {
 
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+    // Clear any existing timeout
+    if (window.notificationTimeout) {
+      clearTimeout(window.notificationTimeout);
+    }
+    // Set a new timeout to clear the notification after 5 seconds
+    window.notificationTimeout = setTimeout(() => setNotification(null), 5000);
   };
 
   const handleInputChange = (e) => {
@@ -116,24 +124,74 @@ const Marketplace = () => {
     }
   };
 
+  const handleEditItem = (item) => {
+    setIsEditMode(true);
+    setEditItemId(item.id);
+    setListingItem({
+      item_name: item.item_name,
+      price: item.price,
+      category: item.category,
+      description: item.description,
+      item_condition: item.item_condition,
+      owner_contact: item.owner_contact,
+      image: null, // We can't set the file object directly, but we'll handle this in the UI
+      image_url: item.image_url, // Keep track of the existing image URL
+    });
+    setActiveTab("sell");
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Sanitize description to prevent SQL queries from displaying
+      const sanitizedDescription = listingItem.description?.replace(
+        /SELECT|INSERT|UPDATE|DELETE.*FROM/gi,
+        "[removed]"
+      );
+
       const formData = new FormData();
       Object.keys(listingItem).forEach((key) => {
-        formData.append(key, listingItem[key]);
+        // Skip image_url when creating FormData
+        if (key !== "image_url") {
+          // Only append image if it exists (for edit mode, it might be null)
+          if (key === "image" && listingItem[key] === null && isEditMode) {
+            // Don't append null image in edit mode
+          } else if (key === "description") {
+            // Use sanitized description
+            formData.append(key, sanitizedDescription || "");
+          } else {
+            formData.append(key, listingItem[key]);
+          }
+        }
       });
 
-      await dispatch(createItem(formData)).unwrap();
+      if (isEditMode && editItemId) {
+        await dispatch(updateItem({ id: editItemId, formData })).unwrap();
+        showNotification("Item updated successfully!", "success");
+      } else {
+        await dispatch(createItem(formData)).unwrap();
+        showNotification("Item listed successfully!", "success");
+      }
+
+      // Reset form and go back to browse
       setActiveTab("browse");
-      setNotification({
-        type: "success",
-        message: "Item listed successfully!",
+      setIsEditMode(false);
+      setEditItemId(null);
+      setListingItem({
+        item_name: "",
+        price: "",
+        category: "",
+        description: "",
+        item_condition: "",
+        owner_contact: "",
+        image: null,
       });
     } catch (err) {
       setNotification({
         type: "error",
-        message: err.message || "Error listing item",
+        message:
+          err.message ||
+          (isEditMode ? "Error updating item" : "Error listing item"),
       });
     }
   };
@@ -363,7 +421,11 @@ const Marketplace = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4">
                   {filteredAndSortedItems.length > 0 ? (
                     filteredAndSortedItems.map((item) => (
-                      <ItemCard key={item.id} item={item} />
+                      <ItemCard
+                        key={item.id}
+                        item={item}
+                        onEdit={handleEditItem}
+                      />
                     ))
                   ) : (
                     <div className="col-span-full text-center py-12">
@@ -390,7 +452,7 @@ const Marketplace = () => {
                 className="bg-gray-800/30 backdrop-blur-sm p-4 md:p-6 rounded-xl shadow-xl max-w-2xl w-full border border-white/10"
               >
                 <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-center bg-gradient-to-r from-yellow-400 to-purple-400 bg-clip-text text-transparent">
-                  List Your Item
+                  {isEditMode ? "Edit Your Item" : "List Your Item"}
                 </h2>
 
                 <div className="space-y-4">
@@ -527,7 +589,7 @@ const Marketplace = () => {
                         onChange={handleImageUpload}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                         id="imageUpload"
-                        required={!listingItem.image}
+                        required={!isEditMode && !listingItem.image}
                       />
                       <div className="flex flex-col items-center justify-center space-y-2">
                         {listingItem.image ? (
@@ -537,13 +599,43 @@ const Marketplace = () => {
                               alt="Preview"
                               className="w-full h-32 sm:h-48 object-cover rounded-lg"
                             />
-                            <div className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
-                              <span className="text-white text-sm">Change Image</span>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                document.getElementById("imageUpload").click()
+                              }
+                              className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+                            >
+                              <span className="text-white text-sm">
+                                Change Image
+                              </span>
+                            </button>
+                          </div>
+                        ) : isEditMode && listingItem.image_url ? (
+                          <div className="relative w-full">
+                            <img
+                              src={listingItem.image_url}
+                              alt="Current"
+                              className="w-full h-32 sm:h-48 object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                document.getElementById("imageUpload").click()
+                              }
+                              className="absolute inset-0 bg-black/50 opacity-0 hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center"
+                            >
+                              <span className="text-white text-sm">
+                                Change Image
+                              </span>
+                            </button>
                           </div>
                         ) : (
                           <div className="flex flex-col items-center">
-                            <ImageIcon className="text-gray-400 mb-2" size={24} />
+                            <ImageIcon
+                              className="text-gray-400 mb-2"
+                              size={24}
+                            />
                             <p className="text-sm text-gray-400">
                               Click to upload (max 5MB)
                             </p>
@@ -569,8 +661,14 @@ const Marketplace = () => {
                       {loading ? (
                         <div className="flex items-center justify-center">
                           <Loader2 className="animate-spin mr-2" size={16} />
-                          <span>Listing Item...</span>
+                          <span>
+                            {isEditMode
+                              ? "Updating Item..."
+                              : "Listing Item..."}
+                          </span>
                         </div>
+                      ) : isEditMode ? (
+                        "Update Item"
                       ) : (
                         "List Item for Sale"
                       )}
