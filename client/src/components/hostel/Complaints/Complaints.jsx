@@ -1,19 +1,28 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import {
-  Wrench,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  Info, 
-} from "lucide-react";
+import { Wrench, CheckCircle, XCircle, AlertCircle, Info } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   createComplaint,
   updateComplaintStatus,
   deleteComplaint,
-} from "../../../slices/hostelSlice"; 
-import { toast } from "react-toastify"; 
+} from "../../../slices/hostelSlice";
+import { toast } from "react-toastify";
+
+
+
+const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+  
+  const date = new Date(dateString);
+  
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return "N/A";
+  }
+  
+  return date.toLocaleString();
+};
 
 const Complaints = ({ hostelId }) => {
   const [selectedComplaintType, setSelectedComplaintType] = useState("");
@@ -32,13 +41,11 @@ const Complaints = ({ hostelId }) => {
   } = useSelector((state) => state.hostel);
   const { user, roles } = useSelector((state) => state.auth);
 
-
   useEffect(() => {
     if (user && typeof user === "object") {
       setIsUserDataLoaded(true);
     }
   }, [user]);
-
 
   const userHasName = useMemo(() => {
     return !!user?.name?.trim();
@@ -51,9 +58,7 @@ const Complaints = ({ hostelId }) => {
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
 
-
   const filteredComplaints = useMemo(() => {
-
     const currentComplaints = complaints[hostelId];
     if (!Array.isArray(currentComplaints)) return [];
 
@@ -158,20 +163,18 @@ const Complaints = ({ hostelId }) => {
         success: `Complaint marked as ${statusText}.`,
         error: `Failed ${actionText} complaint.`,
       },
-      { position: "bottom-right" } 
+      { position: "bottom-right" }
     );
 
     try {
-      await promise; 
+      await promise;
     } catch (error) {
       console.error(`Failed to ${actionText} complaint:`, error);
-
     }
   };
 
   const handleDeleteComplaint = async (complaintId) => {
     if (!complaintId) return;
-
 
     if (
       !window.confirm(
@@ -465,14 +468,14 @@ const Complaints = ({ hostelId }) => {
                   <p>
                     On:{" "}
                     <span className="text-gray-200">
-                      {new Date(complaint.created_at).toLocaleDateString()}
+                      {formatDate(complaint.createdAt)}
                     </span>
                   </p>
                   {complaint.due_date && (
                     <p>
                       Due:{" "}
                       <span className="text-gray-200">
-                        {new Date(complaint.due_date).toLocaleDateString()}
+                        {formatDate(complaint.due_date)}
                       </span>
                     </p>
                   )}
