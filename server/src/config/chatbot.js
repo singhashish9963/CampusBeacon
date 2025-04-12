@@ -15,7 +15,7 @@ const config = {
     process.env.MODEL_PATH || path.join(__dirname, "../models/campus-bot.nlp"),
   nlpConfig: {
     languages: ["en"],
-    threshold: process.env.NLP_THRESHOLD || 0.6,
+    threshold: process.env.NLP_THRESHOLD || 0.3,
     autoSave: true,
     autoLoad: true,
     modelFileName: process.env.MODEL_FILENAME || "campus-bot.nlp",

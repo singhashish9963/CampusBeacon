@@ -16,7 +16,7 @@ const manager = new NlpManager({
   nlu: { log: false },
   useNeural: true,
   modelFileName: MODEL_FILE,
-  threshold: config.nlpConfig.threshold || 0.6, // Use configurable threshold
+  threshold: config.nlpConfig.threshold || 0.3, // Use configurable threshold
 });
 
 class AdvancedLanguageProcessor {
@@ -29,6 +29,7 @@ class AdvancedLanguageProcessor {
     this.sentimentCache = new Map(); // Cache sentiment analysis results
   }
 
+  // loadCorpus method is excluded as per request
   loadCorpus() {
     try {
       const corpusData = fs.readFileSync(CORPUS_FILE, "utf8");
@@ -301,10 +302,10 @@ class AdvancedLanguageProcessor {
       phone: /\b\d{3}[-.)]\d{3}[-.)]\d{4}\b/,
       time: /\b(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:am|pm)\b/i,
       url: /https?:\/\/[^\s]+/,
-      // Added patterns for common campus-related entities
-      courseCode: /\b[A-Z]{2,4}\s?\d{3,4}\b/, // e.g., "CS 101" or "ENG2020"
-      buildingName: /\b[A-Z][a-z]+ Hall\b/, // e.g., "Main Hall", "Science Hall"
-      professorName: /\b(Prof|Dr)\.\s[A-Z][a-z]+ [A-Z][a-z]+\b/, // e.g., "Prof. John Doe"
+      // Campus-related entities
+      courseCode: /\b[A-Z]{2,4}\s?\d{3,4}\b/,
+      buildingName: /\b[A-Z][a-z]+ Hall\b/,
+      professorName: /\b(?:Prof|Dr)\.\s[A-Z][a-z]+ [A-Z][a-z]+\b/,
     };
   }
 
@@ -315,7 +316,6 @@ class AdvancedLanguageProcessor {
       ["event", ["activity", "program", "gathering", "meeting", "session"]],
       ["register", ["signup", "enroll", "join", "subscribe"]],
       ["cancel", ["delete", "remove", "unsubscribe", "quit"]],
-      // Added synonyms for campus-related terms
       ["campus", ["university", "college", "school"]],
       ["forum", ["discussion", "board", "community"]],
       ["resource", ["material", "tool", "document"]],
@@ -323,74 +323,114 @@ class AdvancedLanguageProcessor {
   }
 
   generateWordVector(text) {
-    if (!text || typeof text !== "string") return new Map(); // Handle null or undefined
+    if (!text || typeof text !== "string") return new Map();
+
     const words = text.toLowerCase().split(/\W+/);
     const vector = new Map();
-    words.forEach((word) => {
+
+    for (const word of words) {
       if (word) {
-        // Skip empty strings
         vector.set(word, (vector.get(word) || 0) + 1);
       }
-    });
+    }
+
     return vector;
   }
 
   cosineSimilarity(vecA, vecB) {
-    if (!vecA || !vecB || vecA.size === 0 || vecB.size === 0) return 0; // Handle empty vectors
+    if (!vecA || !vecB || vecA.size === 0 || vecB.size === 0) return 0;
 
     let dotProduct = 0;
     let normA = 0;
     let normB = 0;
 
-    for (const [word, countA] of vecA) {
+    // Calculate dot product and magnitude of vecA
+    for (const [word, countA] of vecA.entries()) {
       const countB = vecB.get(word) || 0;
       dotProduct += countA * countB;
       normA += countA * countA;
     }
 
-    for (const [_, countB] of vecB) {
+    // Calculate magnitude of vecB
+    for (const [_, countB] of vecB.entries()) {
       normB += countB * countB;
     }
 
-    if (normA === 0 || normB === 0) return 0; // Avoid division by zero
+    // Prevent division by zero
+    if (normA === 0 || normB === 0) return 0;
+
     return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
   findSynonyms(word) {
-    if (!word) return []; // Handle null or undefined
-    for (const [key, synonyms] of this.synonyms) {
-      if (key === word || synonyms.includes(word)) {
-        return [key, ...synonyms];
+    if (!word || typeof word !== "string") return [];
+
+    for (const [key, synonymsList] of this.synonyms.entries()) {
+      if (
+        key === word.toLowerCase() ||
+        synonymsList.includes(word.toLowerCase())
+      ) {
+        return [key, ...synonymsList].filter(
+          (syn) => syn !== word.toLowerCase()
+        );
       }
     }
-    return [word];
+
+    return [];
   }
 
   extractEntities(text) {
-    if (!text || typeof text !== "string") return {}; // Handle null or undefined
+    if (!text || typeof text !== "string") return {};
+
     const entities = {};
+
     for (const [type, pattern] of Object.entries(this.entityPatterns)) {
       const matches = text.match(pattern);
-      if (matches) {
+      if (matches && matches.length > 0) {
         entities[type] = matches[0];
       }
     }
+
     return entities;
   }
 
   findContextualMatches(question, threshold = 0.6) {
-    if (!question || typeof question !== "string") return []; // Handle null or undefined
+    if (
+      !question ||
+      typeof question !== "string" ||
+      !this.corpus ||
+      !this.corpus.phrases
+    ) {
+      return [];
+    }
+
     const questionVector = this.generateWordVector(question);
     const matches = [];
 
+    // Store word vectors for phrases to avoid recalculation
+    if (!this.phraseVectors) {
+      this.phraseVectors = new Map();
+      for (const phrase of this.corpus.phrases) {
+        if (phrase.question) {
+          this.phraseVectors.set(
+            phrase.question,
+            this.generateWordVector(phrase.question)
+          );
+        }
+      }
+    }
+
     for (const phrase of this.corpus.phrases) {
-      const phraseVector = this.generateWordVector(phrase.question);
+      if (!phrase.question || !phrase.answer) continue;
+
+      const phraseVector = this.phraseVectors.get(phrase.question);
       const similarity = this.cosineSimilarity(questionVector, phraseVector);
 
-      if (similarity > threshold) {
+      if (similarity >= threshold) {
         matches.push({
           question: phrase.question,
           answer: phrase.answer,
+          category: phrase.category,
           similarity,
         });
       }
@@ -400,19 +440,25 @@ class AdvancedLanguageProcessor {
   }
 
   updateContext(sessionId, question) {
-    if (!sessionId || !question) return; // Handle null or undefined
+    if (!sessionId || !question) return;
+
     const context = this.contextMemory.get(sessionId) || [];
     context.push(question);
-    if (context.length > 5) context.shift();
+
+    // Keep context limited to most recent 5 questions
+    if (context.length > 5) {
+      context.shift();
+    }
+
     this.contextMemory.set(sessionId, context);
   }
 
-  // Sentiment analysis function (basic)
   analyzeSentiment(text) {
     if (!text || typeof text !== "string") {
-      return { score: 0, sentiment: "neutral" }; // Handle null or undefined
+      return { score: 0, sentiment: "neutral" };
     }
 
+    // Check cache first
     if (this.sentimentCache.has(text)) {
       return this.sentimentCache.get(text);
     }
@@ -426,7 +472,11 @@ class AdvancedLanguageProcessor {
       "helpful",
       "best",
       "easy",
+      "love",
+      "like",
+      "thank",
     ];
+
     const negativeWords = [
       "bad",
       "terrible",
@@ -436,19 +486,23 @@ class AdvancedLanguageProcessor {
       "worst",
       "hard",
       "broken",
+      "hate",
+      "poor",
+      "useless",
     ];
 
     let positiveScore = 0;
     let negativeScore = 0;
 
     const words = text.toLowerCase().split(/\W+/);
-    words.forEach((word) => {
+
+    for (const word of words) {
       if (positiveWords.includes(word)) {
         positiveScore++;
       } else if (negativeWords.includes(word)) {
         negativeScore++;
       }
-    });
+    }
 
     const score = positiveScore - negativeScore;
     let sentiment = "neutral";
@@ -464,22 +518,24 @@ class AdvancedLanguageProcessor {
     return result;
   }
 
-  // Enhanced Context Analysis
   enhancedContextAnalysis(question, sessionId) {
-    if (!question) {
-      return { bestMatch: null, bestSimilarity: 0 }; // Handle null or undefined
+    if (!question || !sessionId) {
+      return { bestMatch: null, bestSimilarity: 0 };
     }
 
     const context = this.contextMemory.get(sessionId) || [];
     const recentQuestions = context.slice(-3); // Consider the last 3 questions
 
-    let combinedText = question + " " + recentQuestions.join(" ");
+    // Combine current question with recent context
+    const combinedText = [question, ...recentQuestions].join(" ");
     const combinedVector = this.generateWordVector(combinedText);
 
     let bestMatch = null;
     let bestSimilarity = 0;
 
     for (const phrase of this.corpus.phrases) {
+      if (!phrase.question || !phrase.answer) continue;
+
       const phraseVector = this.generateWordVector(phrase.question);
       const similarity = this.cosineSimilarity(combinedVector, phraseVector);
 
@@ -498,23 +554,37 @@ const processor = new AdvancedLanguageProcessor();
 // Train the model if it doesn't exist
 const trainModel = async () => {
   try {
-    // Load and clean corpus data
-    const corpus = processor.loadCorpus();
-    // Add all phrases from corpus to the manager
-    for (const phrase of corpus.phrases) {
-      if (phrase.question && phrase.answer && phrase.category) {
-        manager.addDocument("en", phrase.question, phrase.category);
-        manager.addAnswer("en", phrase.category, phrase.answer);
+    if (!fs.existsSync(MODEL_FILE)) {
+      console.log("Training new model...");
+
+      // Add all phrases from corpus to the manager
+      for (const phrase of processor.corpus.phrases) {
+        if (phrase.question && phrase.answer && phrase.category) {
+          manager.addDocument("en", phrase.question, phrase.category);
+          manager.addAnswer("en", phrase.category, phrase.answer);
+
+          // Add synonym variations where possible
+          const words = phrase.question.split(/\W+/).filter((word) => word);
+          for (const word of words) {
+            const synonyms = processor.findSynonyms(word);
+            for (const synonym of synonyms) {
+              const synonymQuestion = phrase.question.replace(word, synonym);
+              manager.addDocument("en", synonymQuestion, phrase.category);
+            }
+          }
+        }
       }
+
+      // Train and save the model
+      await manager.train();
+      await manager.save();
+      console.log("Model trained and saved successfully");
+    } else {
+      console.log("Loading existing model...");
+      await manager.load(MODEL_FILE);
     }
-
-    // Train the model
-    await manager.train();
-
-    // Save the model
-    await manager.save();
   } catch (error) {
-    console.error("Error training model:", error);
+    console.error("Error training/loading model:", error);
     throw error;
   }
 };
@@ -533,42 +603,82 @@ export const processQuestion = async (question, sessionId) => {
       };
     }
 
+    // Update context for this session
+    processor.updateContext(sessionId, question);
+
+    // Extract entities
+    const entities = processor.extractEntities(question);
+
+    // Analyze sentiment
+    const sentiment = processor.analyzeSentiment(question);
+
     // Process the question using the NLP manager
     const result = await manager.process("en", question);
 
-    if (!result || !result.answer) {
-      // If no direct match, try to find similar questions
-      const similarQuestions = processor.findContextualMatches(question);
-      if (similarQuestions.length > 0 && similarQuestions[0].similarity > 0.6) {
+    // If confidence is low, try enhanced context analysis
+    if (!result.answer || result.score < 0.4) {
+      const { bestMatch, bestSimilarity } = processor.enhancedContextAnalysis(
+        question,
+        sessionId
+      );
+
+      if (bestMatch && bestSimilarity > 0.6) {
         return {
-          answer: similarQuestions[0].answer,
-          category: "contextual",
-          confidence: similarQuestions[0].similarity,
-          similarQuestions: similarQuestions.slice(1, 4).map((q) => q.question),
+          answer: bestMatch.answer,
+          category: bestMatch.category,
+          confidence: bestSimilarity,
+          similarQuestions: processor
+            .findContextualMatches(question, 0.5)
+            .filter((q) => q.question !== bestMatch.question)
+            .slice(0, 3)
+            .map((q) => q.question),
+          entities,
+          sentiment: sentiment.sentiment,
         };
       }
 
+      // If still no good match, try direct contextual matching
+      const similarQuestions = processor.findContextualMatches(question, 0.6);
+      if (similarQuestions.length > 0) {
+        return {
+          answer: similarQuestions[0].answer,
+          category: similarQuestions[0].category || "contextual",
+          confidence: similarQuestions[0].similarity,
+          similarQuestions: similarQuestions.slice(1, 4).map((q) => q.question),
+          entities,
+          sentiment: sentiment.sentiment,
+        };
+      }
+
+      // No good matches found
       return {
         answer:
           "I'm not sure about that. Could you please rephrase your question?",
         category: "unknown",
         confidence: 0,
-        similarQuestions: [],
+        similarQuestions: processor
+          .findContextualMatches(question, 0.4)
+          .slice(0, 3)
+          .map((q) => q.question),
+        entities,
+        sentiment: sentiment.sentiment,
       };
     }
 
-    // Get similar questions from the corpus using all available questions
-    const corpus = processor.loadCorpus();
-    const similarQuestions = corpus.phrases
-      .map((phrase) => phrase.question)
-      .filter((q) => q !== question)
-      .slice(0, 3);
+    // Get similar questions for suggestions
+    const similarQuestions = processor
+      .findContextualMatches(question, 0.5)
+      .filter((q) => q.question !== question)
+      .slice(0, 3)
+      .map((q) => q.question);
 
     return {
       answer: result.answer,
       category: result.intent,
       confidence: result.score,
       similarQuestions,
+      entities,
+      sentiment: sentiment.sentiment,
     };
   } catch (error) {
     console.error("Error processing question:", error);
@@ -578,6 +688,8 @@ export const processQuestion = async (question, sessionId) => {
       category: "error",
       confidence: 0,
       similarQuestions: [],
+      entities: {},
+      sentiment: "neutral",
     };
   }
 };
@@ -591,22 +703,35 @@ export const addQnAPair = async (question, answer, category = "general") => {
       typeof question !== "string" ||
       typeof answer !== "string"
     ) {
-      throw new Error("Invalid question or answer");
+      throw new Error("Invalid question or answer format");
     }
 
+    // Add to corpus
     processor.corpus.phrases.push({
       question,
       answer,
       category,
     });
 
+    // Save to corpus file
     await fs.promises.writeFile(
       CORPUS_FILE,
       JSON.stringify(processor.corpus, null, 2)
     );
 
+    // Add to NLP manager
     manager.addDocument("en", question, category);
     manager.addAnswer("en", category, answer);
+
+    // Add synonym variations
+    const words = question.split(/\W+/).filter((word) => word);
+    for (const word of words) {
+      const synonyms = processor.findSynonyms(word);
+      for (const synonym of synonyms) {
+        const synonymQuestion = question.replace(word, synonym);
+        manager.addDocument("en", synonymQuestion, category);
+      }
+    }
 
     return true;
   } catch (error) {
@@ -617,11 +742,16 @@ export const addQnAPair = async (question, answer, category = "general") => {
 
 export const trainAndSave = async () => {
   try {
+    console.log("Training model...");
     await manager.train();
-    manager.save(MODEL_FILE);
+    console.log("Saving model...");
+    await manager.save(MODEL_FILE);
+    console.log("Model trained and saved successfully");
     return true;
   } catch (error) {
-    console.error("Error training model:", error);
+    console.error("Error training and saving model:", error);
     return false;
   }
 };
+
+
