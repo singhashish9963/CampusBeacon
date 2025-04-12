@@ -233,7 +233,6 @@ export const createOfficial = asyncHandler(async (req, res, next) => {
   if (!hostel) {
     throw new ApiError("Hostel not found", 404);
   }
-  console.log(hostel_id, name, email, phone, designation,hostel);
   const official = await Official.create({
     hostel_id: Number(hostel_id),
     name,
