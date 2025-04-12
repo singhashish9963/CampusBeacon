@@ -22,8 +22,10 @@ import {
   Image,
   ChevronDown,
   Hash,
+  X,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
+import Picker, { Theme } from "emoji-picker-react";
 
 /**
  * Returns a random avatar URL using robohash.org.
@@ -41,10 +43,11 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   const [newMessageContent, setNewMessageContent] = useState("");
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editingMessageContent, setEditingMessageContent] = useState("");
-  const [showEmoji, setShowEmoji] = useState(false);
+  // const [showEmoji, setShowEmoji] = useState(false); // Remove this line, replaced by showEmojiPicker
   const [isTyping, setIsTyping] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState(null);
   const chatBoxRef = useRef(null);
+  const emojiPickerRef = useRef(null); // Ref for the emoji picker area
 
   // Pagination state
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -53,14 +56,13 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesPerPage = 20;
 
+  // Emoji Picker State
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false); // State to toggle emoji picker
+
   // Check if user can edit or delete a message
   const canModifyMessage = (message) => {
     if (!authUser) return false;
-
-    // Admin can edit/delete any message
     if (isAdmin) return true;
-
-    // Regular users can only edit/delete their own messages
     return message.userId === authUser.id;
   };
 
@@ -87,7 +89,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         if (error) {
           console.error("Error fetching messages:", error);
         } else {
-          // Reverse to get chronological order (oldest first)
           setMessages(data.reverse());
           setHasMoreMessages(data.length === messagesPerPage);
         }
@@ -100,14 +101,11 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
 
     fetchMessages();
 
-    // Subscribe to real-time message updates
     const messageSubscription = subscribeToMessages(channelId, {
       onInsert: (newMessage) => {
-        // Only add messages for the current channel
         if (newMessage.channelId === channelId) {
           console.log("Adding new message to UI:", newMessage);
           setMessages((prevMessages) => [...prevMessages, newMessage]);
-          // Auto-scroll to bottom when new message arrives
           setTimeout(() => {
             if (chatBoxRef.current) {
               chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
@@ -116,7 +114,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         }
       },
       onUpdate: (updatedMessage) => {
-        // Only update messages for the current channel
         if (updatedMessage.channelId === channelId) {
           console.log("Updating message in UI:", updatedMessage);
           setMessages((prevMessages) =>
@@ -128,8 +125,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
       },
       onDelete: (deletedMessage) => {
         console.log("Processing delete event for message:", deletedMessage);
-
-        // For delete events, we need to be more careful as the payload might be incomplete
         if (deletedMessage && deletedMessage.id) {
           console.log("Removing deleted message from UI:", deletedMessage.id);
           setMessages((prevMessages) =>
@@ -149,9 +144,13 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   const handleChatScroll = (e) => {
     if (chatBoxRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = chatBoxRef.current;
-      // Show scroll button when not at bottom (with a larger threshold for better UX)
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 150;
       setShowScrollButton(!isAtBottom);
+
+      // Load more when reaching the top
+      if (scrollTop === 0 && hasMoreMessages && !isLoadingMore) {
+        loadMoreMessages();
+      }
     }
   };
 
@@ -165,8 +164,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
     const endRange = startRange + messagesPerPage - 1;
 
     try {
-      // Add a small delay to make the loading indicator visible
-      // This improves UX by making the pagination more noticeable
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       const { data, error } = await supabase
@@ -179,13 +176,19 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
       if (error) {
         console.error("Error loading more messages:", error);
       } else {
-        // Prepend older messages (in correct chronological order)
         if (data.length > 0) {
+          const currentScrollHeight = chatBoxRef.current?.scrollHeight || 0;
           setMessages((prevMessages) => [...data.reverse(), ...prevMessages]);
           setCurrentPage(nextPage);
-        }
 
-        // Check if we have more messages to load
+          // Maintain scroll position after loading older messages
+          requestAnimationFrame(() => {
+            if (chatBoxRef.current) {
+              chatBoxRef.current.scrollTop =
+                chatBoxRef.current.scrollHeight - currentScrollHeight;
+            }
+          });
+        }
         setHasMoreMessages(data.length === messagesPerPage);
       }
     } catch (err) {
@@ -212,7 +215,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
 
     fetchUsers();
 
-    // Subscribe to real-time user updates
     const usersSubscription = subscribeToUsers({
       onInsert: (newUser) => {
         setUsers((prev) => [...prev, newUser]);
@@ -233,8 +235,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   }, []);
 
   // Handle sending a new message.
-
-
   const sendMessage = async () => {
     if (!newMessageContent.trim()) return;
     if (!authUser) {
@@ -258,10 +258,8 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         console.error("Error sending message:", error);
       } else {
         setNewMessageContent("");
-        // Focus back on input after sending
+        setShowEmojiPicker(false); // Close emoji picker after sending
         document.getElementById("message-input")?.focus();
-
-        // Auto-scroll to bottom after sending
         setTimeout(() => {
           if (chatBoxRef.current) {
             chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
@@ -276,13 +274,10 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   // Trigger delete confirmation.
   const confirmAndDeleteMessage = (messageId) => {
     const message = messages.find((msg) => msg.id === messageId);
-
-    // Check permission before showing delete confirmation
     if (!canModifyMessage(message)) {
       alert("You don't have permission to delete this message");
       return;
     }
-
     setDeleteConfirmation(messageId);
   };
 
@@ -290,24 +285,18 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   const handleDeleteResponse = async (confirmed) => {
     if (confirmed && deleteConfirmation) {
       try {
-        // Get the message to delete before deleting it (for logging)
         const messageToDelete = messages.find(
           (msg) => msg.id === deleteConfirmation
         );
-
-        // Double-check permissions before deleting
         if (!canModifyMessage(messageToDelete)) {
           console.error("Permission denied: Cannot delete this message");
           return;
         }
-
-        // Log the deletion attempt
         console.log(
           "Attempting to delete message:",
           deleteConfirmation,
           messageToDelete
         );
-
         const { error } = await supabase
           .from("Messages")
           .delete()
@@ -317,8 +306,6 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
           console.error("Error deleting message:", error);
         } else {
           console.log("Message deleted successfully, updating UI immediately");
-
-          // Update the UI immediately without waiting for the subscription
           setMessages((prevMessages) =>
             prevMessages.filter((msg) => msg.id !== deleteConfirmation)
           );
@@ -332,12 +319,10 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
 
   // Start editing a message
   const startEditingMessage = (message) => {
-    // Check permission before allowing edit
     if (!canModifyMessage(message)) {
       alert("You don't have permission to edit this message");
       return;
     }
-
     setEditingMessageId(message.id);
     setEditingMessageContent(message.content);
   };
@@ -345,10 +330,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
   // Handle message editing.
   const updateMessage = async (messageId, newContent) => {
     if (!newContent.trim()) return;
-
     const messageToUpdate = messages.find((msg) => msg.id === messageId);
-
-    // Double-check permissions before updating
     if (!canModifyMessage(messageToUpdate)) {
       console.error("Permission denied: Cannot edit this message");
       return;
@@ -393,6 +375,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
 
   // Get full user data from the "users" state.
   const getUserData = (userId) => {
+    // Kept but might be redundant with getUserFromMessage
     const found = users.find((u) => u.id === userId);
     if (found) return found;
     return {
@@ -428,6 +411,35 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
     [users]
   );
 
+  // Handle Emoji Selection
+  const onEmojiClick = (emojiData, event) => {
+    setNewMessageContent((prevInput) => prevInput + emojiData.emoji);
+    // Optional: focus input after adding emoji
+    document.getElementById("message-input")?.focus();
+  };
+
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(event.target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    };
+
+    if (showEmojiPicker) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showEmojiPicker]);
+
   return (
     <div
       className={`flex flex-col h-full ${
@@ -445,6 +457,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
           darkMode ? "bg-gray-900/90" : "bg-white/90"
         }`}
       >
+        {/* ... (header content remains the same) */}
         <div className="flex items-center space-x-3">
           <div
             className={`w-8 h-8 rounded-md flex items-center justify-center ${
@@ -473,12 +486,20 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
 
       {/* Chat Window */}
       <div
-        className="flex-1 overflow-y-auto p-4"
+        className="flex-1 overflow-y-auto p-4 relative" // Added relative for loading indicator positioning
         onScroll={handleChatScroll}
         ref={chatBoxRef}
       >
+        {/* Loading More Indicator */}
+        {isLoadingMore && (
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 py-2 px-4 rounded-full bg-gray-500/50 text-white text-xs z-20 backdrop-blur-sm">
+            Loading older messages...
+          </div>
+        )}
+
         {isTyping && messages.length === 0 ? (
           <div className="flex justify-center py-10">
+            {/* ... (typing indicator) */}
             <div className="animate-pulse flex space-x-2">
               <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
               <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
@@ -487,6 +508,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
           </div>
         ) : messages.length === 0 ? (
           <div className="text-center py-10">
+            {/* ... (no messages view) */}
             <div
               className={`mx-auto w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
                 darkMode ? "bg-gray-800" : "bg-gray-200"
@@ -500,14 +522,16 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                 darkMode ? "text-gray-400" : "text-gray-500"
               }`}
             >
-              Be the first to send a message in this channel!
+              Be the first to send a message in #{channelName}!
             </p>
           </div>
         ) : (
           <div className="space-y-6">
             {Object.entries(groupedMessages).map(([date, dateMessages]) => (
               <div key={date} className="space-y-4">
+                {/* Date Separator */}
                 <div className="relative flex items-center py-2">
+                  {/* ... (date separator) */}
                   <div
                     className={`flex-grow border-t border-dashed ${
                       darkMode ? "border-gray-700" : "border-gray-300"
@@ -531,9 +555,13 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                   const user = getUserFromMessage(message);
                   const isCurrentUser = message.userId === authUser?.id;
                   const canModify = canModifyMessage(message);
-                  const showAvatar =
+                  const showAvatarAndName =
                     index === 0 ||
-                    dateMessages[index - 1]?.userId !== message.userId;
+                    dateMessages[index - 1]?.userId !== message.userId ||
+                    // Show avatar/name again if time gap is significant (e.g., > 5 minutes)
+                    new Date(message.createdAt).getTime() -
+                      new Date(dateMessages[index - 1]?.createdAt).getTime() >
+                      5 * 60 * 1000;
 
                   return (
                     <motion.div
@@ -548,26 +576,27 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                       <div
                         className={`flex max-w-[85%] ${
                           isCurrentUser ? "flex-row-reverse" : "flex-row"
-                        } items-end space-x-2 ${
+                        } items-start space-x-2 ${
+                          // Use items-start for avatar alignment
                           isCurrentUser ? "space-x-reverse" : ""
-                        }`}
+                        } ${showAvatarAndName ? "mt-2" : ""}`} // Add margin top for new user block
                       >
-                        {/* Avatar (only show for first message in a group) */}
-                        {!isCurrentUser && showAvatar ? (
-                          <img
-                            src={user.avatar}
-                            alt={user.name}
-                            className="w-8 h-8 rounded-full flex-shrink-0"
-                          />
-                        ) : !isCurrentUser ? (
-                          <div className="w-8 h-8 flex-shrink-0" />
-                        ) : null}
+                        {/* Avatar */}
+                        <div className="flex-shrink-0 w-8 h-8">
+                          {!isCurrentUser && showAvatarAndName && (
+                            <img
+                              src={user.avatar}
+                              alt={user.name}
+                              className="w-full h-full rounded-full"
+                            />
+                          )}
+                        </div>
 
                         {/* Message content */}
                         <div className="flex flex-col">
-                          {/* Username and registration number (only show for first message in a group) */}
-                          {showAvatar && !isCurrentUser && (
-                            <div className="flex items-center mb-1 ml-1">
+                          {/* Username and registration number */}
+                          {showAvatarAndName && !isCurrentUser && (
+                            <div className="flex items-baseline mb-1 ml-1">
                               <span className="text-sm font-medium mr-2">
                                 {user.name}
                               </span>
@@ -576,11 +605,20 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                   {user.registration_number}
                                 </span>
                               )}
+                              <span
+                                className={`text-xs ${
+                                  isCurrentUser
+                                    ? "text-amber-200"
+                                    : "text-gray-400"
+                                } ml-2`}
+                              >
+                                {formatTime(message.createdAt)}
+                              </span>
                             </div>
                           )}
 
                           {editingMessageId === message.id ? (
-                            <div
+                            <div /* ... (editing view) */
                               className={`p-2 rounded-lg ${
                                 darkMode ? "bg-gray-800" : "bg-gray-100"
                               }`}
@@ -626,7 +664,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                               </div>
                             </div>
                           ) : deleteConfirmation === message.id ? (
-                            <div
+                            <div /* ... (delete confirmation view) */
                               className={`p-3 rounded-lg ${
                                 darkMode ? "bg-gray-800" : "bg-gray-100"
                               }`}
@@ -661,39 +699,60 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                   : darkMode
                                   ? "bg-gray-800 rounded-bl-none"
                                   : "bg-gray-100 text-gray-800 rounded-bl-none"
-                              }`}
+                              } ${
+                                showAvatarAndName
+                                  ? ""
+                                  : isCurrentUser
+                                  ? "rounded-tr-lg"
+                                  : "rounded-tl-lg"
+                              } `} 
                             >
                               <p className="whitespace-pre-wrap">
                                 {message.content}
                               </p>
-                              <span
-                                className={`text-xs ${
-                                  isCurrentUser
-                                    ? "text-amber-200"
-                                    : "text-gray-400"
-                                } mt-1 inline-block`}
-                              >
-                                {formatTime(message.createdAt)}
-                                {message.updatedAt !== message.createdAt &&
-                                  " (edited)"}
-                              </span>
+                              {/* Show time inline only if avatar/name is not shown */}
+                              {!showAvatarAndName && (
+                                <span
+                                  className={`text-xs ${
+                                    isCurrentUser
+                                      ? "text-amber-200"
+                                      : "text-gray-400"
+                                  } mt-1 ml-2 inline-block`}
+                                >
+                                  {formatTime(message.createdAt)}
+                                  {message.updatedAt !== message.createdAt &&
+                                    " (edited)"}
+                                </span>
+                              )}
+                              {showAvatarAndName &&
+                                message.updatedAt !== message.createdAt && (
+                                  <span
+                                    className={`text-xs ${
+                                      isCurrentUser
+                                        ? "text-amber-200"
+                                        : "text-gray-400"
+                                    } mt-1 ml-2 inline-block`}
+                                  >
+                                    (edited)
+                                  </span>
+                                )}
 
                               {/* Message actions */}
                               {canModify && (
                                 <div
                                   className={`absolute top-0 ${
                                     isCurrentUser
-                                      ? "left-0 -translate-x-full"
-                                      : "right-0 translate-x-full"
-                                  } flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity`}
+                                      ? "left-0 -translate-x-full ml-[-4px]" // Adjust spacing
+                                      : "right-0 translate-x-full mr-[-4px]" // Adjust spacing
+                                  } flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity py-1`} // Add padding
                                 >
                                   <button
                                     onClick={() => startEditingMessage(message)}
                                     className={`p-1.5 rounded-full ${
                                       darkMode
-                                        ? "bg-gray-800 hover:bg-gray-700"
-                                        : "bg-white hover:bg-gray-100"
-                                    } shadow`}
+                                        ? "bg-gray-800/80 hover:bg-gray-700/90"
+                                        : "bg-white/80 hover:bg-gray-100/90"
+                                    } shadow backdrop-blur-sm`}
                                     title="Edit message"
                                   >
                                     <Edit size={14} className="text-gray-500" />
@@ -704,9 +763,9 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                     }
                                     className={`p-1.5 rounded-full ${
                                       darkMode
-                                        ? "bg-gray-800 hover:bg-gray-700"
-                                        : "bg-white hover:bg-gray-100"
-                                    } shadow`}
+                                        ? "bg-gray-800/80 hover:bg-gray-700/90"
+                                        : "bg-white/80 hover:bg-gray-100/90"
+                                    } shadow backdrop-blur-sm`}
                                     title="Delete message"
                                   >
                                     <Trash2
@@ -743,8 +802,11 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
               }
             }}
             className={`absolute bottom-20 right-6 p-2 rounded-full shadow-lg ${
-              darkMode ? "bg-gray-800" : "bg-white"
+              darkMode
+                ? "bg-gray-800 hover:bg-gray-700"
+                : "bg-white hover:bg-gray-100"
             } z-10`}
+            title="Scroll to bottom"
           >
             <ChevronDown
               size={20}
@@ -754,34 +816,63 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
         )}
       </AnimatePresence>
 
-      {/* Message Input */}
+      {/* Message Input Area */}
       <div
         className={`p-4 border-t ${
           darkMode ? "bg-gray-900 border-gray-800" : "bg-white border-gray-200"
         } sticky bottom-0 z-10`}
       >
+        {/* Emoji Picker Container - Positioned absolutely */}
+        <AnimatePresence>
+          {showEmojiPicker && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.15 }}
+              className="absolute bottom-full right-0 mb-2 z-20" // Position above input, aligned right
+              ref={emojiPickerRef} 
+            >
+              <Picker
+                onEmojiClick={onEmojiClick}
+                autoFocusSearch={false}
+                theme={darkMode ? Theme.DARK : Theme.LIGHT}
+                lazyLoadEmojis={true}
+
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Input Row */}
         <div
-          className={`flex items-center space-x-2 p-2 rounded-lg ${
+          className={`relative flex items-center space-x-2 p-2 rounded-lg ${
+            // Added relative for picker positioning context if needed
             darkMode ? "bg-gray-800" : "bg-gray-100"
           }`}
+          ref={emojiPickerRef} // Attach ref to the entire input area + picker toggle
         >
           <button
             className={`p-2 rounded-full ${
               darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
             }`}
+            title="Attach file"
           >
             <Paperclip size={18} className="text-gray-400" />
           </button>
           <input
             id="message-input"
             type="text"
-            placeholder="Type a message..."
+            placeholder={`Message #${channelName}`} // Dynamic placeholder
             value={newMessageContent}
             onChange={(e) => setNewMessageContent(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 sendMessage();
+              }
+              if (e.key === "Escape") {
+                setShowEmojiPicker(false);
               }
             }}
             className={`flex-1 bg-transparent focus:outline-none ${
@@ -790,29 +881,38 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                 : "text-gray-800 placeholder-gray-500"
             }`}
           />
+          {/* Emoji Toggle Button */}
           <button
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
             className={`p-2 rounded-full ${
               darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
-            }`}
+            } ${
+              showEmojiPicker ? (darkMode ? "bg-gray-700" : "bg-gray-200") : ""
+            }`} 
+            title={showEmojiPicker ? "Close emojis" : "Add emoji"}
           >
-            <Smile size={18} className="text-gray-400" />
+            {showEmojiPicker ? (
+              <X size={18} className="text-gray-400" />
+            ) : (
+              <Smile size={18} className="text-gray-400" />
+            )}
           </button>
           <button
             onClick={sendMessage}
             disabled={!newMessageContent.trim()}
-            className={`p-2 rounded-full ${
+            className={`p-2 rounded-full transition-colors duration-150 ${
               newMessageContent.trim()
                 ? "bg-amber-500 hover:bg-amber-600 text-white"
                 : darkMode
-                ? "bg-gray-700 text-gray-500"
-                : "bg-gray-200 text-gray-400"
+                ? "bg-gray-700 text-gray-500 cursor-not-allowed"
+                : "bg-gray-200 text-gray-400 cursor-not-allowed"
             }`}
+            title="Send message"
           >
             <Send size={18} />
           </button>
         </div>
       </div>
-
     </div>
   );
 };
