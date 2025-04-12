@@ -7,6 +7,7 @@ import {
   FaHeart,
   FaEdit,
   FaExclamationTriangle,
+  FaTimes,
 } from "react-icons/fa";
 import { IoMdCall, IoMdTime } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
@@ -21,6 +22,7 @@ function ItemCard({ item, onEdit }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [notification, setNotification] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   // Check if current user is the owner or admin
   const isOwner = user?.id === item.userId;
@@ -96,6 +98,13 @@ function ItemCard({ item, onEdit }) {
     return text;
   };
 
+  // Open image in full-screen modal
+  const handleImageClick = () => {
+    if (item.image_url) {
+      setShowImageModal(true);
+    }
+  };
+
   // Delete confirmation modal
   const DeleteConfirmationModal = () => (
     <AnimatePresence>
@@ -152,6 +161,51 @@ function ItemCard({ item, onEdit }) {
     </AnimatePresence>
   );
 
+  // Image Modal
+  const ImageModal = () => (
+    <AnimatePresence>
+      {showImageModal && item.image_url && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowImageModal(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative w-full max-w-4xl max-h-screen overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowImageModal(false)}
+              className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
+            >
+              <FaTimes size={18} />
+            </motion.button>
+
+            <div className="flex items-center justify-center">
+              <motion.img
+                src={item.image_url}
+                alt={item.item_name}
+                className="max-w-full max-h-screen object-contain rounded-lg shadow-2xl"
+                layoutId={`image-${item.id}`}
+              />
+            </div>
+
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg">
+              <h3 className="text-center font-bold">{item.item_name}</h3>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
   return (
     <motion.div
       layout
@@ -162,6 +216,9 @@ function ItemCard({ item, onEdit }) {
     >
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal />
+
+      {/* Image Modal */}
+      <ImageModal />
 
       {/* Notification */}
       <AnimatePresence>
@@ -184,16 +241,30 @@ function ItemCard({ item, onEdit }) {
         <div className="relative group">
           {item.image_url ? (
             <>
-              <motion.img
-                src={item.image_url}
-                alt={item.item_name}
-                className="w-full h-40 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                onLoad={() => setImageLoaded(true)}
-                loading="lazy"
-              />
-              {!imageLoaded && (
-                <div className="absolute inset-0 bg-gray-800 animate-pulse" />
-              )}
+              <motion.div
+                onClick={handleImageClick}
+                className="cursor-pointer overflow-hidden"
+                layoutId={`image-container-${item.id}`}
+              >
+                <motion.img
+                  layoutId={`image-${item.id}`}
+                  src={item.image_url}
+                  alt={item.item_name}
+                  className="w-full h-40 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                  onLoad={() => setImageLoaded(true)}
+                  loading="lazy"
+                />
+                {!imageLoaded && (
+                  <div className="absolute inset-0 bg-gray-800 animate-pulse" />
+                )}
+
+                {/* View Image Overlay */}
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                  <span className="bg-black/50 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                    View Image
+                  </span>
+                </div>
+              </motion.div>
             </>
           ) : (
             <div className="w-full h-40 sm:h-48 bg-gradient-to-r from-gray-800 to-gray-700 flex items-center justify-center">

@@ -11,6 +11,7 @@ import {
   FaExclamationTriangle,
   FaExpand,
   FaRupeeSign,
+  FaTimes,
 } from "react-icons/fa";
 import { Loader2, AlertCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -54,13 +55,15 @@ function LostItemCard({ item, onEdit }) {
     }
   };
 
-  const handleEditClick = () => {
+  const handleEditClick = (e) => {
+    e.stopPropagation(); // Prevent image modal from opening
     if (onEdit && isOwner) {
       onEdit(item); // Call the function passed from LostAndFound component
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e) => {
+    e.stopPropagation(); // Prevent image modal from opening
     const shareUrl = `${window.location.origin}/lost-and-found/item/${item.id}`;
     try {
       if (navigator.share) {
@@ -81,6 +84,11 @@ function LostItemCard({ item, onEdit }) {
         showNotification("Could not copy link or share.", "error");
       }
     }
+  };
+
+  const toggleLike = (e) => {
+    e.stopPropagation(); // Prevent image modal from opening
+    setIsLiked(!isLiked);
   };
 
   const sanitizeDescription = (text) => {
@@ -172,6 +180,62 @@ function LostItemCard({ item, onEdit }) {
     </AnimatePresence>
   );
 
+  // Image Modal Component
+  const ImageModal = () => (
+    <AnimatePresence>
+      {showFullImage && item.image_url && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setShowFullImage(false)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.9, opacity: 0 }}
+            className="relative w-full max-w-4xl max-h-screen overflow-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setShowFullImage(false)}
+              className="absolute top-2 right-2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full z-10"
+            >
+              <FaTimes size={18} />
+            </motion.button>
+
+            <div className="flex items-center justify-center">
+              <motion.img
+                src={item.image_url}
+                alt={item.item_name}
+                className="max-w-full max-h-screen object-contain rounded-lg shadow-2xl"
+                layoutId={`lost-image-${item.id}`}
+              />
+            </div>
+
+            <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-lg">
+              <h3 className="text-center font-bold">{item.item_name}</h3>
+              {item.location_found && (
+                <p className="text-center text-sm text-gray-300">
+                  <IoMdPin className="inline mr-1" size={14} />
+                  {item.location_found}
+                </p>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  const handleShowDeleteModal = (e) => {
+    e.stopPropagation(); // Prevent image modal from opening
+    setShowDeleteModal(true);
+  };
+
   return (
     <motion.div
       layout
@@ -182,6 +246,9 @@ function LostItemCard({ item, onEdit }) {
     >
       {/* Delete Confirmation Modal */}
       <DeleteConfirmationModal />
+
+      {/* Image Modal */}
+      <ImageModal />
 
       {/* Notification */}
       <AnimatePresence>
@@ -207,16 +274,26 @@ function LostItemCard({ item, onEdit }) {
         >
           {item.image_url ? (
             <>
-              <motion.img
-                src={item.image_url}
-                alt={item.item_name}
-                className="w-full h-40 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-105"
-                onLoad={() => setImageLoaded(true)}
-                loading="lazy"
-              />
-              {!imageLoaded && (
-                <div className="absolute inset-0 bg-gray-800 animate-pulse" />
-              )}
+              <motion.div className="overflow-hidden">
+                <motion.img
+                  layoutId={`lost-image-${item.id}`}
+                  src={item.image_url}
+                  alt={item.item_name}
+                  className="w-full h-40 sm:h-48 object-cover transition-transform duration-300 group-hover:scale-105"
+                  onLoad={() => setImageLoaded(true)}
+                  loading="lazy"
+                />
+                {!imageLoaded && (
+                  <div className="absolute inset-0 bg-gray-800 animate-pulse" />
+                )}
+
+                {/* View Image Overlay */}
+                <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                  <span className="bg-black/50 text-white px-3 py-1.5 rounded-full text-sm font-medium">
+                    View Image
+                  </span>
+                </div>
+              </motion.div>
             </>
           ) : (
             <div className="w-full h-40 sm:h-48 bg-gradient-to-r from-gray-800 to-gray-700 flex items-center justify-center">
@@ -227,7 +304,10 @@ function LostItemCard({ item, onEdit }) {
           )}
 
           {/* Actions Overlay */}
-          <div className="absolute top-2 right-2 flex space-x-1.5">
+          <div
+            className="absolute top-2 right-2 flex space-x-1.5"
+            onClick={(e) => e.stopPropagation()}
+          >
             {isOwner && (
               <>
                 <motion.button
@@ -242,7 +322,7 @@ function LostItemCard({ item, onEdit }) {
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => setShowDeleteModal(true)}
+                  onClick={handleShowDeleteModal}
                   className="p-1.5 text-red-500 hover:text-red-400 transition-colors rounded-full bg-red-500/10 hover:bg-red-500/20"
                   title="Delete Item"
                 >
@@ -262,7 +342,7 @@ function LostItemCard({ item, onEdit }) {
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
-              onClick={() => setIsLiked(!isLiked)}
+              onClick={toggleLike}
               className={`p-1.5 transition-colors rounded-full ${
                 isLiked
                   ? "text-yellow-500 hover:text-yellow-400 bg-yellow-500/10 hover:bg-yellow-500/20"
@@ -327,6 +407,7 @@ function LostItemCard({ item, onEdit }) {
               whileTap={{ scale: 0.98 }}
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation(); // Prevent image modal from opening
                 window.location.href = `tel:${item.owner_contact}`;
               }}
               className="flex items-center justify-center w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-black px-4 py-2 rounded-lg text-sm font-medium shadow-lg hover:shadow-yellow-500/20 transition-all duration-300"
@@ -337,36 +418,6 @@ function LostItemCard({ item, onEdit }) {
           </div>
         </div>
       </div>
-
-      {/* Full Image Modal */}
-      {/* <AnimatePresence>
-        {showFullImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
-            onClick={() => setShowFullImage(false)}
-          >
-            <motion.img
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.8, opacity: 0 }}
-              src={item.image_url}
-              alt={`Full view of ${item.item_name}`}
-              className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button
-              onClick={() => setShowFullImage(false)}
-              className="absolute top-4 right-4 text-white bg-black/50 rounded-full p-2 hover:bg-black/80 transition-colors"
-              aria-label="Close full image view"
-            >
-              <X size={24} />
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence> */}
     </motion.div>
   );
 }

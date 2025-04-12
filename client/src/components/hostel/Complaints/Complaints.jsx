@@ -5,46 +5,55 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
-  UserCheck, // Keep if used elsewhere, otherwise removable
-  Info, // Added for user name warning
+  Info, 
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   createComplaint,
   updateComplaintStatus,
   deleteComplaint,
-} from "../../../slices/hostelSlice"; // Adjust path if needed
-import { toast } from "react-toastify"; // Import toast
+} from "../../../slices/hostelSlice"; 
+import { toast } from "react-toastify"; 
 
 const Complaints = ({ hostelId }) => {
   const [selectedComplaintType, setSelectedComplaintType] = useState("");
   const [complaintDescription, setComplaintDescription] = useState("");
-  // Removed formError and actionError states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showOfficialDialog, setShowOfficialDialog] = useState(false);
   const [selectedOfficials, setSelectedOfficials] = useState([]);
+  const [isUserDataLoaded, setIsUserDataLoaded] = useState(false);
 
   const dispatch = useDispatch();
   const {
     complaints,
-    loading: hostelLoading, // Rename to avoid conflict if needed
+    loading: hostelLoading,
     error: hostelError,
-    officials: allHostelOfficials, // Get all officials first
+    officials: allHostelOfficials,
   } = useSelector((state) => state.hostel);
   const { user, roles } = useSelector((state) => state.auth);
 
-  // Get officials for the specific hostelId
+
+  useEffect(() => {
+    if (user && typeof user === "object") {
+      setIsUserDataLoaded(true);
+    }
+  }, [user]);
+
+
+  const userHasName = useMemo(() => {
+    return !!user?.name?.trim();
+  }, [user]);
+
   const hostelOfficials = useMemo(() => {
     return allHostelOfficials[hostelId] || [];
   }, [allHostelOfficials, hostelId]);
 
   const isAdmin = roles.includes("admin");
   const isHostelPresident = roles.includes("hostel_president");
-  const userHasName = !!user?.name?.trim(); // Check if user has a non-empty name
 
-  // --- Memoized Filtered Complaints ---
+
   const filteredComplaints = useMemo(() => {
-    // Ensure complaints[hostelId] exists and is an array before processing
+
     const currentComplaints = complaints[hostelId];
     if (!Array.isArray(currentComplaints)) return [];
 
@@ -57,7 +66,6 @@ const Complaints = ({ hostelId }) => {
         return statusA - statusB;
       }
 
-      // Fallback to sorting by creation date if statuses are the same
       return new Date(b.created_at) - new Date(a.created_at);
     });
   }, [complaints, hostelId]);
@@ -150,21 +158,21 @@ const Complaints = ({ hostelId }) => {
         success: `Complaint marked as ${statusText}.`,
         error: `Failed ${actionText} complaint.`,
       },
-      { position: "bottom-right" } // Optional: specific position for this toast
+      { position: "bottom-right" } 
     );
 
     try {
-      await promise; // Await the unwrapped promise to catch specific errors if needed for console logging
+      await promise; 
     } catch (error) {
       console.error(`Failed to ${actionText} complaint:`, error);
-      // Toast already handled by toast.promise error state
+
     }
   };
 
   const handleDeleteComplaint = async (complaintId) => {
     if (!complaintId) return;
 
-    // Use a confirmation dialog (browser default or a custom modal)
+
     if (
       !window.confirm(
         "Are you sure you want to delete this complaint? This action cannot be undone."
@@ -207,16 +215,14 @@ const Complaints = ({ hostelId }) => {
       return true;
     }
     // The user who filed the complaint can modify it (e.g., delete)
-    // Allow modification only if status is 'pending' for the filer? (Optional rule)
-    // return complaint.student_email === user.email && complaint.status === 'pending';
-    return complaint.student_email === user.email; // Allow deletion anytime by filer
+    return complaint.student_email === user.email;
   };
 
   // --- Render Logic ---
 
   // Handle initial loading or error fetching hostel data/complaints
-  if (hostelLoading && !complaints[hostelId]) {
-    // Show loading only on initial fetch
+  if ((hostelLoading && !complaints[hostelId]) || !isUserDataLoaded) {
+    // Show loading only on initial fetch or when user data is not loaded
     return (
       <motion.div
         initial={{ opacity: 0, x: 20 }}
@@ -266,8 +272,8 @@ const Complaints = ({ hostelId }) => {
           File a Complaint
         </h3>
 
-        {/* Warning if user has no name */}
-        {!userHasName && (
+        {/* Warning if user has no name - only show when user data is fully loaded */}
+        {isUserDataLoaded && !userHasName && (
           <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/50 rounded-lg text-yellow-300 flex items-center text-sm">
             <Info className="w-5 h-5 mr-2 flex-shrink-0" />
             <span>
@@ -312,8 +318,6 @@ const Complaints = ({ hostelId }) => {
               : "Select Official(s) to Notify"}
           </button>
         </div>
-
-        {/* Removed formError display block */}
 
         <button
           onClick={submitComplaint}
@@ -404,9 +408,6 @@ const Complaints = ({ hostelId }) => {
           )}
         </div>
 
-        {/* Display Loading Indicator during updates/deletes if needed */}
-        {/* {hostelLoading && <p className="text-center text-purple-400">Processing...</p>} */}
-
         {filteredComplaints.length === 0 && !hostelLoading && (
           <div className="text-center py-8 text-gray-400">
             No complaints filed yet for this hostel.
@@ -445,7 +446,10 @@ const Complaints = ({ hostelId }) => {
                         : "bg-red-500/30 text-red-300" // Adjust for other statuses like 'rejected'
                     }`}
                   >
-                    {complaint.status ? complaint.status.charAt(0).toUpperCase() + complaint.status.slice(1).toLowerCase() : ""}
+                    {complaint.status
+                      ? complaint.status.charAt(0).toUpperCase() +
+                        complaint.status.slice(1).toLowerCase()
+                      : ""}
                   </span>
                 </div>
                 <p className="text-gray-300 text-sm mt-2 break-words">
@@ -472,8 +476,6 @@ const Complaints = ({ hostelId }) => {
                       </span>
                     </p>
                   )}
-                  {/* Maybe show assigned officials? Needs data */}
-                  {/* <p>Assigned: {complaint.assigned_officials?.join(', ') || 'N/A'}</p> */}
                 </div>
               </div>
 
