@@ -35,7 +35,7 @@
     "natural": "^8.0.1",
     "node-appwrite": "^15.0.0",
     "node-cron": "^3.0.3",
-    "node-nlp": "^5.0.0-alpha.5",
+    "node-nlp": "4.27.0",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.9",
     "pg": "^8.13.1",
