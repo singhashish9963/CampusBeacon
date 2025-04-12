@@ -78,12 +78,12 @@ function App() {
 
 function AppContent() {
   const location = useLocation();
-  const hideFooterRoutes = ["/chat"];
-  const shouldHideFooter = hideFooterRoutes.includes(location.pathname);
+ const hideLayoutRoutes = ["/chat"];
+  const shouldHideLayout = hideLayoutRoutes.includes(location.pathname);
 
   return (
     <div className="flex flex-col min-h-screen">
-      <NavBar />
+      {!shouldHideLayout && <NavBar />}
       <ScrollToTop />
       <ToastContainer
         position="top-right"
@@ -150,7 +150,7 @@ function AppContent() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
-      {!shouldHideFooter && <Footer />}
+      {!shouldHideLayout && <Footer />}
     </div>
   );
 }
