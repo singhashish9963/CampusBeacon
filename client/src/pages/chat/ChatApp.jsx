@@ -354,25 +354,67 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
     }
   };
 
-  // Helper to format time.
+
+  // Helper to format time in UTC.
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    const timeOptions = { hour: "numeric", minute: "numeric" };
-    const time = date.toLocaleTimeString([], timeOptions);
+    const now = new Date(); 
 
-    if (date.toDateString() === today.toDateString()) {
-      return `Today at ${time}`;
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return `Yesterday at ${time}`;
+    // Get UTC time components
+    const hours = date.getUTCHours();
+    const minutes = date.getUTCMinutes();
+    const formattedMinutes = minutes < 10 ? "0" + minutes : minutes;
+    const timeString = `${hours}:${formattedMinutes} UTC`;
+
+    // --- Date Comparison Logic (using UTC dates) ---
+
+    // Get the date part (YYYY-MM-DD) in UTC for the message and now
+    const messageUTCDateString = date.toISOString().split("T")[0];
+    const todayUTCDateString = now.toISOString().split("T")[0];
+
+    // Calculate yesterday's UTC date string
+    const yesterday = new Date(now); 
+    yesterday.setUTCDate(now.getUTCDate() - 1); 
+    const yesterdayUTCDateString = yesterday.toISOString().split("T")[0];
+
+    // --- Return Formatted String ---
+
+    if (messageUTCDateString === todayUTCDateString) {
+      return `Today at ${timeString}`;
+    } else if (messageUTCDateString === yesterdayUTCDateString) {
+      return `Yesterday at ${timeString}`;
     } else {
-      const dateOptions = { month: "short", day: "numeric" };
-      return `${date.toLocaleDateString([], dateOptions)} at ${time}`;
+      // Format older dates using UTC components
+      const day = date.getUTCDate();
+      const monthIndex = date.getUTCMonth(); // 0-indexed month
+      const year = date.getUTCFullYear();
+      const currentUTCYear = now.getUTCFullYear();
+
+      // Array of month names
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+      const monthName = months[monthIndex];
+
+      let datePart = `${monthName} ${day}`;
+      if (year !== currentUTCYear) {
+        datePart += `, ${year}`;
+      }
+
+      return `${datePart} at ${timeString}`;
     }
   };
-
   // Get full user data from the "users" state.
   const getUserData = (userId) => {
     // Kept but might be redundant with getUserFromMessage
@@ -582,15 +624,15 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                         } ${showAvatarAndName ? "mt-2" : ""}`} // Add margin top for new user block
                       >
                         {/* Avatar */}
-                        <div className="flex-shrink-0 w-8 h-8">
-                          {!isCurrentUser && showAvatarAndName && (
+                        {!isCurrentUser && showAvatarAndName && (
+                          <div className="flex-shrink-0 w-8 h-8">
                             <img
                               src={user.avatar}
                               alt={user.name}
                               className="w-full h-full rounded-full"
                             />
-                          )}
-                        </div>
+                          </div>
+                        )}
 
                         {/* Message content */}
                         <div className="flex flex-col">
@@ -705,7 +747,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
                                   : isCurrentUser
                                   ? "rounded-tr-lg"
                                   : "rounded-tl-lg"
-                              } `} 
+                              } `}
                             >
                               <p className="whitespace-pre-wrap">
                                 {message.content}
@@ -831,14 +873,13 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
               exit={{ opacity: 0, y: 10 }}
               transition={{ duration: 0.15 }}
               className="absolute bottom-full right-0 mb-2 z-20" // Position above input, aligned right
-              ref={emojiPickerRef} 
+              ref={emojiPickerRef}
             >
               <Picker
                 onEmojiClick={onEmojiClick}
                 autoFocusSearch={false}
                 theme={darkMode ? Theme.DARK : Theme.LIGHT}
                 lazyLoadEmojis={true}
-
               />
             </motion.div>
           )}
@@ -888,7 +929,7 @@ const ChatApp = ({ channelId, channelName, darkMode, isAdmin }) => {
               darkMode ? "hover:bg-gray-700" : "hover:bg-gray-200"
             } ${
               showEmojiPicker ? (darkMode ? "bg-gray-700" : "bg-gray-200") : ""
-            }`} 
+            }`}
             title={showEmojiPicker ? "Close emojis" : "Add emoji"}
           >
             {showEmojiPicker ? (
