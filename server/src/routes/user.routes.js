@@ -65,7 +65,7 @@ router.put("/update", authMiddleware, updateUser);
 router.post("/logout", authMiddleware, logoutUser);
 
 // --- Admin Only Route ---
-router.get('/admin/all', getAllUsers);
+router.get('/admin/all',authMiddleware, getAllUsers);
 
 
 export default router;
