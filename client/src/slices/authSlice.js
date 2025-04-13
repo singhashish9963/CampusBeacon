@@ -197,6 +197,32 @@ export const fetchAllUsers = createAsyncThunk(
     }
   }
 );
+export const handleGoogleAuth = createAsyncThunk(
+  "auth/handleGoogleAuth",
+  async (idToken, { rejectWithValue }) => {
+    try {
+      const response = await api.post("/users/google-auth", { idToken });
+      const user = response.data?.data?.user;
+
+      if (!user) {
+        return rejectWithValue(
+          "Google authentication failed: Invalid response from server."
+        );
+      }
+
+      return user; // Return the user object on success
+    } catch (error) {
+      // Provide specific user-friendly messages based on status or backend message
+      if (error.response?.status === 403) {
+        return rejectWithValue("Only MNNIT institutional emails are allowed.");
+      }
+      return rejectWithValue(
+        error.response?.data?.message ||
+          "Unable to authenticate with Google. Please try again later."
+      );
+    }
+  }
+);
 
 // --- Slice Definition ---
 
@@ -393,6 +419,28 @@ const authSlice = createSlice({
         state.error = action.payload; // Or set a generic client cleared message
       })
 
+      // google auth
+      .addCase(handleGoogleAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(handleGoogleAuth.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload; // payload is the user object
+        state.roles = action.payload.roles || [];
+        state.isAuthenticated = true;
+        state.lastChecked = Date.now();
+        state.error = null;
+        // Success toast is handled in the component
+      })
+      .addCase(handleGoogleAuth.rejected, (state, action) => {
+        state.loading = false;
+        state.user = null;
+        state.roles = [];
+        state.isAuthenticated = false;
+        state.error = action.payload; // Error message from rejectWithValue
+      })
+
       // --- fetchAllUsers (Admin action) ---
       .addCase(fetchAllUsers.pending, (state) => {
         state.loadingUsers = true; // Use specific loading state
@@ -409,6 +457,7 @@ const authSlice = createSlice({
         state.allUsers = []; // Optionally clear list on error
         // Error toast/feedback handled in the Admin component checking state.usersError
       });
+      
   },
 });
 

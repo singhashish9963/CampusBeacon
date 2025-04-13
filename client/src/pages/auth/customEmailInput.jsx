@@ -23,7 +23,7 @@ const CustomEmailInput = ({
       const fullEmail = username ? username + domain : "";
       onChange({ target: { name, value: fullEmail } });
     }
-  }, [username, name, domain]);
+  }, [username, name, domain, onChange]);
 
   const handleUsernameChange = (e) => {
     const value = e.target.value;
@@ -169,18 +169,20 @@ const CustomEmailInput = ({
         <p id={hintId} className="ml-2 text-xs md:text-sm text-gray-400">
           Enter only your username (e.g.,{" "}
           <span className="font-medium text-purple-400">john.2022ca045</span>).
-          The domain{" "}
-          <span className="font-mono text-purple-400">{domain}</span> will be
-          appended automatically.
+          The domain <span className="font-mono text-purple-400">{domain}</span>{" "}
+          will be appended automatically.
         </p>
       </div>
-      {username && (
-        <div className="mt-3 p-2 bg-purple-900/20 border border-purple-500/30 rounded text-sm text-purple-300 font-mono break-all">
-          <span className="font-normal text-gray-400">Email preview: </span>
-          {username}
-          <span className="text-purple-400">{domain}</span>
-        </div>
-      )}
+
+      {/* Email preview with fixed height to prevent layout shifts */}
+      <div className="mt-3 h-[42px] transition-opacity duration-200">
+          <div className="p-2 bg-purple-900/20 border border-purple-500/30 rounded text-sm text-purple-300 font-mono break-all">
+            <span className="font-normal text-gray-400">Email preview: </span>
+            {username}
+            <span className="text-purple-400">{domain}</span>
+          </div>
+        
+      </div>
     </div>
   );
 };

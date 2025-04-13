@@ -321,6 +321,11 @@ export const googleAuth = asyncHandler(async (req, res, next) => {
     return next(new ApiError("Google token payload not found", 400));
 
   const email = payload.email;
+   if (!email.endsWith(".mnnit.ac.in")) {
+     return next(
+       new ApiError("Only MNNIT institutional emails are allowed", 403)
+     );
+   }
   let user = await User.findOne({ where: { email }, include: Role });
   if (!user) {
     const { registrationNumber, graduationYear } =
