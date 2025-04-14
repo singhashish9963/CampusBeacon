@@ -25,7 +25,7 @@ const ChatTestPage = () => {
   
   // Add local state for dark mode instead of using Redux
   const [darkMode, setDarkMode] = useState(
-    localStorage.getItem("chatDarkMode") === "true" || false
+    localStorage.getItem("chatDarkMode") === "false" || true
   );
 
   // Check if user is admin
