@@ -1,52 +1,124 @@
+// nlp/languageProcessor.js
 import { NlpManager } from "node-nlp";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { Mutex } from "async-mutex"; // Import Mutex
 import config from "../config/chatbot.js";
 
+// --- Setup ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const MODEL_FILE = config.modelPath || path.join(__dirname, "model.nlp");
-const CORPUS_FILE = path.join(__dirname, "corpus.json");
+const MODEL_FILE = config.modelPath;
+const CORPUS_FILE = config.corpusPath;
+const fileMutex = new Mutex(); // Create a Mutex for file operations
 
+// Ensure the directory for the model exists
+const modelDir = path.dirname(MODEL_FILE);
+if (!fs.existsSync(modelDir)) {
+  fs.mkdirSync(modelDir, { recursive: true });
+}
+// Ensure the directory for the corpus exists
+const corpusDir = path.dirname(CORPUS_FILE);
+if (!fs.existsSync(corpusDir)) {
+  fs.mkdirSync(corpusDir, { recursive: true });
+}
+
+// --- Confidence Levels --- (from config)
+const HIGH_CONFIDENCE = config.confidenceLevels.HIGH;
+const MEDIUM_CONFIDENCE = config.confidenceLevels.MEDIUM;
+const LOW_CONFIDENCE = config.confidenceLevels.LOW;
+const SUGGESTION_THRESHOLD = config.confidenceLevels.SUGGESTION;
+
+// --- NLP Manager Initialization ---
 const manager = new NlpManager({
   languages: config.nlpConfig.languages || ["en"],
   forceNER: true,
-  nlu: { log: false },
-  useNeural: true,
-  modelFileName: MODEL_FILE,
-  threshold: config.nlpConfig.threshold || 0.3, // Use configurable threshold
+  nlu: { log: config.nlpConfig.log },
+  modelFileName: MODEL_FILE, // Used by manager internally if needed, but we manage load/save
+  threshold: config.nlpConfig.threshold, // Set manager's base threshold
+  autoSave: false, // Explicit saving
+  autoLoad: false, // Explicit loading
+  // Consider enabling 'useNeural' based on performance needs and environment setup
+  // useNeural: true,
 });
 
 class AdvancedLanguageProcessor {
   constructor() {
-    this.corpus = this.loadCorpus();
-    this.contextMemory = new Map();
-    this.wordVectors = new Map();
+    this.corpus = null; // Loaded asynchronously
+    this.contextMemory = new Map(); // Session-based context
     this.entityPatterns = this.initializeEntityPatterns();
     this.synonyms = this.initializeSynonyms();
     this.sentimentCache = new Map(); // Cache sentiment analysis results
+    this.phraseVectorsCache = new Map(); // Cache computed phrase vectors
+    this.isModelTrained = false; // Track if model is trained in current session
   }
 
-  // loadCorpus method is excluded as per request
-  loadCorpus() {
-    try {
-      const corpusData = fs.readFileSync(CORPUS_FILE, "utf8");
-      const corpus = JSON.parse(corpusData);
+  // --- Initialization ---
+  async initialize() {
+    this.corpus = await this.loadCorpus(); // Load corpus first
+    await this.loadOrTrainModel(); // Then load or train the model
+  }
 
-      // Clean up the corpus data
-      if (corpus.phrases) {
-        corpus.phrases = corpus.phrases.filter(
-          (phrase) =>
-            phrase && phrase.question && phrase.answer && phrase.category
+  async loadCorpus() {
+    console.log(`Attempting to load corpus from: ${CORPUS_FILE}`);
+    try {
+      if (!fs.existsSync(CORPUS_FILE)) {
+        console.warn(
+          `Corpus file not found at ${CORPUS_FILE}. Creating with default data.`
         );
+        const defaultCorpus = this.getDefaultCorpus();
+        await fs.promises.writeFile(
+          CORPUS_FILE,
+          JSON.stringify(defaultCorpus, null, 2),
+          "utf8"
+        );
+        return defaultCorpus;
       }
 
+      const corpusData = await fs.promises.readFile(CORPUS_FILE, "utf8");
+      const corpus = JSON.parse(corpusData);
+
+      // Basic validation and cleanup
+      if (!corpus || !Array.isArray(corpus.phrases)) {
+        console.warn(
+          `Corpus file at ${CORPUS_FILE} is invalid. Using default corpus.`
+        );
+        return this.getDefaultCorpus();
+      }
+
+      corpus.phrases = corpus.phrases
+        .filter(
+          (phrase) =>
+            phrase &&
+            phrase.question &&
+            typeof phrase.question === "string" && // Ensure question is string
+            phrase.answer &&
+            typeof phrase.answer === "string" && // Ensure answer is string
+            phrase.category
+        )
+        .map((phrase) => ({
+          ...phrase,
+          // Store lowercase version for matching, keep original for display/use
+          lowercaseQuestion: phrase.question.toLowerCase(),
+        }));
+
+      console.log(
+        `Corpus loaded successfully with ${corpus.phrases.length} phrases.`
+      );
       return corpus;
     } catch (error) {
-      console.warn("Corpus file not found or invalid. Using default corpus.");
-      return {
+      console.error("Error loading corpus file:", error);
+      console.warn("Using default corpus due to error.");
+      return this.getDefaultCorpus();
+    }
+  }
+
+  getDefaultCorpus() {
+    // Provides a basic corpus if the file is missing or invalid
+    // (Keep your extensive default list here as in the original)
+    return {
         phrases: [
           {
             question: "hello",
@@ -105,7 +177,7 @@ class AdvancedLanguageProcessor {
           {
             question: "How can I contact CampusBeacon support?",
             answer:
-              "For support, visit our 'Contact Us' page or send an email to support@campusbeacon.com. We'll get back to you soon!",
+              "For support, visit our 'Contact Us' page or send an email to campusbeacon0@gmail.com. We'll get back to you soon!",
             category: "support",
           },
           {
@@ -290,413 +362,338 @@ class AdvancedLanguageProcessor {
               "Your exam results are available in the 'Exam Results' section of the Resource Hub.",
             category: "resource_hub",
           },
-        ],
-      };
-    }
-  }
-
-  initializeEntityPatterns() {
-    return {
-      date: /\b\d{1,2}[-/]\d{1,2}[-/]\d{2,4}\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]* \d{1,2}(?:st|nd|rd|th)?,? \d{4}\b/i,
-      email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/,
-      phone: /\b\d{3}[-.)]\d{3}[-.)]\d{4}\b/,
-      time: /\b(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?\s*(?:am|pm)\b/i,
-      url: /https?:\/\/[^\s]+/,
-      // Campus-related entities
-      courseCode: /\b[A-Z]{2,4}\s?\d{3,4}\b/,
-      buildingName: /\b[A-Z][a-z]+ Hall\b/,
-      professorName: /\b(?:Prof|Dr)\.\s[A-Z][a-z]+ [A-Z][a-z]+\b/,
+        ].map((p) => ({ ...p, lowercaseQuestion: p.question.toLowerCase() })), // Ensure defaults also have lowercase
     };
   }
 
-  initializeSynonyms() {
-    return new Map([
-      ["hello", ["hi", "hey", "greetings", "howdy"]],
-      ["help", ["assist", "support", "aid", "guide"]],
-      ["event", ["activity", "program", "gathering", "meeting", "session"]],
-      ["register", ["signup", "enroll", "join", "subscribe"]],
-      ["cancel", ["delete", "remove", "unsubscribe", "quit"]],
-      ["campus", ["university", "college", "school"]],
-      ["forum", ["discussion", "board", "community"]],
-      ["resource", ["material", "tool", "document"]],
-    ]);
-  }
-
-  generateWordVector(text) {
-    if (!text || typeof text !== "string") return new Map();
-
-    const words = text.toLowerCase().split(/\W+/);
-    const vector = new Map();
-
-    for (const word of words) {
-      if (word) {
-        vector.set(word, (vector.get(word) || 0) + 1);
-      }
-    }
-
-    return vector;
-  }
-
-  cosineSimilarity(vecA, vecB) {
-    if (!vecA || !vecB || vecA.size === 0 || vecB.size === 0) return 0;
-
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-
-    // Calculate dot product and magnitude of vecA
-    for (const [word, countA] of vecA.entries()) {
-      const countB = vecB.get(word) || 0;
-      dotProduct += countA * countB;
-      normA += countA * countA;
-    }
-
-    // Calculate magnitude of vecB
-    for (const [_, countB] of vecB.entries()) {
-      normB += countB * countB;
-    }
-
-    // Prevent division by zero
-    if (normA === 0 || normB === 0) return 0;
-
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
-  }
-
-  findSynonyms(word) {
-    if (!word || typeof word !== "string") return [];
-
-    for (const [key, synonymsList] of this.synonyms.entries()) {
-      if (
-        key === word.toLowerCase() ||
-        synonymsList.includes(word.toLowerCase())
-      ) {
-        return [key, ...synonymsList].filter(
-          (syn) => syn !== word.toLowerCase()
-        );
-      }
-    }
-
-    return [];
-  }
-
-  extractEntities(text) {
-    if (!text || typeof text !== "string") return {};
-
-    const entities = {};
-
-    for (const [type, pattern] of Object.entries(this.entityPatterns)) {
-      const matches = text.match(pattern);
-      if (matches && matches.length > 0) {
-        entities[type] = matches[0];
-      }
-    }
-
-    return entities;
-  }
-
-  findContextualMatches(question, threshold = 0.6) {
-    if (
-      !question ||
-      typeof question !== "string" ||
-      !this.corpus ||
-      !this.corpus.phrases
-    ) {
-      return [];
-    }
-
-    const questionVector = this.generateWordVector(question);
-    const matches = [];
-
-    // Store word vectors for phrases to avoid recalculation
-    if (!this.phraseVectors) {
-      this.phraseVectors = new Map();
-      for (const phrase of this.corpus.phrases) {
-        if (phrase.question) {
-          this.phraseVectors.set(
-            phrase.question,
-            this.generateWordVector(phrase.question)
-          );
+  async loadOrTrainModel() {
+    try {
+      if (fs.existsSync(MODEL_FILE)) {
+        console.log(`Loading existing model from: ${MODEL_FILE}`);
+        await manager.load(MODEL_FILE);
+        console.log("Model loaded successfully.");
+        this.isModelTrained = true;
+      } else {
+        console.log("Model file not found. Training a new model...");
+        if (!this.corpus || this.corpus.phrases.length === 0) {
+          console.error("Cannot train model: Corpus is empty or not loaded.");
+          return; // Avoid training on empty data
         }
+        await this.prepareTrainingData();
+        await this.trainAndSaveModel(); // Train and save the new model
       }
+    } catch (error) {
+      console.error("Error loading or training model:", error);
+      // Optionally: Fallback or further error handling
     }
+  }
+
+  // Separate function to add documents/answers to the manager
+  async prepareTrainingData() {
+    if (!this.corpus) {
+      console.error("Cannot prepare training data: Corpus not loaded.");
+      return;
+    }
+    console.log(
+      `Preparing training data with ${this.corpus.phrases.length} phrases...`
+    );
+    // Clear existing documents/answers in case of retrain
+    manager.settings.languages.forEach((lang) => {
+      manager.nlp.sentences[lang] = [];
+      manager.nlp.answers[lang] = {};
+    });
 
     for (const phrase of this.corpus.phrases) {
-      if (!phrase.question || !phrase.answer) continue;
+      if (phrase.lowercaseQuestion && phrase.answer && phrase.category) {
+        // Use lowercase question for training
+        manager.addDocument("en", phrase.lowercaseQuestion, phrase.category);
+        // Keep original answer casing
+        manager.addAnswer("en", phrase.category, phrase.answer);
 
-      const phraseVector = this.phraseVectors.get(phrase.question);
-      const similarity = this.cosineSimilarity(questionVector, phraseVector);
-
-      if (similarity >= threshold) {
-        matches.push({
-          question: phrase.question,
-          answer: phrase.answer,
-          category: phrase.category,
-          similarity,
-        });
-      }
-    }
-
-    return matches.sort((a, b) => b.similarity - a.similarity);
-  }
-
-  updateContext(sessionId, question) {
-    if (!sessionId || !question) return;
-
-    const context = this.contextMemory.get(sessionId) || [];
-    context.push(question);
-
-    // Keep context limited to most recent 5 questions
-    if (context.length > 5) {
-      context.shift();
-    }
-
-    this.contextMemory.set(sessionId, context);
-  }
-
-  analyzeSentiment(text) {
-    if (!text || typeof text !== "string") {
-      return { score: 0, sentiment: "neutral" };
-    }
-
-    // Check cache first
-    if (this.sentimentCache.has(text)) {
-      return this.sentimentCache.get(text);
-    }
-
-    const positiveWords = [
-      "good",
-      "great",
-      "excellent",
-      "wonderful",
-      "amazing",
-      "helpful",
-      "best",
-      "easy",
-      "love",
-      "like",
-      "thank",
-    ];
-
-    const negativeWords = [
-      "bad",
-      "terrible",
-      "awful",
-      "horrible",
-      "difficult",
-      "worst",
-      "hard",
-      "broken",
-      "hate",
-      "poor",
-      "useless",
-    ];
-
-    let positiveScore = 0;
-    let negativeScore = 0;
-
-    const words = text.toLowerCase().split(/\W+/);
-
-    for (const word of words) {
-      if (positiveWords.includes(word)) {
-        positiveScore++;
-      } else if (negativeWords.includes(word)) {
-        negativeScore++;
-      }
-    }
-
-    const score = positiveScore - negativeScore;
-    let sentiment = "neutral";
-
-    if (score > 0) {
-      sentiment = "positive";
-    } else if (score < 0) {
-      sentiment = "negative";
-    }
-
-    const result = { score, sentiment };
-    this.sentimentCache.set(text, result); // Cache the result
-    return result;
-  }
-
-  enhancedContextAnalysis(question, sessionId) {
-    if (!question || !sessionId) {
-      return { bestMatch: null, bestSimilarity: 0 };
-    }
-
-    const context = this.contextMemory.get(sessionId) || [];
-    const recentQuestions = context.slice(-3); // Consider the last 3 questions
-
-    // Combine current question with recent context
-    const combinedText = [question, ...recentQuestions].join(" ");
-    const combinedVector = this.generateWordVector(combinedText);
-
-    let bestMatch = null;
-    let bestSimilarity = 0;
-
-    for (const phrase of this.corpus.phrases) {
-      if (!phrase.question || !phrase.answer) continue;
-
-      const phraseVector = this.generateWordVector(phrase.question);
-      const similarity = this.cosineSimilarity(combinedVector, phraseVector);
-
-      if (similarity > bestSimilarity) {
-        bestSimilarity = similarity;
-        bestMatch = phrase;
-      }
-    }
-
-    return { bestMatch, bestSimilarity };
-  }
-}
-
-const processor = new AdvancedLanguageProcessor();
-
-// Train the model if it doesn't exist
-const trainModel = async () => {
-  try {
-    if (!fs.existsSync(MODEL_FILE)) {
-      console.log("Training new model...");
-
-      // Add all phrases from corpus to the manager
-      for (const phrase of processor.corpus.phrases) {
-        if (phrase.question && phrase.answer && phrase.category) {
-          manager.addDocument("en", phrase.question, phrase.category);
-          manager.addAnswer("en", phrase.category, phrase.answer);
-
-          // Add synonym variations where possible
-          const words = phrase.question.split(/\W+/).filter((word) => word);
-          for (const word of words) {
-            const synonyms = processor.findSynonyms(word);
-            for (const synonym of synonyms) {
-              const synonymQuestion = phrase.question.replace(word, synonym);
-              manager.addDocument("en", synonymQuestion, phrase.category);
+        // Add synonym variations (using lowercase)
+        const words = phrase.lowercaseQuestion.split(/\W+/).filter(Boolean);
+        for (const word of words) {
+          const synonyms = this.findSynonyms(word); // findSynonyms should work with lowercase
+          for (const synonym of synonyms) {
+            // Be careful not to replace parts of other words
+            const regex = new RegExp(`\\b${word}\\b`, "gi"); // Use word boundary
+            if (phrase.lowercaseQuestion.match(regex)) {
+              const synonymQuestion = phrase.lowercaseQuestion.replace(
+                regex,
+                synonym
+              );
+              // Avoid adding identical questions multiple times if synonyms overlap heavily
+              if (synonymQuestion !== phrase.lowercaseQuestion) {
+                manager.addDocument("en", synonymQuestion, phrase.category);
+                // console.log(`Added synonym variation: ${synonymQuestion}`);
+              }
             }
           }
         }
       }
-
-      // Train and save the model
-      await manager.train();
-      await manager.save();
-      console.log("Model trained and saved successfully");
-    } else {
-      console.log("Loading existing model...");
-      await manager.load(MODEL_FILE);
     }
-  } catch (error) {
-    console.error("Error training/loading model:", error);
-    throw error;
+    console.log("Training data prepared.");
   }
-};
 
-// Initialize the model
-trainModel().catch(console.error);
+  // --- Core NLP Logic ---
 
-export const processQuestion = async (question, sessionId) => {
-  try {
-    if (!question || question.trim() === "") {
-      return {
-        answer: "Please provide a valid question.",
-        category: "error",
-        confidence: 0,
-        similarQuestions: [],
-      };
-    }
-
-    // Update context for this session
-    processor.updateContext(sessionId, question);
-
-    // Extract entities
-    const entities = processor.extractEntities(question);
-
-    // Analyze sentiment
-    const sentiment = processor.analyzeSentiment(question);
-
-    // Process the question using the NLP manager
-    const result = await manager.process("en", question);
-
-    // If confidence is low, try enhanced context analysis
-    if (!result.answer || result.score < 0.4) {
-      const { bestMatch, bestSimilarity } = processor.enhancedContextAnalysis(
-        question,
-        sessionId
+  // Helper to get cached or compute vector (operates on lowercase)
+  getCachedVector(text) {
+    const lowerText = text.toLowerCase();
+    if (!this.phraseVectorsCache.has(lowerText)) {
+      this.phraseVectorsCache.set(
+        lowerText,
+        this.generateWordVector(lowerText)
       );
+    }
+    return this.phraseVectorsCache.get(lowerText);
+  }
 
-      if (bestMatch && bestSimilarity > 0.6) {
-        return {
-          answer: bestMatch.answer,
-          category: bestMatch.category,
-          confidence: bestSimilarity,
-          similarQuestions: processor
-            .findContextualMatches(question, 0.5)
-            .filter((q) => q.question !== bestMatch.question)
-            .slice(0, 3)
-            .map((q) => q.question),
-          entities,
-          sentiment: sentiment.sentiment,
-        };
-      }
+  // TF-based Vectorization (operates on lowercase text)
+  // Consider TF-IDF or embeddings for future improvement
+  generateWordVector(text) {
+    if (!text || typeof text !== "string") return new Map();
+    // Already expect lowercase text here
+    const stopWords = new Set([
+      "the",
+      "and",
+      "is",
+      "in",
+      "to",
+      "a",
+      "of",
+      "for",
+      "on",
+      "with",
+      "i",
+      "you",
+      "me",
+      "my",
+      "what",
+      "how",
+      "where",
+      "when",
+      "can",
+      "do",
+    ]);
+    const words = text
+      .split(/\W+/)
+      .filter((w) => w && w.length > 1 && !stopWords.has(w));
+    const vector = new Map();
+    let sumSq = 0;
 
-      // If still no good match, try direct contextual matching
-      const similarQuestions = processor.findContextualMatches(question, 0.6);
-      if (similarQuestions.length > 0) {
-        return {
-          answer: similarQuestions[0].answer,
-          category: similarQuestions[0].category || "contextual",
-          confidence: similarQuestions[0].similarity,
-          similarQuestions: similarQuestions.slice(1, 4).map((q) => q.question),
-          entities,
-          sentiment: sentiment.sentiment,
-        };
-      }
-
-      // No good matches found
-      return {
-        answer:
-          "I'm not sure about that. Could you please rephrase your question?",
-        category: "unknown",
-        confidence: 0,
-        similarQuestions: processor
-          .findContextualMatches(question, 0.4)
-          .slice(0, 3)
-          .map((q) => q.question),
-        entities,
-        sentiment: sentiment.sentiment,
-      };
+    for (const word of words) {
+      const count = (vector.get(word) || 0) + 1;
+      vector.set(word, count);
     }
 
-    // Get similar questions for suggestions
-    const similarQuestions = processor
-      .findContextualMatches(question, 0.5)
-      .filter((q) => q.question !== question)
-      .slice(0, 3)
-      .map((q) => q.question);
+    // Normalize vector (L2 norm)
+    for (const count of vector.values()) {
+      sumSq += count * count;
+    }
+    const magnitude = Math.sqrt(sumSq);
 
+    if (magnitude > 0) {
+      for (const [word, count] of vector.entries()) {
+        vector.set(word, count / magnitude);
+      }
+    }
+    return vector;
+  }
+
+  // Cosine Similarity (operates on TF vectors)
+  cosineSimilarity(vecA, vecB) {
+    if (!vecA || !vecB || vecA.size === 0 || vecB.size === 0) return 0;
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+
+    for (const [word, valueA] of vecA.entries()) {
+      dotProduct += valueA * (vecB.get(word) || 0);
+      normA += valueA * valueA;
+    }
+    for (const valueB of vecB.values()) {
+      normB += valueB * valueB;
+    }
+
+    const magnitudeA = Math.sqrt(normA);
+    const magnitudeB = Math.sqrt(normB);
+
+    if (magnitudeA === 0 || magnitudeB === 0) return 0;
+    return dotProduct / (magnitudeA * magnitudeB);
+  }
+
+  // Finds potential matches using cosine similarity (compares lowercase input to lowercase corpus questions)
+  findContextualMatches(lowerCaseQuestion, threshold) {
+    if (!lowerCaseQuestion || !this.corpus || !this.corpus.phrases) {
+      return [];
+    }
+    const questionVector = this.getCachedVector(lowerCaseQuestion); // Use cache/compute for input
+    const matches = [];
+
+    for (const phrase of this.corpus.phrases) {
+      if (!phrase.lowercaseQuestion || !phrase.answer) continue;
+
+      // Get vector for the corpus phrase (use cache/compute)
+      const phraseVector = this.getCachedVector(phrase.lowercaseQuestion);
+      const similarity = this.cosineSimilarity(questionVector, phraseVector);
+
+      if (similarity >= threshold) {
+        matches.push({
+          question: phrase.question, // Return original case question
+          answer: phrase.answer, // Return original case answer
+          category: phrase.category,
+          similarity,
+          lowercaseQuestion: phrase.lowercaseQuestion, // Include for filtering
+        });
+      }
+    }
+    return matches.sort((a, b) => b.similarity - a.similarity);
+  }
+
+  // Context Analysis (operates on lowercase)
+  enhancedContextAnalysis(lowerCaseQuestion, sessionId) {
+    const context = this.contextMemory.get(sessionId) || [];
+    const currentQuestionVector = this.getCachedVector(lowerCaseQuestion);
+    const recentQuestions = context.slice(-3); // Look at last 3 context questions
+
+    // Generate weighted vectors for recent context questions (expect context items are already lowercase)
+    const contextVectors = recentQuestions.map((q, index) => ({
+      vector: this.getCachedVector(q),
+      weight: (0.6 * (index + 1)) / recentQuestions.length, // Recent get slightly more weight (total context weight 0.6)
+    }));
+
+    let bestMatch = null;
+    let bestSimilarityScore = 0;
+
+    if (!this.corpus || !this.corpus.phrases) {
+      return { bestMatch: null, bestSimilarityScore: 0 };
+    }
+
+    for (const phrase of this.corpus.phrases) {
+      if (!phrase.lowercaseQuestion || !phrase.answer) continue;
+
+      const phraseVector = this.getCachedVector(phrase.lowercaseQuestion);
+
+      // Similarity with current question (weighted 0.4)
+      const currentSimilarity =
+        this.cosineSimilarity(currentQuestionVector, phraseVector) * 0.4;
+
+      // Combined similarity with context questions (total weight 0.6)
+      let contextSimilarity = 0;
+      for (const { vector, weight } of contextVectors) {
+        if (vector.size > 0) {
+          // Only calculate if context vector is valid
+          contextSimilarity +=
+            this.cosineSimilarity(vector, phraseVector) * weight;
+        }
+      }
+
+      const totalSimilarity = currentSimilarity + contextSimilarity;
+
+      if (totalSimilarity > bestSimilarityScore) {
+        bestSimilarityScore = totalSimilarity;
+        bestMatch = phrase; // Keep the whole phrase object
+      }
+    }
+
+    // Return original case question/answer
     return {
-      answer: result.answer,
-      category: result.intent,
-      confidence: result.score,
-      similarQuestions,
-      entities,
-      sentiment: sentiment.sentiment,
-    };
-  } catch (error) {
-    console.error("Error processing question:", error);
-    return {
-      answer:
-        "I encountered an error processing your question. Please try again.",
-      category: "error",
-      confidence: 0,
-      similarQuestions: [],
-      entities: {},
-      sentiment: "neutral",
+      bestMatch: bestMatch
+        ? {
+            ...bestMatch,
+            question: bestMatch.question,
+            answer: bestMatch.answer,
+          }
+        : null,
+      bestSimilarityScore,
     };
   }
-};
 
-export const addQnAPair = async (question, answer, category = "general") => {
-  try {
-    // Validate input
+  updateContext(sessionId, lowerCaseQuestion) {
+    if (!sessionId || !lowerCaseQuestion) return;
+    const context = this.contextMemory.get(sessionId) || [];
+    context.push(lowerCaseQuestion); // Store lowercase in context memory
+    if (context.length > 5) context.shift(); // Limit context size
+    this.contextMemory.set(sessionId, context);
+  }
+
+  // Keyword extraction (operates on lowercase)
+  extractKeywords(lowerCaseText) {
+    if (!lowerCaseText || typeof lowerCaseText !== "string") return [];
+    const stopWords = new Set([
+      "the",
+      "and",
+      "is",
+      "in",
+      "to",
+      "a",
+      "of",
+      "for",
+      "on",
+      "with",
+      "i",
+      "you",
+      "me",
+      "my",
+      "what",
+      "how",
+      "where",
+      "when",
+      "can",
+      "do",
+      "what",
+      "is",
+      "help",
+      "need",
+      "want",
+    ]);
+    const words = lowerCaseText
+      .split(/\W+/)
+      .filter((w) => w && w.length > 2 && !stopWords.has(w));
+    const wordFreq = new Map();
+    words.forEach((word) => wordFreq.set(word, (wordFreq.get(word) || 0) + 1));
+
+    const keywords = Array.from(wordFreq.entries())
+      .filter(([_, freq]) => freq > 0) // Keep all significant words for now
+      .sort(([, freqA], [, freqB]) => freqB - freqA)
+      .slice(0, 5) // Limit to top 5
+      .map(([word]) => word);
+    return keywords;
+  }
+
+  // Regex-based Entity Extraction (operates on original case text for better matching of proper nouns, etc.)
+  extractEntitiesRegex(text) {
+    if (!text || typeof text !== "string") return {};
+    const entities = {};
+    for (const [type, pattern] of Object.entries(this.entityPatterns)) {
+      // Use matchAll to find all occurrences
+      const matches = [...text.matchAll(pattern)];
+      if (matches.length > 0) {
+        // Store potentially multiple values per type
+        entities[type] = matches.map((match) => match[0]);
+      }
+    }
+    return entities;
+  }
+
+  // Synonym lookup (operates on lowercase)
+  findSynonyms(word) {
+    if (!word || typeof word !== "string") return [];
+    const lowerWord = word.toLowerCase();
+    for (const [key, synonymsList] of this.synonyms.entries()) {
+      if (key === lowerWord || synonymsList.includes(lowerWord)) {
+        // Return the list including the key, excluding the input word itself
+        return [key, ...synonymsList].filter((syn) => syn !== lowerWord);
+      }
+    }
+    return [];
+  }
+
+  // --- Data Management ---
+
+  // Adds a QnA pair, saves corpus, adds to manager IN MEMORY. Does NOT train.
+  async addQnAPair(question, answer, category = "general") {
     if (
       !question ||
       !answer ||
@@ -705,53 +702,371 @@ export const addQnAPair = async (question, answer, category = "general") => {
     ) {
       throw new Error("Invalid question or answer format");
     }
-
-    // Add to corpus
-    processor.corpus.phrases.push({
-      question,
-      answer,
-      category,
-    });
-
-    // Save to corpus file
-    await fs.promises.writeFile(
-      CORPUS_FILE,
-      JSON.stringify(processor.corpus, null, 2)
-    );
-
-    // Add to NLP manager
-    manager.addDocument("en", question, category);
-    manager.addAnswer("en", category, answer);
-
-    // Add synonym variations
-    const words = question.split(/\W+/).filter((word) => word);
-    for (const word of words) {
-      const synonyms = processor.findSynonyms(word);
-      for (const synonym of synonyms) {
-        const synonymQuestion = question.replace(word, synonym);
-        manager.addDocument("en", synonymQuestion, category);
-      }
+    if (!this.corpus) {
+      throw new Error("Corpus not loaded. Cannot add QnA pair.");
     }
 
-    return true;
-  } catch (error) {
-    console.error("Error adding QnA pair:", error);
-    return false;
-  }
-};
+    const release = await fileMutex.acquire(); // Acquire lock before reading/writing file
+    try {
+      console.log("Acquired lock to add QnA pair.");
+      // Reload corpus from file inside the lock to get the latest version
+      let currentCorpusData;
+      let currentCorpus;
+      try {
+        currentCorpusData = await fs.promises.readFile(CORPUS_FILE, "utf8");
+        currentCorpus = JSON.parse(currentCorpusData);
+        if (!currentCorpus || !Array.isArray(currentCorpus.phrases)) {
+          console.warn(
+            "Corpus file content was invalid during add. Starting fresh."
+          );
+          currentCorpus = { phrases: [] };
+        }
+      } catch (readError) {
+        console.warn(
+          "Could not read existing corpus during add, might be creating new. Error:",
+          readError.code
+        );
+        currentCorpus = { phrases: [] }; // Start with empty if file doesnt exist or unreadable
+      }
 
-export const trainAndSave = async () => {
+      const lowerCaseQuestion = question.toLowerCase();
+
+      // Avoid adding exact duplicates (check lowercase question)
+      const exists = currentCorpus.phrases.some(
+        (p) => p.lowercaseQuestion === lowerCaseQuestion
+      );
+      if (exists) {
+        console.log(`Question already exists: "${question}". Skipping add.`);
+        return false; // Indicate that nothing was added
+      }
+
+      // Add to the structure read from file
+      const newPhrase = { question, answer, category, lowercaseQuestion };
+      currentCorpus.phrases.push(newPhrase);
+
+      // Write the updated structure back to the file
+      await fs.promises.writeFile(
+        CORPUS_FILE,
+        JSON.stringify(currentCorpus, null, 2),
+        "utf8"
+      );
+      console.log("Corpus file updated successfully.");
+
+      // Update in-memory corpus as well
+      this.corpus.phrases.push(newPhrase);
+
+      // Add to the NLP manager (in memory only)
+      manager.addDocument(
+        "en",
+        newPhrase.lowercaseQuestion,
+        newPhrase.category
+      );
+      manager.addAnswer("en", newPhrase.category, newPhrase.answer);
+      console.log("QnA pair added to in-memory manager.");
+
+      // Invalidate vector cache for the added phrase if needed (safer to clear all or relevant ones)
+      this.phraseVectorsCache.delete(newPhrase.lowercaseQuestion);
+
+      // *** CRITICAL: Do NOT train here. Training should be explicit. ***
+
+      return true; // Indicate successful addition
+    } catch (error) {
+      console.error("Error adding QnA pair:", error);
+      return false;
+    } finally {
+      release(); // Always release the lock
+      console.log("Released lock after adding QnA pair.");
+    }
+  }
+
+  // --- Model Training ---
+  // Explicit function to train and save the model
+  async trainAndSaveModel() {
+    try {
+      console.log("Starting model training...");
+      if (!this.corpus || this.corpus.phrases.length === 0) {
+        console.warn(
+          "Attempted to train model, but corpus is empty. Aborting training."
+        );
+        return false;
+      }
+      // Ensure latest data from corpus is prepared in the manager
+      await this.prepareTrainingData(); // This function adds documents/answers
+
+      const hrstart = process.hrtime();
+      await manager.train();
+      const hrend = process.hrtime(hrstart);
+      console.info(
+        `Model training completed in ${hrend[0]}s ${hrend[1] / 1000000}ms`
+      );
+
+      console.log("Saving model...");
+      await manager.save(MODEL_FILE, true); // Force saving even if unchanged according to manager
+      console.log(`Model saved successfully to ${MODEL_FILE}`);
+      this.isModelTrained = true; // Mark as trained
+      this.phraseVectorsCache.clear(); // Clear vector cache after retrain as model changes context
+      return true;
+    } catch (error) {
+      console.error("Error training and saving model:", error);
+      this.isModelTrained = false;
+      return false;
+    }
+  }
+
+  // --- Helper Methods (Internal) ---
+
+  initializeEntityPatterns() {
+    // Using slightly more robust regex, note capturing groups may differ
+    return {
+      date: /\b(?:\d{1,2}[-/]\d{1,2}[-/]\d{2,4}|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?(?:,?\s+\d{4})?)\b/gi,
+      email: /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/gi,
+      phone: /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/gi, // Improved phone regex
+      time: /\b(?:1[0-2]|0?[1-9])(?::[0-5][0-9])?(?::[0-5][0-9])?\s*(?:am|pm)\b/gi,
+      url: /https?:\/\/[^\s]+/gi,
+      courseCode: /\b[A-Z]{2,4}\s?\d{3,4}\b/gi, // Matches "CS 101", "ECE450"
+      buildingName:
+        /\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(Hall|Building|Center|Library)\b/gi, // Matches "Smith Hall", "Engineering Building"
+      professorName:
+        /\b(?:Prof\.?|Dr\.?|Professor|Doctor)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?\b/gi, // Matches "Prof. Smith", "Dr Jones"
+    };
+  }
+
+  initializeSynonyms() {
+    // Ensure keys and values are lowercase for consistent lookup
+    return new Map([
+      [
+        "hello",
+        ["hi", "hey", "greetings", "howdy", "good morning", "good evening"],
+      ],
+      ["help", ["assist", "support", "aid", "guide", "assistance"]],
+      [
+        "event",
+        ["activity", "program", "gathering", "meeting", "session", "workshop"],
+      ],
+      ["register", ["signup", "enroll", "join", "subscribe"]],
+      ["cancel", ["delete", "remove", "unsubscribe", "quit", "stop"]],
+      ["campus", ["university", "college", "school", "institution"]],
+      ["forum", ["discussion", "board", "community", "thread"]],
+      ["resource", ["material", "tool", "document", "file", "pdf", "link"]],
+      ["hostel", ["dorm", "residence", "dormitory", "hall"]],
+      ["sell", ["list", "offer"]],
+      ["buy", ["purchase", "acquire", "get"]],
+      ["ride", ["lift", "transport", "carpool", "share"]],
+    ]);
+  }
+}
+
+// --- Singleton Instance and Initialization ---
+const processor = new AdvancedLanguageProcessor();
+
+// Initialize the processor (load corpus, load/train model) asynchronously
+// This promise can be awaited elsewhere if needed before handling requests
+const initializationPromise = processor.initialize();
+
+initializationPromise
+  .then(() => {
+    console.log("AdvancedLanguageProcessor initialized.");
+  })
+  .catch((error) => {
+    console.error("Failed to initialize AdvancedLanguageProcessor:", error);
+    // Consider exiting the application if initialization fails critically
+    // process.exit(1);
+  });
+
+// --- Public Interface ---
+
+export const processQuestion = async (question, sessionId = "default") => {
+  await initializationPromise; // Ensure initialization is complete
+
+  if (!processor.isModelTrained && !processor.corpus?.phrases?.length) {
+    console.error(
+      "Cannot process question: Model not trained and corpus is empty."
+    );
+    return {
+      /* Default error response */
+    };
+  }
+
   try {
-    console.log("Training model...");
-    await manager.train();
-    console.log("Saving model...");
-    await manager.save(MODEL_FILE);
-    console.log("Model trained and saved successfully");
-    return true;
+    if (!question || typeof question !== "string" || question.trim() === "") {
+      return {
+        answer: "Please provide a valid question.",
+        category: "error",
+        confidence: 0,
+        similarQuestions: [],
+        entities: {},
+        sentiment: "neutral",
+        keywords: [],
+      };
+    }
+
+    const originalQuestion = question; // Keep original for logging or context if needed
+    const lowerCaseQuestion = question.toLowerCase();
+
+    // Update context with lowercase version
+    processor.updateContext(sessionId, lowerCaseQuestion);
+
+    // Process with NlpManager (expects lowercase)
+    const result = await manager.process("en", lowerCaseQuestion);
+    const nlpConfidence = result.score || 0;
+    const nlpAnswer = result.answer;
+    const nlpIntent = result.intent || "None";
+
+    // Extract features (use lowercase for analysis, original for regex)
+    const keywords = processor.extractKeywords(lowerCaseQuestion);
+    const regexEntities = processor.extractEntitiesRegex(originalQuestion); // Use original case text for regex
+    const nlpEntities = result.entities || []; // From NlpManager NER
+
+    // Combine entities (simple merge, prioritize NLP Manager's usually)
+    const combinedEntities = { ...regexEntities };
+    nlpEntities.forEach((entity) => {
+      if (entity.entity && entity.sourceText) {
+        if (!combinedEntities[entity.entity]) {
+          combinedEntities[entity.entity] = [];
+        }
+        // Avoid duplicates if regex caught the same thing
+        if (!combinedEntities[entity.entity].includes(entity.sourceText)) {
+          combinedEntities[entity.entity].push(entity.sourceText);
+        }
+      }
+    });
+
+    // Use NLP Manager's sentiment if available and scored, otherwise fallback (could add custom here if needed)
+    const sentimentResult =
+      result.sentiment && result.sentiment.score !== 0
+        ? { score: result.sentiment.score, sentiment: result.sentiment.vote }
+        : { score: 0, sentiment: "neutral" }; // Basic default fallback
+
+    // --- Decision Logic ---
+
+    // 1. High Confidence NLP Match
+    if (nlpAnswer && nlpIntent !== "None" && nlpConfidence >= HIGH_CONFIDENCE) {
+      console.log(
+        `High confidence match (${nlpConfidence}) via NLP Manager for intent: ${nlpIntent}`
+      );
+      const similar = processor
+        .findContextualMatches(lowerCaseQuestion, SUGGESTION_THRESHOLD)
+        .filter((q) => q.lowercaseQuestion !== lowerCaseQuestion) // Filter out self
+        .slice(0, 3)
+        .map((q) => q.question); // Return original case questions
+      return {
+        answer: nlpAnswer, // Use the direct answer from matched intent
+        category: nlpIntent,
+        confidence: nlpConfidence,
+        similarQuestions: similar,
+        entities: combinedEntities,
+        sentiment: sentimentResult.sentiment,
+        keywords,
+        matchType: "nlp_high",
+      };
+    }
+
+    // 2. Medium Confidence - Try Enhanced Context Analysis
+    console.log(
+      `NLP confidence (${nlpConfidence}) below HIGH (${HIGH_CONFIDENCE}). Trying enhanced context.`
+    );
+    const { bestMatch: contextMatch, bestSimilarityScore: contextScore } =
+      processor.enhancedContextAnalysis(lowerCaseQuestion, sessionId);
+
+    if (contextMatch && contextScore >= MEDIUM_CONFIDENCE) {
+      console.log(
+        `Medium confidence match (${contextScore}) via Enhanced Context Analysis.`
+      );
+      const similar = processor
+        .findContextualMatches(lowerCaseQuestion, SUGGESTION_THRESHOLD)
+        .filter((q) => q.lowercaseQuestion !== contextMatch.lowercaseQuestion) // Filter match
+        .slice(0, 3)
+        .map((q) => q.question);
+      return {
+        answer: contextMatch.answer, // Original case answer
+        category: contextMatch.category,
+        confidence: contextScore,
+        similarQuestions: similar,
+        entities: combinedEntities,
+        sentiment: sentimentResult.sentiment,
+        keywords,
+        matchType: "context_medium",
+      };
+    }
+
+    // 3. Low Confidence - Try Direct Cosine Similarity Fallback
+    console.log(
+      `Context confidence (${contextScore}) below MEDIUM (${MEDIUM_CONFIDENCE}). Trying direct similarity.`
+    );
+    const directMatches = processor.findContextualMatches(
+      lowerCaseQuestion,
+      LOW_CONFIDENCE
+    );
+
+    if (directMatches.length > 0) {
+      const bestDirectMatch = directMatches[0];
+      console.log(
+        `Low confidence match (${bestDirectMatch.similarity}) via Direct Similarity.`
+      );
+      const similar = directMatches.slice(1, 4).map((q) => q.question); // Suggest next best direct matches
+      return {
+        answer: bestDirectMatch.answer, // Original case answer
+        category: bestDirectMatch.category,
+        confidence: bestDirectMatch.similarity,
+        similarQuestions: similar,
+        entities: combinedEntities,
+        sentiment: sentimentResult.sentiment,
+        keywords,
+        matchType: "similarity_low",
+      };
+    }
+
+    // 4. No Match Found - Provide Default + Suggestions
+    console.log(`No matches found above LOW threshold (${LOW_CONFIDENCE}).`);
+    const suggestions = processor
+      .findContextualMatches(lowerCaseQuestion, SUGGESTION_THRESHOLD)
+      .slice(0, 3)
+      .map((q) => q.question); // Original case questions
+    return {
+      answer:
+        "I'm not sure how to answer that. Can you try rephrasing? You might also find these related topics helpful:",
+      category: "unknown",
+      confidence: 0,
+      similarQuestions: suggestions,
+      entities: combinedEntities,
+      sentiment: sentimentResult.sentiment,
+      keywords,
+      matchType: "none",
+    };
   } catch (error) {
-    console.error("Error training and saving model:", error);
-    return false;
+    console.error("Error processing question:", error);
+    return {
+      answer:
+        "Sorry, I encountered an internal error trying to process your request. Please try again later.",
+      category: "error",
+      confidence: 0,
+      similarQuestions: [],
+      entities: {},
+      sentiment: "neutral",
+      keywords: [],
+      matchType: "error",
+    };
   }
 };
 
+// Expose the explicit training function
+export const trainAndSave = async () => {
+  await initializationPromise; // Ensure processor is initialized
+  return await processor.trainAndSaveModel();
+};
 
+// Expose the add function
+export const addQnAPair = async (question, answer, category) => {
+  await initializationPromise; // Ensure processor is initialized
+  // The function inside the processor now handles the mutex and saving corpus
+  const success = await processor.addQnAPair(question, answer, category);
+  if (success) {
+    console.log(
+      "Successfully added QnA. Remember to call trainAndSave() later to include it in the active model."
+    );
+  }
+  return success;
+};
+
+// Optionally expose the processor instance if direct access is needed elsewhere (use with caution)
+// export { processor };
