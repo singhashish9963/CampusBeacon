@@ -1,0 +1,244 @@
+{
+  "phrases": [
+    {
+      "question": "hello",
+      "answer": "Hello there! Welcome to CampusBeacon. It's great to have you here. How can I assist you today?",
+      "category": "greetings",
+      "lowercaseQuestion": "hello"
+    },
+    {
+      "question": "hi",
+      "answer": "Hi! Glad you're here at CampusBeacon. How can I help you with our services?",
+      "category": "greetings",
+      "lowercaseQuestion": "hi"
+    },
+    {
+      "question": "hey",
+      "answer": "Hey! Thanks for stopping by CampusBeacon. Let me know what you're looking for!",
+      "category": "greetings",
+      "lowercaseQuestion": "hey"
+    },
+    {
+      "question": "good morning",
+      "answer": "Good morning! Hope you have a wonderful day on CampusBeacon!",
+      "category": "greetings",
+      "lowercaseQuestion": "good morning"
+    },
+    {
+      "question": "good evening",
+      "answer": "Good evening! Feel free to explore CampusBeacon's features anytime.",
+      "category": "greetings",
+      "lowercaseQuestion": "good evening"
+    },
+    {
+      "question": "how are you",
+      "answer": "I'm here to help! Thanks for asking. What can I do for you today on CampusBeacon?",
+      "category": "casual",
+      "lowercaseQuestion": "how are you"
+    },
+    {
+      "question": "What is CampusBeacon?",
+      "answer": "CampusBeacon is a comprehensive platform that connects campus communities with events, academic resources, forums, and more. We strive to make campus life easier and more engaging.",
+      "category": "general",
+      "lowercaseQuestion": "what is campusbeacon?"
+    },
+    {
+      "question": "How do I sign up for CampusBeacon?",
+      "answer": "Signing up is quick and easy! Just click on 'Register' on our homepage, enter your email and password, and you're all set.",
+      "category": "registration",
+      "lowercaseQuestion": "how do i sign up for campusbeacon?"
+    },
+    {
+      "question": "What services does CampusBeacon offer?",
+      "answer": "We offer real-time event updates, lost and found, buy and sell boards, academic collaboration tools, forums, and more. Check our site for a full list of features!",
+      "category": "services",
+      "lowercaseQuestion": "what services does campusbeacon offer?"
+    },
+    {
+      "question": "How can I contact CampusBeacon support?",
+      "answer": "For support, visit our 'Contact Us' page or send an email to campusbeacon0@gmail.com. We'll get back to you soon!",
+      "category": "support",
+      "lowercaseQuestion": "how can i contact campusbeacon support?"
+    },
+    {
+      "question": "Is my personal data safe on CampusBeacon?",
+      "answer": "Yes, we employ industry-standard security measures to keep your data safe. Please see our Privacy Policy for more details.",
+      "category": "privacy",
+      "lowercaseQuestion": "is my personal data safe on campusbeacon?"
+    },
+    {
+      "question": "What campus events are coming up?",
+      "answer": "Check out the dynamic events calendar on CampusBeacon to see what's happening. You can also filter by categories or dates.",
+      "category": "events",
+      "lowercaseQuestion": "what campus events are coming up?"
+    },
+    {
+      "question": "How do I find events on CampusBeacon?",
+      "answer": "Just head to our 'Events' section. You can browse upcoming events by date, category, or campus location.",
+      "category": "events",
+      "lowercaseQuestion": "how do i find events on campusbeacon?"
+    },
+    {
+      "question": "I need help",
+      "answer": "Let me know what you need help with specifically, and I'll do my best to assist!",
+      "category": "help",
+      "lowercaseQuestion": "i need help"
+    },
+    {
+      "question": "How can I access the hostel section?",
+      "answer": "You can access the hostel section by clicking on the 'Hostel' button in the navbar. There, you can check hostel details, officials, and other features.",
+      "category": "hostel",
+      "lowercaseQuestion": "how can i access the hostel section?"
+    },
+    {
+      "question": "How can I submit a complaint about hostel issues?",
+      "answer": "To submit a complaint, go to the hostel section and find the 'Complaint Box'. You can enter your issue, and the hostel administration will review it.",
+      "category": "hostel",
+      "lowercaseQuestion": "how can i submit a complaint about hostel issues?"
+    },
+    {
+      "question": "Where can I see hostel notifications?",
+      "answer": "You can check hostel-related notifications in the 'Notification Box' inside the hostel section. Admins post important updates there.",
+      "category": "notification",
+      "lowercaseQuestion": "where can i see hostel notifications?"
+    },
+    {
+      "question": "How can I view hostel officials?",
+      "answer": "You can find the list of hostel officials in the 'Hostel Officials' section. It includes details like their name, position, and contact info.",
+      "category": "officials",
+      "lowercaseQuestion": "how can i view hostel officials?"
+    },
+    {
+      "question": "How can I check my attendance?",
+      "answer": "Your attendance records are available in the 'Attendance' section. It shows your subject-wise attendance percentage.",
+      "category": "attendance",
+      "lowercaseQuestion": "how can i check my attendance?"
+    },
+    {
+      "question": "How can I access study materials?",
+      "answer": "You can find study materials, PDFs, and images categorized by branches and semesters in the 'Resource Hub' section.",
+      "category": "resource_hub",
+      "lowercaseQuestion": "how can i access study materials?"
+    },
+    {
+      "question": "How can I buy an item from another student?",
+      "answer": "Go to the 'Buy & Sell' section to browse items listed by other students. You can contact the seller and negotiate the price.",
+      "category": "buy_sell",
+      "lowercaseQuestion": "how can i buy an item from another student?"
+    },
+    {
+      "question": "How can I sell my items to other students?",
+      "answer": "In the 'Buy & Sell' section, click on 'Sell an Item' and upload details about the product, including images, description, and price.",
+      "category": "buy_sell",
+      "lowercaseQuestion": "how can i sell my items to other students?"
+    },
+    {
+      "question": "Where can I check the menu of canteens?",
+      "answer": "You can check the menu of different canteens in the 'Eateries' section. It shows the available food items and their prices.",
+      "category": "eateries",
+      "lowercaseQuestion": "where can i check the menu of canteens?"
+    },
+    {
+      "question": "Can I rate the food in canteens?",
+      "answer": "Yes, you can rate and review the food in the 'Eateries' section to help other students choose the best options.",
+      "category": "eateries",
+      "lowercaseQuestion": "can i rate the food in canteens?"
+    },
+    {
+      "question": "How can I take a ride?",
+      "answer": "To take a ride, go to the 'Rides' section and check available rides. You can book a ride based on your destination and time preference.",
+      "category": "rides",
+      "lowercaseQuestion": "how can i take a ride?"
+    },
+    {
+      "question": "How can I share a ride?",
+      "answer": "If you want to share a ride, go to the 'Rides' section and list your ride details, including start location, destination, and available seats.",
+      "category": "rides",
+      "lowercaseQuestion": "how can i share a ride?"
+    },
+    {
+      "question": "How can I view upcoming exams?",
+      "answer": "You can check upcoming exams in the 'Exam Schedule' section, where dates and subjects are listed.",
+      "category": "resource_hub",
+      "lowercaseQuestion": "how can i view upcoming exams?"
+    },
+    {
+      "question": "Can I view my class timetable?",
+      "answer": "Yes, your class timetable is available in the 'Timetable' section under Resource Hub.",
+      "category": "resource_hub",
+      "lowercaseQuestion": "can i view my class timetable?"
+    },
+    {
+      "question": "How do I find past year question papers?",
+      "answer": "Past year question papers are available in the 'Resource Hub' under the study materials section.",
+      "category": "resource_hub",
+      "lowercaseQuestion": "how do i find past year question papers?"
+    },
+    {
+      "question": "How do I contact hostel officials?",
+      "answer": "Hostel officials' contact details are listed in the 'Hostel Officials' section.",
+      "category": "officials",
+      "lowercaseQuestion": "how do i contact hostel officials?"
+    },
+    {
+      "question": "Can I request maintenance for my hostel room?",
+      "answer": "Yes, you can request maintenance by submitting a complaint in the 'Complaint Box' under the hostel section.",
+      "category": "hostel",
+      "lowercaseQuestion": "can i request maintenance for my hostel room?"
+    },
+    {
+      "question": "How do I book a ride to the railway station?",
+      "answer": "You can check for available rides in the 'Rides' section and book one that suits your schedule.",
+      "category": "rides",
+      "lowercaseQuestion": "how do i book a ride to the railway station?"
+    },
+    {
+      "question": "Can I list multiple items for sale?",
+      "answer": "Yes, you can list multiple items in the 'Buy & Sell' section.",
+      "category": "buy_sell",
+      "lowercaseQuestion": "can i list multiple items for sale?"
+    },
+    {
+      "question": "How do I know if my attendance is below the required percentage?",
+      "answer": "You will see a warning in the 'Attendance' section if your attendance is below the minimum percentage required.",
+      "category": "attendance",
+      "lowercaseQuestion": "how do i know if my attendance is below the required percentage?"
+    },
+    {
+      "question": "Where can I download assignment PDFs?",
+      "answer": "You can download assignment PDFs from the 'Resource Hub' under your branch and semester.",
+      "category": "resource_hub",
+      "lowercaseQuestion": "where can i download assignment pdfs?"
+    },
+    {
+      "question": "Can I search for specific food items in the eateries section?",
+      "answer": "Yes, you can search for specific food items and their availability in the 'Eateries' section.",
+      "category": "eateries",
+      "lowercaseQuestion": "can i search for specific food items in the eateries section?"
+    },
+    {
+      "question": "How do I report a lost or found item?",
+      "answer": "You can report lost and found items in the 'Lost & Found' section.",
+      "category": "lost_found",
+      "lowercaseQuestion": "how do i report a lost or found item?"
+    },
+    {
+      "question": "Is there a way to check hostel mess timings?",
+      "answer": "Yes, you can check hostel mess timings in the 'Hostel' section.",
+      "category": "hostel",
+      "lowercaseQuestion": "is there a way to check hostel mess timings?"
+    },
+    {
+      "question": "Can I update my profile details?",
+      "answer": "Yes, you can edit your profile details in the 'Profile' section.",
+      "category": "general",
+      "lowercaseQuestion": "can i update my profile details?"
+    },
+    {
+      "question": "How do I view my exam results?",
+      "answer": "Your exam results are available in the 'Exam Results' section of the Resource Hub.",
+      "category": "resource_hub",
+      "lowercaseQuestion": "how do i view my exam results?"
+    }
+  ]
+}
